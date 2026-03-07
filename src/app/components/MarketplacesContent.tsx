@@ -1,0 +1,468 @@
+import { useState, useEffect } from "react";
+import svgPaths from "../../imports/svg-towfc7zrfc";
+import collapsedSvgPaths from "../../imports/svg-8wr1a91yy5";
+import imgEbay from "figma:asset/fc302d572214546f8204178ed8fb7d0af8c7506e.png";
+import imgMercari from "figma:asset/818d7c9ebebd26d98ee60737907006a9b258dce3.png";
+import imgDepop from "figma:asset/9fc19e9b972ada34a5069710f93ea92cd4258fea.png";
+import imgFacebook from "figma:asset/55ad25062cf42038188e8437b6d83a149a822f83.png";
+
+interface MarketplacesContentProps {
+  shouldExpand?: boolean;
+  onExpandChange?: () => void;
+  onContinue?: () => void;
+  selectedMarketplaces: string[];
+  onMarketplacesChange: (marketplaces: string[]) => void;
+}
+
+export default function MarketplacesContent({ shouldExpand, onExpandChange, onContinue, selectedMarketplaces, onMarketplacesChange }: MarketplacesContentProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
+
+  useEffect(() => {
+    if (shouldExpand) {
+      setIsExpanded(true);
+      onExpandChange?.();
+    }
+  }, [shouldExpand, onExpandChange]);
+
+  const marketplaces = [
+    { id: "ebay", name: "eBay", image: imgEbay, connected: true },
+    { id: "mercari", name: "Mercari", image: imgMercari, connected: true },
+    { id: "depop", name: "Depop", image: imgDepop, connected: true },
+    { id: "facebook", name: "Facebook", image: imgFacebook, connected: true },
+  ];
+
+  const toggleMarketplace = (id: string) => {
+    const newMarketplaces = selectedMarketplaces.includes(id) 
+      ? selectedMarketplaces.filter((m) => m !== id) 
+      : [...selectedMarketplaces, id];
+    onMarketplacesChange(newMarketplaces);
+  };
+
+  const handleContinue = () => {
+    setHasCompleted(true);
+    setIsExpanded(false);
+    onContinue?.();
+  };
+
+  return (
+    <div className="bg-[#F5EEFC] content-stretch flex flex-col items-start relative rounded-[16px] w-full">
+      <div aria-hidden="true" className={`absolute border border-[#cbc3d7] border-solid inset-[-1px] pointer-events-none rounded-[17px] ${isExpanded ? 'shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]' : ''} bg-[#ffffff]`} />
+      
+      {/* Title Step */}
+      <div 
+        className={`bg-[#F5EEFC] content-stretch flex flex-col items-start relative shrink-0 w-full ${
+          isExpanded ? 'rounded-tl-[16px] rounded-tr-[16px]' : 'rounded-[16px]'
+        }`}
+      >
+        <div className="relative shrink-0 w-full">
+          <div className="flex flex-row items-center size-full">
+            <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
+              {/* Title */}
+              <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
+                <div className="content-stretch flex items-center relative shrink-0">
+                  <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
+                    {/* Step Badge */}
+                    {isExpanded ? (
+                      <div className="bg-[#64539b] content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                        <div aria-hidden="true" className="absolute border-[#64539b] border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
+                        <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
+                          <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] text-center text-white tracking-[0.5px] whitespace-nowrap">
+                            <p className="leading-[24px]">3</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : hasCompleted ? (
+                      <div className="relative shrink-0 size-[32px]">
+                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 32 32">
+                          <circle cx="16" cy="16" fill="var(--fill-0, #C3B0FF)" r="15.25" stroke="var(--stroke-0, #C3B0FF)" strokeWidth="1.5" />
+                        </svg>
+                        <div className="absolute left-[4px] overflow-clip size-[24px] top-[4px]">
+                          <div className="absolute inset-[19.32%_8.33%_19.99%_8.33%]">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 14.5656">
+                              <path d={collapsedSvgPaths.p97f8e00} fill="var(--fill-0, #503F86)" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-[#64539b] content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                        <div aria-hidden="true" className="absolute border-[#64539b] border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
+                        <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
+                          <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] text-center text-white tracking-[0.5px] whitespace-nowrap">
+                            <p className="leading-[24px]">3</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="content-stretch flex items-center justify-center relative shrink-0">
+                      <p className={`font-['Lexend:Regular',sans-serif] font-normal leading-[32px] relative shrink-0 text-[24px] whitespace-nowrap ${ isExpanded ? 'text-[#1d1a24]' : (hasCompleted ? 'text-[#494455]' : 'text-[#1d1a24]') } font-[Lexend] text-[#494455]`}>Marketplaces</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Marketplace Logos - Only show when collapsed and marketplaces are selected */}
+                {!isExpanded && hasCompleted && selectedMarketplaces.length > 0 && (
+                  <div className="content-stretch flex gap-[4px] items-start opacity-38 p-[4px] relative shrink-0">
+                    {selectedMarketplaces.map((marketplaceId) => {
+                      const marketplace = marketplaces.find(m => m.id === marketplaceId);
+                      return marketplace ? (
+                        <div key={marketplaceId} className="bg-white overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
+                          <img src={marketplace.image} alt={marketplace.name} className="absolute inset-0 object-cover size-full" />
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="content-stretch flex items-center relative shrink-0"
+                aria-label={isExpanded ? "Collapse" : "Expand"}
+              >
+                <div className="relative shrink-0 size-[48px]">
+                  <div className="-translate-x-1/2 -translate-y-1/2 absolute content-stretch flex flex-col items-center justify-center left-[calc(50%-0.5px)] overflow-clip rounded-[100px] top-1/2 w-[40px]">
+                    <div className="content-stretch flex h-[40px] items-center justify-center relative shrink-0 w-full">
+                      {isExpanded ? (
+                        <div className="overflow-clip relative shrink-0 size-[24px]">
+                          <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
+                            <svg
+                              className="absolute block size-full transition-transform duration-300"
+                              fill="none"
+                              preserveAspectRatio="none"
+                              viewBox="0 0 19.9993 11.3458"
+                              style={{
+                                transform: "rotate(180deg)",
+                              }}
+                            >
+                              <path d={svgPaths.p28797e80} fill="var(--fill-0, #1D1A24)" />
+                            </svg>
+                          </div>
+                        </div>
+                      ) : hasCompleted ? (
+                        <div className="overflow-clip relative shrink-0 size-[24px]">
+                          <div className="-translate-x-1/2 -translate-y-1/2 absolute h-[18.183px] left-[calc(50%-0.5px)] top-[calc(50%+0.09px)] w-[19px]">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19 18.1834">
+                              <g>
+                                <path clipRule="evenodd" d={collapsedSvgPaths.p1e751200} fill="var(--fill-0, #494455)" fillRule="evenodd" />
+                                <path d={collapsedSvgPaths.p3a455080} fill="var(--fill-0, #494455)" />
+                              </g>
+                            </svg>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="overflow-clip relative shrink-0 size-[24px]">
+                          <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
+                            <svg
+                              className="absolute block size-full transition-transform duration-300"
+                              fill="none"
+                              preserveAspectRatio="none"
+                              viewBox="0 0 19.9993 11.3458"
+                              style={{
+                                transform: "rotate(0deg)",
+                              }}
+                            >
+                              <path d={svgPaths.p28797e80} fill="var(--fill-0, #1D1A24)" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      {isExpanded && (
+        <div className="h-[2px] relative shrink-0 w-full">
+          <div className="absolute bottom-0 left-0 right-0 top-full">
+            <div className="absolute inset-[-1px_0_0_0]">
+              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 760 1">
+                <line stroke="var(--stroke-0, #CBC3D7)" strokeLinecap="square" x1="0.5" x2="759.5" y1="0.5" y2="0.5" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      {isExpanded && (
+        <div className="content-stretch flex flex-col gap-[22px] items-start py-[24px] relative shrink-0 w-full">
+          {/* Marketplace Grid */}
+          <div className="relative shrink-0 w-full">
+            <div className="overflow-clip rounded-[inherit] size-full">
+              <div className="content-stretch flex gap-[12px] items-start px-[24px] relative w-full">
+                {/* Left Column */}
+                <div className="content-stretch flex flex-[1_0_0] flex-col gap-[2px] items-start min-h-px min-w-px overflow-clip relative self-stretch">
+                  {/* eBay */}
+                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                    <div 
+                      className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
+                        selectedMarketplaces.includes("ebay") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                      }`}
+                      onClick={() => toggleMarketplace("ebay")}
+                    >
+                      <div className="flex flex-row items-center size-full">
+                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
+                          {/* Thumbnail */}
+                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
+                            <div className="relative shrink-0 size-[56px]">
+                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
+                                <div aria-hidden="true" className="absolute inset-0 rounded-[4px]">
+                                  <div className="absolute bg-white inset-0 rounded-[4px]" />
+                                  <img alt="" className="absolute max-w-none object-cover rounded-[4px] size-full" src={imgEbay} />
+                                </div>
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("ebay") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                              </div>
+                            </div>
+                          </div>
+                          {/* Content */}
+                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
+                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
+                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("ebay") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                                <p className="leading-[24px]">eBay</p>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Checkbox */}
+                          <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0 z-[1]">
+                            <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
+                              {selectedMarketplaces.includes("ebay") ? (
+                                <>
+                                  <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                  <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
+                                    <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
+                                      <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
+                                        <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="relative rounded-[2px] shrink-0 size-[18px]">
+                                  <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mercari */}
+                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                    <div 
+                      className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
+                        selectedMarketplaces.includes("mercari") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                      }`}
+                      onClick={() => toggleMarketplace("mercari")}
+                    >
+                      <div className="flex flex-row items-center size-full">
+                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
+                          {/* Thumbnail */}
+                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
+                            <div className="relative shrink-0 size-[56px]">
+                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
+                                <div aria-hidden="true" className="absolute inset-0 rounded-[4px]">
+                                  <div className="absolute bg-white inset-0 rounded-[4px]" />
+                                  <img alt="" className="absolute max-w-none object-cover rounded-[4px] size-full" src={imgMercari} />
+                                </div>
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("mercari") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                              </div>
+                            </div>
+                          </div>
+                          {/* Content */}
+                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
+                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
+                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("mercari") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                                <p className="leading-[24px]">Mercari</p>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Checkbox */}
+                          <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0 z-[1]">
+                            <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
+                              {selectedMarketplaces.includes("mercari") ? (
+                                <>
+                                  <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                  <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
+                                    <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
+                                      <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
+                                        <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="relative rounded-[2px] shrink-0 size-[18px]">
+                                  <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="content-stretch flex flex-[1_0_0] flex-col gap-[2px] items-start min-h-px min-w-px overflow-clip relative self-stretch">
+                  {/* Depop */}
+                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                    <div 
+                      className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
+                        selectedMarketplaces.includes("depop") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                      }`}
+                      onClick={() => toggleMarketplace("depop")}
+                    >
+                      <div className="flex flex-row items-center size-full">
+                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
+                          {/* Thumbnail */}
+                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
+                            <div className="relative shrink-0 size-[56px]">
+                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
+                                <img alt="" className="absolute inset-0 max-w-none object-cover rounded-[4px] size-full" src={imgDepop} />
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("depop") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                              </div>
+                            </div>
+                          </div>
+                          {/* Content */}
+                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
+                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
+                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("depop") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                                <p className="leading-[24px]">Depop</p>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Checkbox */}
+                          <div className="content-stretch flex gap-[8px] items-center justify-end relative shrink-0 z-[1]">
+                            <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0">
+                              <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
+                                {selectedMarketplaces.includes("depop") ? (
+                                  <>
+                                    <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                    <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
+                                      <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
+                                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
+                                          <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="relative rounded-[2px] shrink-0 size-[18px]">
+                                    <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Facebook */}
+                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                    <div 
+                      className={`relative rounded-[12px] shrink-0 w-full cursor-pointer ${
+                        selectedMarketplaces.includes("facebook") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                      }`}
+                      onClick={() => toggleMarketplace("facebook")}
+                    >
+                      <div className="flex flex-row items-center size-full">
+                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
+                          {/* Thumbnail */}
+                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
+                            <div className="relative shrink-0 size-[56px]">
+                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
+                                <img alt="" className="absolute inset-0 max-w-none object-cover rounded-[4px] size-full" src={imgFacebook} />
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("facebook") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                              </div>
+                            </div>
+                          </div>
+                          {/* Content */}
+                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
+                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
+                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("facebook") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                                <p className="leading-[24px]">Facebook</p>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Checkbox */}
+                          <div className="content-stretch flex gap-[8px] items-center justify-end relative shrink-0 z-[1]">
+                            <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0">
+                              <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
+                                {selectedMarketplaces.includes("facebook") ? (
+                                  <>
+                                    <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                    <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
+                                      <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
+                                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
+                                          <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="relative rounded-[2px] shrink-0 size-[18px]">
+                                    <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Continue Button */}
+          <div className="relative shrink-0 w-full">
+            <div className="flex flex-row items-end justify-end size-full">
+              <div className="content-stretch flex items-end justify-end px-[24px] relative w-full">
+                <button 
+                  onClick={handleContinue}
+                  className="bg-[#c3b0ff] content-stretch cursor-pointer flex h-[48px] items-center justify-center relative rounded-[5px] shrink-0"
+                >
+                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
+                    <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
+                      <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
+                        <div className="flex flex-col font-['Lexend:Medium',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[#503f86] text-[14px] text-center tracking-[0.1px] whitespace-nowrap">
+                          <p className="leading-[20px]">Continue to pricing</p>
+                        </div>
+                      </div>
+                      <div className="overflow-clip relative shrink-0 size-[20px]">
+                        <div className="absolute bottom-[8.34%] left-1/4 right-[27.73%] top-[8.33%]">
+                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9.45486 16.666">
+                            <path d={svgPaths.p23f63600} fill="var(--fill-0, #503F86)" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
