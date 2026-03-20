@@ -154,8 +154,8 @@ export default function CreateItemLayout({ children, shouldExpandItemDetails, sh
             {children.marketplaces}
           </div>
 
-          {/* Pricing Section */}
-          <div id="listing-price-shipping" data-step="price-shipping">
+          {/* Pricing + Shipping Section Group */}
+          <div id="listing-price-shipping" data-step="price-shipping" className="flex flex-col gap-[24px]">
             {children.pricing}
 
             {/* Shipping Section */}
