@@ -138,6 +138,12 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
     }
   };
 
+  const handleHeaderClick = () => {
+    if (isCollapsed && hasPhotos) {
+      onToggleExpand?.();
+    }
+  };
+
   // Create array of 8 tiles
   const tiles = Array.from({ length: MAX_PHOTOS }, (_, index) => {
     if (index < photos.length) {
@@ -155,7 +161,10 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
       <div className="bg-surface-variant content-stretch flex flex-col gap-[12px] items-start justify-center relative rounded-[16px] w-full">
         <div aria-hidden="true" className="absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px]" />
         <div className="bg-surface-variant content-stretch flex flex-col gap-[8px] items-start justify-center relative rounded-[16px] shrink-0 w-full">
-          <div className="relative shrink-0 w-full">
+          <div
+            className={`relative shrink-0 w-full ${isCollapsed && hasPhotos ? 'cursor-pointer' : ''}`}
+            onClick={handleHeaderClick}
+          >
             <div className="flex flex-row items-center size-full">
               <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
                 <div className="flex flex-[1_0_0] flex-row items-center self-stretch">
@@ -208,7 +217,10 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                   </div>
                   {/* Edit button */}
                   <button
-                    onClick={onToggleExpand}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToggleExpand?.();
+                    }}
                     className="relative shrink-0 size-[48px]"
                   >
                     <div className="-translate-x-1/2 -translate-y-1/2 absolute content-stretch flex flex-col items-center justify-center left-[calc(50%-0.5px)] overflow-clip rounded-[100px] top-1/2 w-[40px]">

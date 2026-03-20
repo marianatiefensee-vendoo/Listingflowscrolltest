@@ -275,6 +275,13 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     setIsExpanded(true);
   };
 
+  const handleHeaderClick = () => {
+    if (!isExpanded) {
+      setIsExpanded(true);
+      onManualExpand?.();
+    }
+  };
+
   return (
     <div className="bg-surface-variant content-stretch flex flex-col gap-[12px] items-start relative rounded-[16px] w-full">
       <div aria-hidden="true" className="absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px] bg-card" />
@@ -286,7 +293,10 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
         }`}
       >
         {/* Unified Header */}
-        <div className="relative shrink-0 w-full">
+        <div
+          className={`relative shrink-0 w-full ${!isExpanded ? 'cursor-pointer' : ''}`}
+          onClick={handleHeaderClick}
+        >
           <div className="flex flex-row items-center size-full">
             <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
               {/* Title */}
@@ -342,7 +352,8 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
 
               {/* Actions */}
               <button
-                onClick={() => {
+                onClick={(event) => {
+                  event.stopPropagation();
                   const willExpand = !isExpanded;
                   setIsExpanded(willExpand);
                   if (willExpand) onManualExpand?.();
