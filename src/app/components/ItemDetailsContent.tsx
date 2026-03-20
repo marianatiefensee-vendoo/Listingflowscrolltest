@@ -4,54 +4,11 @@ import conditionSvgPaths from "../../imports/svg-eidwq1eo1i";
 import completedSvgPaths from "../../imports/svg-qt0lwj09d3";
 import Dropdown from "./Dropdown";
 import type { ItemDetails } from "../App";
-
-// Popular US marketplace categories
-const CATEGORIES = [
-  "Women's Clothing",
-  "Men's Clothing",
-  "Women's Shoes",
-  "Men's Shoes",
-  "Electronics",
-  "Home & Garden",
-  "Collectibles & Art",
-  "Toys & Hobbies",
-  "Sporting Goods",
-  "Books & Media",
-  "Health & Beauty",
-  "Jewelry & Accessories",
-  "Baby & Kids",
-  "Pet Supplies",
-  "Automotive",
-];
-
-// Popular brands
-const BRANDS = [
-  "Nike",
-  "Adidas",
-  "Apple",
-  "Samsung",
-  "Sony",
-  "Levi's",
-  "Gucci",
-  "Prada",
-  "Louis Vuitton",
-  "Coach",
-  "Michael Kors",
-  "Under Armour",
-  "North Face",
-  "Patagonia",
-  "Zara",
-  "H&M",
-  "Forever 21",
-  "Gap",
-  "Old Navy",
-  "Target",
-  "Walmart",
-  "Amazon Basics",
-  "Generic",
-  "Unbranded",
-  "Other",
-];
+import {
+  COMMON_MARKETPLACE_BRAND_OPTIONS,
+  COMMON_MARKETPLACE_CATEGORY_OPTIONS,
+  MARKETPLACE_CATEGORY_API_SUPPORT,
+} from "../data/marketplaceTaxonomy";
 
 interface ItemDetailsContentProps {
   initialData?: ItemDetails | null;
@@ -142,10 +99,16 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
 
   // Dynamically include AI brand in the dropdown — persisted custom brands stay available
   const brandOptions = (() => {
-    const merged = [...BRANDS];
+    const merged = [...COMMON_MARKETPLACE_BRAND_OPTIONS];
     for (const cb of customBrands) {
-      if (!merged.some(b => b.toLowerCase() === cb.toLowerCase())) {
-        merged.unshift(cb);
+      if (!merged.some((option) => option.value.toLowerCase() === cb.toLowerCase())) {
+        merged.unshift({
+          value: cb,
+          label: cb,
+          description: "Custom / AI-added brand",
+          detail: "Searchable across crosslisting catalog",
+          isAISuggested: true,
+        });
       }
     }
     return merged;
@@ -153,14 +116,24 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
 
   // Dynamically include AI category in the dropdown — persisted custom categories stay available
   const categoryOptions = (() => {
-    const merged = [...CATEGORIES];
+    const merged = [...COMMON_MARKETPLACE_CATEGORY_OPTIONS];
     for (const cc of customCategories) {
-      if (!merged.some(c => c.toLowerCase() === cc.toLowerCase())) {
-        merged.unshift(cc);
+      if (!merged.some((option) => option.value.toLowerCase() === cc.toLowerCase())) {
+        merged.unshift({
+          value: cc,
+          label: cc.split(">").pop()?.trim() || cc,
+          description: "Custom / AI-added category path",
+          detail: cc,
+          isAISuggested: true,
+        });
       }
     }
     return merged;
   })();
+
+  const categoryApiSupportText = MARKETPLACE_CATEGORY_API_SUPPORT
+    .map((entry) => `${entry.marketplace}: ${entry.status}`)
+    .join(" · ");
 
   // AI Generation Functions
   const generateTitle = () => {
@@ -236,13 +209,13 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
       setSku("");
       
       // Persist AI brand/category so they stay in dropdowns for the session
-      if (initialData.brand && !BRANDS.some(b => b.toLowerCase() === initialData.brand.toLowerCase())) {
+      if (initialData.brand && !COMMON_MARKETPLACE_BRAND_OPTIONS.some((option) => option.value.toLowerCase() === initialData.brand.toLowerCase())) {
         setCustomBrands(prev => {
           if (prev.some(b => b.toLowerCase() === initialData.brand.toLowerCase())) return prev;
           return [...prev, initialData.brand];
         });
       }
-      if (initialData.category && !CATEGORIES.some(c => c.toLowerCase() === initialData.category.toLowerCase())) {
+      if (initialData.category && !COMMON_MARKETPLACE_CATEGORY_OPTIONS.some((option) => option.value.toLowerCase() === initialData.category.toLowerCase())) {
         setCustomCategories(prev => {
           if (prev.some(c => c.toLowerCase() === initialData.category.toLowerCase())) return prev;
           return [...prev, initialData.category];
@@ -712,19 +685,18 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                           <Dropdown
                             label="Brand"
                             value={brand}
-                            options={brandOptions}
+                            richOptions={brandOptions}
                             onChange={(value) => {
                               setBrand(value);
                               setIsBrandAIGenerated(false);
                             }}
-                            placeholder="Select brand..."
+                            placeholder="Search or select brand..."
                             tagState={getTagState(isBrandAIGenerated, wasBrandAIGenerated)}
+                            searchable
+                            searchPlaceholder="Search brands used across top marketplaces..."
+                            noResultsText="No matching brands found. Try a broader brand name or check your spelling."
+                            supportingText="Search the most common resale brands across eBay, Mercari, Depop, and Poshmark."
                           />
-                          <div className="relative shrink-0 w-full">
-                            <div className="content-stretch flex items-start pt-[4px] px-[16px] relative w-full">
-                              <p className="flex-[1_0_0] font-['Lexend',sans-serif] font-[350] leading-[14px] min-h-px min-w-px relative text-muted-foreground text-[11px] text-left invisible">Placeholder</p>
-                            </div>
-                          </div>
                         </div>
                         {/* Size */}
                         <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
@@ -797,18 +769,22 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                           <Dropdown
                             label="Category"
                             value={category}
-                            options={categoryOptions}
+                            richOptions={categoryOptions}
                             onChange={(value) => {
                               setCategory(value);
                               setIsCategoryAIGenerated(false);
                             }}
-                            placeholder="Select category..."
+                            placeholder="Search nested category path..."
                             tagState={getTagState(isCategoryAIGenerated, wasCategoryAIGenerated)}
+                            searchable
+                            searchPlaceholder="Search parent and nested marketplace categories..."
+                            noResultsText="No matching category path found. Try a parent category, subcategory, or leaf term."
+                            supportingText={category ? `${category} · ${categoryApiSupportText}` : categoryApiSupportText}
                           />
                           <div className="relative shrink-0 w-full">
                             <div className="content-stretch flex items-start pt-[4px] px-[16px] relative w-full">
                               <p className={`flex-[1_0_0] font-['Lexend',sans-serif] font-[350] leading-[14px] min-h-px min-w-px relative text-muted-foreground text-[11px] text-left ${!category ? 'invisible' : ''}`}>
-                                {category ? 'Matched based on visual similarity to 1,200+ listings.' : 'Placeholder'}
+                                {category ? 'Choose the closest leaf path used by marketplace taxonomy trees.' : 'Placeholder'}
                               </p>
                             </div>
                           </div>

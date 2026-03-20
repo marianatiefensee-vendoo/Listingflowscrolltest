@@ -24,17 +24,36 @@ interface DropdownProps {
   onAddPreset?: () => void;
   tagState?: "ai-suggested" | "edited" | null;
   aiSuggestedValue?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  noResultsText?: string;
 }
 
-export default function Dropdown({ label, value, options, richOptions, onChange, placeholder = "Select...", showAITag = false, supportingText, showAddPreset = false, onAddPreset, tagState = null, aiSuggestedValue }: DropdownProps) {
+export default function Dropdown({
+  label,
+  value,
+  options,
+  richOptions,
+  onChange,
+  placeholder = "Select...",
+  showAITag = false,
+  supportingText,
+  showAddPreset = false,
+  onAddPreset,
+  tagState = null,
+  aiSuggestedValue,
+  searchable = false,
+  searchPlaceholder = "Search...",
+  noResultsText = "No matches found.",
+}: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isAddPresetHovered, setIsAddPresetHovered] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Determine if using rich options
   const isRich = !!richOptions && richOptions.length > 0;
-  const allOptions = isRich ? richOptions!.map(o => o.value) : (options || []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -55,8 +74,22 @@ export default function Dropdown({ label, value, options, richOptions, onChange,
   const handleSelect = (optionValue: string) => {
     onChange(optionValue);
     setIsOpen(false);
+    setSearchQuery("");
     setHoveredIndex(null);
   };
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredRichOptions = isRich
+    ? richOptions!.filter((option) =>
+        [option.label, option.value, option.description, option.detail]
+          .filter(Boolean)
+          .some((field) => field!.toLowerCase().includes(normalizedQuery))
+      )
+    : [];
+  const filteredOptions = !isRich
+    ? (options || []).filter((option) => option.toLowerCase().includes(normalizedQuery))
+    : [];
+  const visibleCount = isRich ? filteredRichOptions.length : filteredOptions.length;
 
   // Get display label for current value
   const getDisplayLabel = () => {
@@ -191,9 +224,30 @@ export default function Dropdown({ label, value, options, richOptions, onChange,
       {isOpen && (
         <div className="bg-[var(--card)] content-stretch flex items-start overflow-clip relative rounded-[var(--radius)] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_2px_6px_2px_rgba(0,0,0,0.15)] shrink-0 w-full mt-[4px] absolute top-full left-0 z-50">
           <div className={`content-stretch flex flex-[1_0_0] flex-col items-start min-h-px min-w-px py-[2px] relative ${isRich ? 'max-h-[420px]' : 'max-h-[280px]'} overflow-y-auto`}>
+            {searchable && (
+              <div className="sticky top-0 z-[1] w-full bg-[var(--card)] px-[12px] pt-[10px] pb-[6px]">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    setHoveredIndex(null);
+                  }}
+                  placeholder={searchPlaceholder}
+                  className="w-full rounded-[8px] border border-[var(--border)] bg-transparent px-[12px] py-[10px] font-['Lexend',sans-serif] text-[14px] leading-[20px] text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)]"
+                />
+              </div>
+            )}
+            {visibleCount === 0 && (
+              <div className="w-full px-[16px] py-[18px]">
+                <p className="font-['Lexend',sans-serif] text-[13px] leading-[18px] text-[var(--muted-foreground)]">
+                  {noResultsText}
+                </p>
+              </div>
+            )}
             {isRich ? (
               /* Rich Option Rendering */
-              richOptions!.map((option, index) => {
+              filteredRichOptions.map((option, index) => {
                 const isSelected = value === option.value;
                 const isAISuggested = option.isAISuggested || (aiSuggestedValue && option.value === aiSuggestedValue);
                 const isHovered = hoveredIndex === index;
@@ -277,7 +331,7 @@ export default function Dropdown({ label, value, options, richOptions, onChange,
                     </button>
 
                     {/* Separator between items except last */}
-                    {index < richOptions!.length - 1 && (
+                    {index < filteredRichOptions.length - 1 && (
                       <div className="mx-[16px] h-[1px] bg-[var(--border)] opacity-40" />
                     )}
                   </div>
@@ -285,7 +339,7 @@ export default function Dropdown({ label, value, options, richOptions, onChange,
               })
             ) : (
               /* Simple String Option Rendering */
-              (options || []).map((option, index) => (
+              filteredOptions.map((option, index) => (
                 <div
                   key={option}
                   className={`relative shrink-0 w-full ${hoveredIndex === index ? 'bg-[var(--muted)]' : 'bg-[var(--card)]'}`}
