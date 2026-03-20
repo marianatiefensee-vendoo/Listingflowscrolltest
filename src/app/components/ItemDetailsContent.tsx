@@ -6,8 +6,7 @@ import Dropdown from "./Dropdown";
 import type { ItemDetails } from "../App";
 import {
   COMMON_MARKETPLACE_BRAND_OPTIONS,
-  COMMON_MARKETPLACE_CATEGORY_OPTIONS,
-  MARKETPLACE_CATEGORY_API_SUPPORT,
+  COMMON_MARKETPLACE_CATEGORY_OPTIONS
 } from "../data/marketplaceTaxonomy";
 
 interface ItemDetailsContentProps {
@@ -105,8 +104,6 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
         merged.unshift({
           value: cb,
           label: cb,
-          description: "Custom / AI-added brand",
-          detail: "Searchable across crosslisting catalog",
           isAISuggested: true,
         });
       }
@@ -122,8 +119,6 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
         merged.unshift({
           value: cc,
           label: cc.split(">").pop()?.trim() || cc,
-          description: "Custom / AI-added category path",
-          detail: cc,
           isAISuggested: true,
         });
       }
@@ -131,9 +126,6 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     return merged;
   })();
 
-  const categoryApiSupportText = MARKETPLACE_CATEGORY_API_SUPPORT
-    .map((entry) => `${entry.marketplace}: ${entry.status}`)
-    .join(" · ");
 
   // AI Generation Functions
   const generateTitle = () => {
@@ -693,9 +685,8 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                             placeholder="Search or select brand..."
                             tagState={getTagState(isBrandAIGenerated, wasBrandAIGenerated)}
                             searchable
-                            searchPlaceholder="Search brands used across top marketplaces..."
+                            searchPlaceholder="Search brands..."
                             noResultsText="No matching brands found. Try a broader brand name or check your spelling."
-                            supportingText="Search the most common resale brands across eBay, Mercari, Depop, and Poshmark."
                           />
                         </div>
                         {/* Size */}
@@ -777,17 +768,9 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                             placeholder="Search or select category..."
                             tagState={getTagState(isCategoryAIGenerated, wasCategoryAIGenerated)}
                             searchable
-                            searchPlaceholder="Select a category"
-                            noResultsText="No matching category path found. Try a parent category, subcategory, or leaf term."
-                            supportingText={category ? `${category} · ${categoryApiSupportText}` : categoryApiSupportText}
+                            searchPlaceholder="Search categories..."
+                            noResultsText="No matching category found. Try a broader category, subcategory, or leaf term."
                           />
-                          <div className="relative shrink-0 w-full">
-                            <div className="content-stretch flex items-start pt-[4px] px-[16px] relative w-full">
-                              <p className={`flex-[1_0_0] font-['Lexend',sans-serif] font-[350] leading-[14px] min-h-px min-w-px relative text-muted-foreground text-[11px] text-left ${!category ? 'invisible' : ''}`}>
-                                {category ? 'Choose the closest leaf path used by marketplace taxonomy trees.' : 'Placeholder'}
-                              </p>
-                            </div>
-                          </div>
                         </div>
                         {/* Quantity */}
                         <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
