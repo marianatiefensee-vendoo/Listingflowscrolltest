@@ -3,55 +3,14 @@ import svgPaths from "../../imports/svg-nl9hp3fmvu";
 import conditionSvgPaths from "../../imports/svg-eidwq1eo1i";
 import completedSvgPaths from "../../imports/svg-qt0lwj09d3";
 import Dropdown from "./Dropdown";
+import CategoryPicker from "./CategoryPicker";
 import type { ItemDetails } from "../App";
-
-// Popular US marketplace categories
-const CATEGORIES = [
-  "Women's Clothing",
-  "Men's Clothing",
-  "Women's Shoes",
-  "Men's Shoes",
-  "Electronics",
-  "Home & Garden",
-  "Collectibles & Art",
-  "Toys & Hobbies",
-  "Sporting Goods",
-  "Books & Media",
-  "Health & Beauty",
-  "Jewelry & Accessories",
-  "Baby & Kids",
-  "Pet Supplies",
-  "Automotive",
-];
-
-// Popular brands
-const BRANDS = [
-  "Nike",
-  "Adidas",
-  "Apple",
-  "Samsung",
-  "Sony",
-  "Levi's",
-  "Gucci",
-  "Prada",
-  "Louis Vuitton",
-  "Coach",
-  "Michael Kors",
-  "Under Armour",
-  "North Face",
-  "Patagonia",
-  "Zara",
-  "H&M",
-  "Forever 21",
-  "Gap",
-  "Old Navy",
-  "Target",
-  "Walmart",
-  "Amazon Basics",
-  "Generic",
-  "Unbranded",
-  "Other",
-];
+import {
+  COMMON_MARKETPLACE_BRAND_OPTIONS,
+  flattenCategoryTree,
+  EBAY_LIKE_CATEGORY_TREE,
+  getSuggestedCategoryPaths,
+} from "../data/marketplaceTaxonomy";
 
 interface ItemDetailsContentProps {
   initialData?: ItemDetails | null;
@@ -66,7 +25,7 @@ interface ItemDetailsContentProps {
 
 export default function ItemDetailsContent({ initialData, shouldExpand, onExpandChange, onContinue, onDetailsChange, shouldCollapse, onCollapseChange, onManualExpand }: ItemDetailsContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [itemSpecificsExpanded, setItemSpecificsExpanded] = useState(false);
+  const [itemSpecificsExpanded, setItemSpecificsExpanded] = useState(true);
   const [hasReceivedAIData, setHasReceivedAIData] = useState(false);
 
   // ─── Per-field AI source tracking ───
@@ -142,10 +101,16 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
 
   // Dynamically include AI brand in the dropdown — persisted custom brands stay available
   const brandOptions = (() => {
-    const merged = [...BRANDS];
+    const merged = [...COMMON_MARKETPLACE_BRAND_OPTIONS];
     for (const cb of customBrands) {
-      if (!merged.some(b => b.toLowerCase() === cb.toLowerCase())) {
-        merged.unshift(cb);
+      if (!merged.some((option) => option.value.toLowerCase() === cb.toLowerCase())) {
+        merged.unshift({
+          value: cb,
+          label: cb,
+          description: "Custom / AI-added brand",
+          detail: "Searchable across crosslisting catalog",
+          isAISuggested: true,
+        });
       }
     }
     return merged;
@@ -153,14 +118,21 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
 
   // Dynamically include AI category in the dropdown — persisted custom categories stay available
   const categoryOptions = (() => {
-    const merged = [...CATEGORIES];
+    const merged = [...flattenCategoryTree(EBAY_LIKE_CATEGORY_TREE)];
     for (const cc of customCategories) {
-      if (!merged.some(c => c.toLowerCase() === cc.toLowerCase())) {
-        merged.unshift(cc);
+      if (!merged.some((option) => option.value.toLowerCase() === cc.toLowerCase())) {
+        merged.unshift({
+          value: cc,
+          label: cc.split(">").pop()?.trim() || cc,
+          description: "Custom / AI-added category path",
+          detail: cc,
+          isAISuggested: true,
+        });
       }
     }
     return merged;
   })();
+  const suggestedCategoryPaths = getSuggestedCategoryPaths(`${title} ${description} ${category}`);
 
   // AI Generation Functions
   const generateTitle = () => {
@@ -236,13 +208,13 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
       setSku("");
       
       // Persist AI brand/category so they stay in dropdowns for the session
-      if (initialData.brand && !BRANDS.some(b => b.toLowerCase() === initialData.brand.toLowerCase())) {
+      if (initialData.brand && !COMMON_MARKETPLACE_BRAND_OPTIONS.some((option) => option.value.toLowerCase() === initialData.brand.toLowerCase())) {
         setCustomBrands(prev => {
           if (prev.some(b => b.toLowerCase() === initialData.brand.toLowerCase())) return prev;
           return [...prev, initialData.brand];
         });
       }
-      if (initialData.category && !CATEGORIES.some(c => c.toLowerCase() === initialData.category.toLowerCase())) {
+      if (initialData.category && !categoryOptions.some((option) => option.value.toLowerCase() === initialData.category.toLowerCase())) {
         setCustomCategories(prev => {
           if (prev.some(c => c.toLowerCase() === initialData.category.toLowerCase())) return prev;
           return [...prev, initialData.category];
@@ -663,9 +635,6 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                           </div>
                         ) : null}
                       </div>
-                      <div className="content-stretch flex items-start pr-[16px] pt-[4px] relative shrink-0">
-                        <p className="font-['Lexend',sans-serif] font-[350] leading-[14px] relative shrink-0 text-muted-foreground text-[11px] whitespace-nowrap">You can continue now, or review specifics.</p>
-                      </div>
                     </div>
                     <div className="content-stretch flex items-start justify-end relative shrink-0">
                       <button
@@ -715,19 +684,19 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                           <Dropdown
                             label="Brand"
                             value={brand}
-                            options={brandOptions}
+                            richOptions={brandOptions}
                             onChange={(value) => {
                               setBrand(value);
                               setIsBrandAIGenerated(false);
                             }}
-                            placeholder="Select brand..."
+                            placeholder="Search or select brand..."
                             tagState={getTagState(isBrandAIGenerated, wasBrandAIGenerated)}
+                            searchable
+                            searchPlaceholder="Search or enter your own"
+                            noResultsText="No matching brands found. Try a broader brand name or check your spelling."
+                            allowCustomValue
+                            customValueLabel="Use brand"
                           />
-                          <div className="relative shrink-0 w-full">
-                            <div className="content-stretch flex items-start pt-[4px] px-[16px] relative w-full">
-                              <p className="flex-[1_0_0] font-['Lexend',sans-serif] font-[350] leading-[14px] min-h-px min-w-px relative text-muted-foreground text-[11px] text-left invisible">Placeholder</p>
-                            </div>
-                          </div>
                         </div>
                         {/* Size */}
                         <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
@@ -797,24 +766,18 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-h-px min-w-px relative">
                         {/* Category */}
                         <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
-                          <Dropdown
+                          <CategoryPicker
                             label="Category"
                             value={category}
-                            options={categoryOptions}
                             onChange={(value) => {
                               setCategory(value);
                               setIsCategoryAIGenerated(false);
                             }}
-                            placeholder="Select category..."
+                            placeholder="Search nested category path..."
                             tagState={getTagState(isCategoryAIGenerated, wasCategoryAIGenerated)}
+                            searchPlaceholder="Search parent and nested marketplace categories..."
+                            suggestedPaths={suggestedCategoryPaths}
                           />
-                          <div className="relative shrink-0 w-full">
-                            <div className="content-stretch flex items-start pt-[4px] px-[16px] relative w-full">
-                              <p className={`flex-[1_0_0] font-['Lexend',sans-serif] font-[350] leading-[14px] min-h-px min-w-px relative text-muted-foreground text-[11px] text-left ${!category ? 'invisible' : ''}`}>
-                                {category ? 'Matched based on visual similarity to 1,200+ listings.' : 'Placeholder'}
-                              </p>
-                            </div>
-                          </div>
                         </div>
                         {/* Quantity */}
                         <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
