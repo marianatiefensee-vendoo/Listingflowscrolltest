@@ -774,10 +774,10 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                               setCategory(value);
                               setIsCategoryAIGenerated(false);
                             }}
-                            placeholder="Search nested category path..."
+                            placeholder="Search or select category..."
                             tagState={getTagState(isCategoryAIGenerated, wasCategoryAIGenerated)}
                             searchable
-                            searchPlaceholder="Search parent and nested marketplace categories..."
+                            searchPlaceholder="Select a category"
                             noResultsText="No matching category path found. Try a parent category, subcategory, or leaf term."
                             supportingText={category ? `${category} · ${categoryApiSupportText}` : categoryApiSupportText}
                           />
