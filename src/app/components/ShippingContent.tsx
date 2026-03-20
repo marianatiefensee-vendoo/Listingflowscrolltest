@@ -171,6 +171,13 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
     onContinue?.();
   };
 
+  const handleHeaderClick = () => {
+    if (!isExpanded) {
+      setIsExpanded(true);
+      onManualExpand?.();
+    }
+  };
+
   const handleAddPreset = () => {
     // In a real app, this would open a dialog to create a new shipping preset
     console.log("Add shipping preset clicked");
@@ -206,7 +213,10 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
           isExpanded ? 'rounded-tl-[var(--radius-xl)] rounded-tr-[var(--radius-xl)]' : 'rounded-[var(--radius-xl)]'
         }`}
       >
-        <div className="relative shrink-0 w-full">
+        <div
+          className={`relative shrink-0 w-full ${!isExpanded ? 'cursor-pointer' : ''}`}
+          onClick={handleHeaderClick}
+        >
           <div className="flex flex-row items-center size-full">
             <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
               {/* Title */}
@@ -264,7 +274,8 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
 
               {/* Actions */}
               <button
-                onClick={() => {
+                onClick={(event) => {
+                  event.stopPropagation();
                   const willExpand = !isExpanded;
                   setIsExpanded(willExpand);
                   if (willExpand) onManualExpand?.();

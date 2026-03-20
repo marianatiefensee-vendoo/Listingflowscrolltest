@@ -80,6 +80,13 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
     onContinue?.();
   };
 
+  const handleHeaderClick = () => {
+    if (!isExpanded) {
+      setIsExpanded(true);
+      onManualExpand?.();
+    }
+  };
+
   return (
     <div className="bg-surface-variant content-stretch flex flex-col items-start relative rounded-[16px] w-full">
       <div aria-hidden="true" className={`absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px] ${isExpanded ? 'shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]' : ''} bg-card`} />
@@ -90,7 +97,10 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
           isExpanded ? 'rounded-tl-[16px] rounded-tr-[16px]' : 'rounded-[16px]'
         }`}
       >
-        <div className="relative shrink-0 w-full">
+        <div
+          className={`relative shrink-0 w-full ${!isExpanded ? 'cursor-pointer' : ''}`}
+          onClick={handleHeaderClick}
+        >
           <div className="flex flex-row items-center size-full">
             <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
               {/* Title */}
@@ -139,7 +149,8 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
 
               {/* Actions */}
               <button
-                onClick={() => {
+                onClick={(event) => {
+                  event.stopPropagation();
                   const willExpand = !isExpanded;
                   setIsExpanded(willExpand);
                   if (willExpand) onManualExpand?.();
