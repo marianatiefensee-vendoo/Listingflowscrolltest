@@ -10,10 +10,10 @@ export default function ReviewStep({ photos, onBack, onPublish }: ReviewStepProp
       {/* Step Indicator */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-2xl bg-[#64539b] font-['Lexend'] text-base font-normal leading-6 text-white">
+          <div className="flex size-8 items-center justify-center rounded-2xl bg-primary-container font-['Lexend'] text-base font-normal leading-6 text-primary-container-foreground">
             4
           </div>
-          <h3 className="font-['Lexend'] text-2xl font-normal leading-8 text-[#1d1a24]">
+          <h3 className="font-['Lexend'] text-2xl font-normal leading-8 text-foreground">
             Review & Publish
           </h3>
         </div>
@@ -22,7 +22,7 @@ export default function ReviewStep({ photos, onBack, onPublish }: ReviewStepProp
 
         {/* Success Message */}
         <div className="mt-6 flex flex-col items-center justify-center py-12">
-          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-[#04E1CB]/10">
+          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-accent/10">
             <svg
               width="40"
               height="40"
@@ -32,7 +32,7 @@ export default function ReviewStep({ photos, onBack, onPublish }: ReviewStepProp
             >
               <path
                 d="M35 10L15 30L5 20"
-                stroke="#04E1CB"
+                stroke="var(--accent)"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -89,7 +89,7 @@ export default function ReviewStep({ photos, onBack, onPublish }: ReviewStepProp
                     $49.99
                   </span>
                 </div>
-                <p className="caption font-['Lexend'] text-xs font-normal leading-4 text-[#04E1CB]">
+                <p className="caption font-['Lexend'] text-xs font-normal leading-4 text-accent">
                   Free Shipping
                 </p>
               </div>
@@ -197,7 +197,7 @@ export default function ReviewStep({ photos, onBack, onPublish }: ReviewStepProp
           >
             <path
               d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-              stroke="#04E1CB"
+              stroke="var(--accent)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"

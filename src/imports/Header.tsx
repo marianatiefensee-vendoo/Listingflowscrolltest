@@ -72,7 +72,7 @@ function Content() {
       <div className="flex flex-row items-center size-full">
         <div className="content-stretch flex items-center px-[20px] relative size-full">
           <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[#494455] text-[16px] tracking-[0.5px] whitespace-nowrap">
-            <p className="leading-[24px]">Hinted search text</p>
+            
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
   if (isExpanded) {
     // Expanded Navigation Rail
     return (
-      <div className="bg-[#f2ebf9] content-stretch flex flex-col gap-[40px] items-start overflow-clip relative rounded-[16px] size-full" data-name="Navigation Rail">
+      <div className="bg-sidebar content-stretch flex flex-col gap-[40px] items-start overflow-clip relative rounded-[16px] size-full" data-name="Navigation Rail">
         {/* Menu & FAB */}
         <div className="relative shrink-0 w-full" data-name="Menu & FAB">
           <div className="overflow-clip rounded-[inherit] size-full">
@@ -30,7 +30,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                   {/* Hover state layer */}
                   {isHovered && (
                     <div 
-                      className="absolute inset-0 rounded-[100px] bg-[#1D1A24] opacity-[0.08]"
+                      className="absolute inset-0 rounded-[100px] bg-foreground opacity-[0.08]"
                       data-name="Hover-layer"
                     />
                   )}
@@ -54,8 +54,8 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
               {/* Extended FAB */}
               <div className="content-stretch flex items-start relative shrink-0" data-name="Extended FAB">
                 <div className="content-stretch flex h-[48px] items-center justify-center relative shrink-0" data-name="Button-Filled">
-                  <div className="bg-[#4a00bf] content-stretch flex flex-col h-full items-center justify-center relative rounded-[5px] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.15),0px_1px_3px_0px_rgba(0,0,0,0.3)] shrink-0" data-name="Content">
-                    <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative rounded-[5px] shrink-0" data-name="State - Layer">
+                  <div className="bg-primary content-stretch flex flex-col h-full items-center justify-center relative rounded-[var(--radius)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.15),0px_1px_3px_0px_rgba(0,0,0,0.3)] shrink-0" data-name="Content">
+                    <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative rounded-[var(--radius)] shrink-0" data-name="State - Layer">
                       <div className="overflow-clip relative shrink-0 size-[20px]" data-name="plus-circle">
                         <div className="absolute inset-[4.17%]" data-name="Icon">
                           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18.3333 18.3333">
@@ -67,7 +67,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                         </div>
                       </div>
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0" data-name="Label">
-                        <div className="flex flex-col font-['Lexend:Medium',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[14px] text-center text-white tracking-[0.1px] whitespace-nowrap">
+                        <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-sm)] text-center text-primary-foreground tracking-[0.1px] whitespace-nowrap">
                           <p className="leading-[20px]">Add item</p>
                         </div>
                       </div>
@@ -91,7 +91,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                     </svg>
                   </div>
                 </div>
-                <p className="font-['Lexend:Medium',sans-serif] font-medium leading-[20px] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Inventory</p>
+                <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Inventory</p>
               </div>
             </button>
             <button className="content-stretch flex items-center relative shrink-0" data-name="Nav item 2">
@@ -105,7 +105,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                     </div>
                   </div>
                 </div>
-                <p className="font-['Lexend:Medium',sans-serif] font-medium leading-[20px] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Automations</p>
+                <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Automations</p>
               </div>
             </button>
             <button className="content-stretch flex items-center relative shrink-0" data-name="Nav item 3">
@@ -117,7 +117,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                     </svg>
                   </div>
                 </div>
-                <p className="font-['Lexend:Medium',sans-serif] font-medium leading-[20px] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Analytics</p>
+                <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Analytics</p>
               </div>
             </button>
             <button className="content-stretch flex items-center relative shrink-0" data-name="Nav item 4">
@@ -129,7 +129,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                     </svg>
                   </div>
                 </div>
-                <p className="font-['Lexend:Medium',sans-serif] font-medium leading-[20px] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Marketplaces</p>
+                <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Marketplaces</p>
               </div>
             </button>
             <button className="content-stretch flex items-center relative shrink-0" data-name="Nav item 5">
@@ -144,7 +144,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                     </svg>
                   </div>
                 </div>
-                <p className="font-['Lexend:Medium',sans-serif] font-medium leading-[20px] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Bulk Actions</p>
+                <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Bulk Actions</p>
               </div>
             </button>
           </div>
@@ -164,7 +164,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
                       </g>
                     </svg>
                   </div>
-                  <p className="font-['Lexend:Medium',sans-serif] font-medium leading-[20px] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Settings</p>
+                  <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap z-[1]">Settings</p>
                 </div>
               </button>
             </div>
@@ -177,7 +177,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
   // Docked Navigation Rail
   return (
     <div 
-      className="bg-[#f2ebf9] content-stretch flex flex-col gap-[40px] items-start overflow-clip relative rounded-[16px] size-full m-[0px]" 
+      className="bg-sidebar content-stretch flex flex-col gap-[40px] items-start overflow-clip relative rounded-[16px] size-full m-[0px]" 
       data-name="Navigation Rail"
     >
       <div className="content-stretch flex flex-col gap-[16px] items-start overflow-clip pb-[20px] pt-[44px] px-[20px] relative shrink-0" data-name="Menu & FAB">
@@ -193,7 +193,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
             {/* Hover state layer */}
             {isHovered && (
               <div 
-                className="absolute inset-0 rounded-[100px] bg-[#1D1A24] opacity-[0.08]"
+                className="absolute inset-0 rounded-[100px] bg-foreground opacity-[0.08]"
                 data-name="Hover-layer"
               />
             )}
@@ -215,7 +215,7 @@ export default function NavigationRail({ isExpanded, onToggle }: NavigationRailP
 
         {/* FAB Button */}
         <div className="content-stretch flex items-center justify-center relative rounded-[5px] shrink-0" data-name="FAB Button">
-          <div className="bg-[#4a00bf] content-stretch flex flex-col items-center justify-center overflow-clip relative rounded-[5px] shadow-[0px_4px_8px_3px_rgba(0,0,0,0.15),0px_1px_3px_0px_rgba(0,0,0,0.3)] shrink-0 size-[56px]" data-name="Content">
+          <div className="bg-primary content-stretch flex flex-col items-center justify-center overflow-clip relative rounded-[5px] shadow-[0px_4px_8px_3px_rgba(0,0,0,0.15),0px_1px_3px_0px_rgba(0,0,0,0.3)] shrink-0 size-[56px]" data-name="Content">
             <div className="content-stretch flex h-[40px] items-center justify-center relative shrink-0 w-full" data-name="State-layer">
               <div className="overflow-clip relative shrink-0 size-[24px]" data-name="plus-circle">
                 <div className="absolute inset-[4.17%]" data-name="Icon">

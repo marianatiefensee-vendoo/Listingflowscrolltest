@@ -26,10 +26,10 @@ export default function PricingStep({ onBack, onNext }: PricingStepProps) {
       {/* Step Indicator */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-2xl bg-[#64539b] font-['Lexend'] text-base font-normal leading-6 text-white">
+          <div className="flex size-8 items-center justify-center rounded-2xl bg-primary-container font-['Lexend'] text-base font-normal leading-6 text-primary-container-foreground">
             3
           </div>
-          <h3 className="font-['Lexend'] text-2xl font-normal leading-8 text-[#1d1a24]">
+          <h3 className="font-['Lexend'] text-2xl font-normal leading-8 text-foreground">
             Pricing & Inventory
           </h3>
         </div>
@@ -181,7 +181,7 @@ export default function PricingStep({ onBack, onNext }: PricingStepProps) {
                   <span className="font-['Lexend'] text-sm font-medium leading-5 text-foreground">
                     Your profit
                   </span>
-                  <span className="font-['Lexend'] text-base font-medium leading-6 text-[#04E1CB]">
+                  <span className="font-['Lexend'] text-base font-medium leading-6 text-accent">
                     ${calculateProfit().toFixed(2)}
                   </span>
                 </div>

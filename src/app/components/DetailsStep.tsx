@@ -35,10 +35,10 @@ export default function DetailsStep({ photos, onBack, onNext }: DetailsStepProps
       {/* Step Indicator */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-2xl bg-[#64539b] font-['Lexend'] text-base font-normal leading-6 text-white">
+          <div className="flex size-8 items-center justify-center rounded-2xl bg-primary-container font-['Lexend'] text-base font-normal leading-6 text-primary-container-foreground">
             2
           </div>
-          <h3 className="font-['Lexend'] text-2xl font-normal leading-8 text-[#1d1a24]">
+          <h3 className="font-['Lexend'] text-2xl font-normal leading-8 text-foreground">
             Item Details
           </h3>
         </div>

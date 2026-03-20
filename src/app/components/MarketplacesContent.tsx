@@ -12,11 +12,16 @@ interface MarketplacesContentProps {
   onContinue?: () => void;
   selectedMarketplaces: string[];
   onMarketplacesChange: (marketplaces: string[]) => void;
+  shouldCollapse?: boolean;
+  onCollapseChange?: () => void;
+  onManualExpand?: () => void;
 }
 
-export default function MarketplacesContent({ shouldExpand, onExpandChange, onContinue, selectedMarketplaces, onMarketplacesChange }: MarketplacesContentProps) {
+export default function MarketplacesContent({ shouldExpand, onExpandChange, onContinue, selectedMarketplaces, onMarketplacesChange, shouldCollapse, onCollapseChange, onManualExpand }: MarketplacesContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [hasCompleted, setHasCompleted] = useState(false);
+
+  // Derive completion from required inputs: at least one marketplace selected
+  const hasCompleted = selectedMarketplaces.length > 0;
 
   useEffect(() => {
     if (shouldExpand) {
@@ -24,6 +29,13 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
       onExpandChange?.();
     }
   }, [shouldExpand, onExpandChange]);
+
+  useEffect(() => {
+    if (shouldCollapse) {
+      setIsExpanded(false);
+      onCollapseChange?.();
+    }
+  }, [shouldCollapse, onCollapseChange]);
 
   const marketplaces = [
     { id: "ebay", name: "eBay", image: imgEbay, connected: true },
@@ -40,18 +52,17 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
   };
 
   const handleContinue = () => {
-    setHasCompleted(true);
     setIsExpanded(false);
     onContinue?.();
   };
 
   return (
-    <div className="bg-[#F5EEFC] content-stretch flex flex-col items-start relative rounded-[16px] w-full">
-      <div aria-hidden="true" className={`absolute border border-[#cbc3d7] border-solid inset-[-1px] pointer-events-none rounded-[17px] ${isExpanded ? 'shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]' : ''} bg-[#ffffff]`} />
+    <div className="bg-surface-variant content-stretch flex flex-col items-start relative rounded-[16px] w-full">
+      <div aria-hidden="true" className={`absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px] ${isExpanded ? 'shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]' : ''} bg-card`} />
       
       {/* Title Step */}
       <div 
-        className={`bg-[#F5EEFC] content-stretch flex flex-col items-start relative shrink-0 w-full ${
+        className={`bg-surface-variant content-stretch flex flex-col items-start relative shrink-0 w-full ${
           isExpanded ? 'rounded-tl-[16px] rounded-tr-[16px]' : 'rounded-[16px]'
         }`}
       >
@@ -64,10 +75,10 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                   <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
                     {/* Step Badge */}
                     {isExpanded ? (
-                      <div className="bg-[#64539b] content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
-                        <div aria-hidden="true" className="absolute border-[#64539b] border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
+                      <div className="bg-primary-container content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                        <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
                         <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
-                          <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] text-center text-white tracking-[0.5px] whitespace-nowrap">
+                          <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-primary-container-foreground tracking-[0.5px] whitespace-nowrap">
                             <p className="leading-[24px]">3</p>
                           </div>
                         </div>
@@ -75,28 +86,28 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                     ) : hasCompleted ? (
                       <div className="relative shrink-0 size-[32px]">
                         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 32 32">
-                          <circle cx="16" cy="16" fill="var(--fill-0, #C3B0FF)" r="15.25" stroke="var(--stroke-0, #C3B0FF)" strokeWidth="1.5" />
+                          <circle cx="16" cy="16" fill="var(--fill-0, var(--secondary))" r="15.25" stroke="var(--stroke-0, var(--secondary))" strokeWidth="1.5" />
                         </svg>
                         <div className="absolute left-[4px] overflow-clip size-[24px] top-[4px]">
                           <div className="absolute inset-[19.32%_8.33%_19.99%_8.33%]">
                             <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 14.5656">
-                              <path d={collapsedSvgPaths.p97f8e00} fill="var(--fill-0, #503F86)" />
+                              <path d={collapsedSvgPaths.p97f8e00} fill="var(--fill-0, var(--primary-dim))" />
                             </svg>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-[#64539b] content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
-                        <div aria-hidden="true" className="absolute border-[#64539b] border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
+                      <div className="bg-primary-container content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                        <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
                         <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
-                          <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] text-center text-white tracking-[0.5px] whitespace-nowrap">
+                          <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-primary-container-foreground tracking-[0.5px] whitespace-nowrap">
                             <p className="leading-[24px]">3</p>
                           </div>
                         </div>
                       </div>
                     )}
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
-                      <p className={`font-['Lexend:Regular',sans-serif] font-normal leading-[32px] relative shrink-0 text-[24px] whitespace-nowrap ${ isExpanded ? 'text-[#1d1a24]' : (hasCompleted ? 'text-[#494455]' : 'text-[#1d1a24]') } font-[Lexend] text-[#494455]`}>Marketplaces</p>
+                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (hasCompleted ? 'text-muted-foreground' : 'text-foreground') } text-muted-foreground text-[24px]`}>Marketplaces</p>
                     </div>
                   </div>
                 </div>
@@ -107,7 +118,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                     {selectedMarketplaces.map((marketplaceId) => {
                       const marketplace = marketplaces.find(m => m.id === marketplaceId);
                       return marketplace ? (
-                        <div key={marketplaceId} className="bg-white overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
+                        <div key={marketplaceId} className="bg-card overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
                           <img src={marketplace.image} alt={marketplace.name} className="absolute inset-0 object-cover size-full" />
                         </div>
                       ) : null;
@@ -118,7 +129,11 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
 
               {/* Actions */}
               <button
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={() => {
+                  const willExpand = !isExpanded;
+                  setIsExpanded(willExpand);
+                  if (willExpand) onManualExpand?.();
+                }}
                 className="content-stretch flex items-center relative shrink-0"
                 aria-label={isExpanded ? "Collapse" : "Expand"}
               >
@@ -137,7 +152,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                                 transform: "rotate(180deg)",
                               }}
                             >
-                              <path d={svgPaths.p28797e80} fill="var(--fill-0, #1D1A24)" />
+                              <path d={svgPaths.p28797e80} fill="var(--fill-0, var(--foreground))" />
                             </svg>
                           </div>
                         </div>
@@ -146,8 +161,8 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                           <div className="-translate-x-1/2 -translate-y-1/2 absolute h-[18.183px] left-[calc(50%-0.5px)] top-[calc(50%+0.09px)] w-[19px]">
                             <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19 18.1834">
                               <g>
-                                <path clipRule="evenodd" d={collapsedSvgPaths.p1e751200} fill="var(--fill-0, #494455)" fillRule="evenodd" />
-                                <path d={collapsedSvgPaths.p3a455080} fill="var(--fill-0, #494455)" />
+                                <path clipRule="evenodd" d={collapsedSvgPaths.p1e751200} fill="var(--fill-0, var(--primary-dim))" fillRule="evenodd" />
+                                <path d={collapsedSvgPaths.p3a455080} fill="var(--fill-0, var(--primary-dim))" />
                               </g>
                             </svg>
                           </div>
@@ -164,7 +179,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                                 transform: "rotate(0deg)",
                               }}
                             >
-                              <path d={svgPaths.p28797e80} fill="var(--fill-0, #1D1A24)" />
+                              <path d={svgPaths.p28797e80} fill="var(--fill-0, var(--foreground))" />
                             </svg>
                           </div>
                         </div>
@@ -184,7 +199,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
           <div className="absolute bottom-0 left-0 right-0 top-full">
             <div className="absolute inset-[-1px_0_0_0]">
               <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 760 1">
-                <line stroke="var(--stroke-0, #CBC3D7)" strokeLinecap="square" x1="0.5" x2="759.5" y1="0.5" y2="0.5" />
+                <line stroke="var(--stroke-0, var(--border))" strokeLinecap="square" x1="0.5" x2="759.5" y1="0.5" y2="0.5" />
               </svg>
             </div>
           </div>
@@ -201,11 +216,11 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                 {/* Left Column */}
                 <div className="content-stretch flex flex-[1_0_0] flex-col gap-[2px] items-start min-h-px min-w-px overflow-clip relative self-stretch">
                   {/* eBay */}
-                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
                     <div 
                       className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("ebay") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                        selectedMarketplaces.includes("ebay") ? "bg-primary/16" : ""
                       }`}
                       onClick={() => toggleMarketplace("ebay")}
                     >
@@ -216,17 +231,17 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                             <div className="relative shrink-0 size-[56px]">
                               <div className="absolute inset-0 pointer-events-none rounded-[4px]">
                                 <div aria-hidden="true" className="absolute inset-0 rounded-[4px]">
-                                  <div className="absolute bg-white inset-0 rounded-[4px]" />
+                                  <div className="absolute bg-card inset-0 rounded-[4px]" />
                                   <img alt="" className="absolute max-w-none object-cover rounded-[4px] size-full" src={imgEbay} />
                                 </div>
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("ebay") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("ebay") ? "border-foreground-dim" : "border-border"}`} />
                               </div>
                             </div>
                           </div>
                           {/* Content */}
                           <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
                             <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("ebay") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("ebay") ? "text-foreground" : "text-muted-foreground"}`}>
                                 <p className="leading-[24px]">eBay</p>
                               </div>
                             </div>
@@ -236,7 +251,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                             <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
                               {selectedMarketplaces.includes("ebay") ? (
                                 <>
-                                  <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                  <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
                                   <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
                                     <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
                                       <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
@@ -247,7 +262,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                                 </>
                               ) : (
                                 <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                  <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                  <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
                                 </div>
                               )}
                             </div>
@@ -258,11 +273,11 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                   </div>
 
                   {/* Mercari */}
-                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
                     <div 
                       className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("mercari") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                        selectedMarketplaces.includes("mercari") ? "bg-primary/16" : ""
                       }`}
                       onClick={() => toggleMarketplace("mercari")}
                     >
@@ -273,17 +288,17 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                             <div className="relative shrink-0 size-[56px]">
                               <div className="absolute inset-0 pointer-events-none rounded-[4px]">
                                 <div aria-hidden="true" className="absolute inset-0 rounded-[4px]">
-                                  <div className="absolute bg-white inset-0 rounded-[4px]" />
+                                  <div className="absolute bg-card inset-0 rounded-[4px]" />
                                   <img alt="" className="absolute max-w-none object-cover rounded-[4px] size-full" src={imgMercari} />
                                 </div>
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("mercari") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("mercari") ? "border-foreground-dim" : "border-border"}`} />
                               </div>
                             </div>
                           </div>
                           {/* Content */}
                           <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
                             <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("mercari") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("mercari") ? "text-foreground" : "text-muted-foreground"}`}>
                                 <p className="leading-[24px]">Mercari</p>
                               </div>
                             </div>
@@ -293,7 +308,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                             <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
                               {selectedMarketplaces.includes("mercari") ? (
                                 <>
-                                  <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                  <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
                                   <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
                                     <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
                                       <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
@@ -304,7 +319,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                                 </>
                               ) : (
                                 <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                  <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                  <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
                                 </div>
                               )}
                             </div>
@@ -318,11 +333,11 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                 {/* Right Column */}
                 <div className="content-stretch flex flex-[1_0_0] flex-col gap-[2px] items-start min-h-px min-w-px overflow-clip relative self-stretch">
                   {/* Depop */}
-                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
                     <div 
                       className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("depop") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                        selectedMarketplaces.includes("depop") ? "bg-primary/16" : ""
                       }`}
                       onClick={() => toggleMarketplace("depop")}
                     >
@@ -333,14 +348,14 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                             <div className="relative shrink-0 size-[56px]">
                               <div className="absolute inset-0 pointer-events-none rounded-[4px]">
                                 <img alt="" className="absolute inset-0 max-w-none object-cover rounded-[4px] size-full" src={imgDepop} />
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("depop") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("depop") ? "border-foreground-dim" : "border-border"}`} />
                               </div>
                             </div>
                           </div>
                           {/* Content */}
                           <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
                             <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("depop") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("depop") ? "text-foreground" : "text-muted-foreground"}`}>
                                 <p className="leading-[24px]">Depop</p>
                               </div>
                             </div>
@@ -351,7 +366,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                               <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
                                 {selectedMarketplaces.includes("depop") ? (
                                   <>
-                                    <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                    <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
                                     <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
                                       <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
                                         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
@@ -362,7 +377,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                                   </>
                                 ) : (
                                   <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                    <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                    <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
                                   </div>
                                 )}
                               </div>
@@ -374,11 +389,11 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                   </div>
 
                   {/* Facebook */}
-                  <div className="bg-white content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[4px]" />
+                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
                     <div 
                       className={`relative rounded-[12px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("facebook") ? "bg-[rgba(104,58,223,0.16)]" : ""
+                        selectedMarketplaces.includes("facebook") ? "bg-primary/16" : ""
                       }`}
                       onClick={() => toggleMarketplace("facebook")}
                     >
@@ -389,14 +404,14 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                             <div className="relative shrink-0 size-[56px]">
                               <div className="absolute inset-0 pointer-events-none rounded-[4px]">
                                 <img alt="" className="absolute inset-0 max-w-none object-cover rounded-[4px] size-full" src={imgFacebook} />
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("facebook") ? "border-[#7a7486]" : "border-[#cbc3d7]"}`} />
+                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("facebook") ? "border-foreground-dim" : "border-border"}`} />
                               </div>
                             </div>
                           </div>
                           {/* Content */}
                           <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
                             <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] tracking-[0.5px] w-full ${selectedMarketplaces.includes("facebook") ? "text-[#1d1a24]" : "text-[#494455]"}`}>
+                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("facebook") ? "text-foreground" : "text-muted-foreground"}`}>
                                 <p className="leading-[24px]">Facebook</p>
                               </div>
                             </div>
@@ -407,7 +422,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                               <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
                                 {selectedMarketplaces.includes("facebook") ? (
                                   <>
-                                    <div className="bg-[#4a00bf] rounded-[2px] shrink-0 size-[18px]" />
+                                    <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
                                     <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
                                       <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
                                         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
@@ -418,7 +433,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                                   </>
                                 ) : (
                                   <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                    <div aria-hidden="true" className="absolute border-2 border-[#49454f] border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                    <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
                                   </div>
                                 )}
                               </div>
@@ -439,19 +454,19 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
               <div className="content-stretch flex items-end justify-end px-[24px] relative w-full">
                 <button 
                   onClick={handleContinue}
-                  className="bg-[#c3b0ff] content-stretch cursor-pointer flex h-[48px] items-center justify-center relative rounded-[5px] shrink-0"
+                  className="bg-secondary content-stretch cursor-pointer flex h-[48px] items-center justify-center relative rounded-[var(--radius)] shrink-0"
                 >
-                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
+                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
                     <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                        <div className="flex flex-col font-['Lexend:Medium',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[#503f86] text-[14px] text-center tracking-[0.1px] whitespace-nowrap">
+                        <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary-dim text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
                           <p className="leading-[20px]">Continue to pricing</p>
                         </div>
                       </div>
                       <div className="overflow-clip relative shrink-0 size-[20px]">
                         <div className="absolute bottom-[8.34%] left-1/4 right-[27.73%] top-[8.33%]">
                           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9.45486 16.666">
-                            <path d={svgPaths.p23f63600} fill="var(--fill-0, #503F86)" />
+                            <path d={svgPaths.p23f63600} fill="var(--fill-0, var(--primary-dim))" />
                           </svg>
                         </div>
                       </div>

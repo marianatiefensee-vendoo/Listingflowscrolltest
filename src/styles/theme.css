@@ -53,6 +53,8 @@
   --font-weight-medium: 500;
   /* The default font weight for normal text. */
   --font-weight-normal: 400;
+  /* The default font weight for light text. */
+  --font-weight-light: 300;
   /* The color for focus rings, outlines, and other focus indicators. */
   --ring: rgba(74, 0, 191, 1.00);
   /* Shadow for small elevations, such as cards or modals. */
@@ -85,6 +87,50 @@
   --sidebar-border: rgba(203, 195, 215, 1.00);
   /* The default color for focus rings, outlines, and other focus indicators in sidebars and navigation menus. */
   --sidebar-ring: rgba(74, 0, 191, 1.00);
+  /* The color used for success states, such as completed progress bars or confirmation indicators. */
+  --success: rgba(61, 127, 93, 1.00);
+  /* The default color for text or elements that appear on top of success colored elements. */
+  --success-foreground: rgba(255, 255, 255, 1.00);
+  /* The background color for tooltips. */
+  --tooltip: #322F39;
+  /* The default color for text that appears on top of tooltips. */
+  --tooltip-foreground: #FFFFFF;
+
+  /* ── Extended design‑system tokens ── */
+  /* A dimmer foreground for secondary/tertiary text (between muted-foreground and foreground). */
+  --foreground-dim: #7A7486;
+  /* Medium purple used for step badges and active borders. */
+  --primary-container: #64539B;
+  /* Foreground on primary-container elements. */
+  --primary-container-foreground: #FFFFFF;
+  /* Surface variant — slightly lighter than muted, used for section card backgrounds. */
+  --surface-variant: #F5EEFC;
+  /* Surface container — used for sticky header containers. */
+  --surface-container: #ECE5FF;
+  /* Surface container high — slightly darker variant. */
+  --surface-container-high: #E8DEF8;
+  /* AI tag background color. */
+  --ai-tag: #E8DDFF;
+  /* AI tag foreground/text color. */
+  --ai-tag-foreground: #20005E;
+  /* Checkmark / completed step icon color. */
+  --primary-dim: #503F86;
+  /* Caption/dim text color. */
+  --on-surface-dim: #6D6C71;
+  /* "Edited" badge text color. */
+  --edited-tag: #C5005E;
+  /* Neutral container — used for image placeholders and dividers. */
+  --neutral-container: #E7E0EC;
+  /* Neutral dim icon fills. */
+  --neutral-dim: #DED7E5;
+  /* Review card surface. */
+  --surface-review: #F3EDF7;
+  /* Review card surface hover. */
+  --surface-review-hover: #EDE5F5;
+  /* Status green for marketplace live indicators. */
+  --status-live: #4E9721;
+  /* Status green foreground (same as status-live). */
+  --status-live-foreground: #4E9721;
 }
 
 .dark {
@@ -122,6 +168,8 @@
   --sidebar-accent-foreground: rgba(253, 247, 255, 1.00);
   --sidebar-border: rgba(73, 68, 85, 1.00);
   --sidebar-ring: rgba(195, 176, 255, 1.00);
+  --success: rgba(61, 127, 93, 1.00);
+  --success-foreground: rgba(255, 255, 255, 1.00);
 }
 
 @theme inline {
@@ -162,6 +210,29 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-tooltip: var(--tooltip);
+  --color-tooltip-foreground: var(--tooltip-foreground);
+
+  /* Extended tokens → Tailwind utilities */
+  --color-foreground-dim: var(--foreground-dim);
+  --color-primary-container: var(--primary-container);
+  --color-primary-container-foreground: var(--primary-container-foreground);
+  --color-surface-variant: var(--surface-variant);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-ai-tag: var(--ai-tag);
+  --color-ai-tag-foreground: var(--ai-tag-foreground);
+  --color-primary-dim: var(--primary-dim);
+  --color-on-surface-dim: var(--on-surface-dim);
+  --color-edited-tag: var(--edited-tag);
+  --color-neutral-container: var(--neutral-container);
+  --color-neutral-dim: var(--neutral-dim);
+  --color-surface-review: var(--surface-review);
+  --color-surface-review-hover: var(--surface-review-hover);
+  --color-status-live: var(--status-live);
+  --color-status-live-foreground: var(--status-live-foreground);
 }
 
 @layer base {
@@ -253,6 +324,74 @@
   }
 }
 
+/* ── Marketplace attention pulse animation ── */
+@keyframes marketplace-attention-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 0, 191, 0.18);
+    transform: scale(1);
+  }
+  40% {
+    box-shadow: 0 0 0 6px rgba(74, 0, 191, 0.10);
+    transform: scale(1.008);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 0, 191, 0);
+    transform: scale(1);
+  }
+}
+
+.marketplace-attention-pulse {
+  animation: marketplace-attention-pulse 1.2s ease-out forwards;
+}
+
 html {
   font-size: var(--font-size);
+}
+
+/* Marketplace tile hover sweep animation */
+.marketplace-tile-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.marketplace-tile-btn .sweep-overlay {
+  content: "";
+  width: 0%;
+  height: 100%;
+  background: rgba(104, 58, 223, 0.10);
+  position: absolute;
+  top: 0;
+  right: 0;
+  transition: all 0.4s ease-in-out;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.marketplace-tile-btn:hover .sweep-overlay {
+  right: auto;
+  left: 0;
+  width: 100%;
+}
+
+.marketplace-tile-btn .tile-content {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease-in-out;
+}
+
+.marketplace-tile-btn:hover .tile-content {
+  animation: tileScaleUp 0.3s ease-in-out;
+}
+
+@keyframes tileScaleUp {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

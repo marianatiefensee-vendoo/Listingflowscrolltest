@@ -81,11 +81,10 @@ export default function CreateItemLayout({ children, shouldExpandItemDetails, sh
   };
 
   return (
-    <div className="flex h-full w-full flex-col bg-background">
-      {/* Top Bar */}
-      <div className="relative shrink-0 w-full bg-[rgba(104,58,223,0.08)] rounded-tl-[12px] rounded-tr-[0px]">
-        <div aria-hidden="true" className="absolute border-[#cbc3d7] border-b border-solid inset-0 pointer-events-none rounded-tl-[24px] rounded-tr-[24px] mx-[16px]" />
-        <div className="content-stretch flex flex-col items-start relative w-full pl-[12px] pr-[24px] py-[24px] border-l border-t border-[#CBC3D7] rounded-tl-[12px]">
+    <div className="flex h-full w-full flex-col">
+      {/* Top Bar - Sticky, no individual borders */}
+      <div className="sticky top-0 z-10 shrink-0 w-full bg-surface-container rounded-tl-[12px] pr-[1px] border-b border-border">
+        <div className="content-stretch flex flex-col items-start relative w-full bg-surface-container m-[0px] pl-[12px] pr-[16px] py-[24px]">
           <div className="content-stretch flex items-center relative shrink-0 w-full">
             <div className="flex flex-[1_0_0] flex-row items-center self-stretch">
               {/* Back Button & Title */}
@@ -105,19 +104,19 @@ export default function CreateItemLayout({ children, shouldExpandItemDetails, sh
                     </div>
                   </button>
                 </div>
-                <p className="font-['Lexend:Regular',sans-serif] font-normal h-full leading-[40px] overflow-hidden relative shrink-0 text-[#1d1a24] text-[32px] text-ellipsis whitespace-nowrap">
+                <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] h-full leading-[40px] overflow-hidden relative shrink-0 text-foreground text-[var(--text-h2)] text-ellipsis whitespace-nowrap text-[32px]">
                   Create item
                 </p>
               </div>
             </div>
             {/* Templates Button */}
             <div className="content-stretch flex gap-[8px] items-center overflow-clip relative shrink-0">
-              <button className="bg-[#fdf7ff] content-stretch cursor-pointer flex h-[48px] items-center justify-center px-[20px] py-[16px] relative rounded-[8px] shrink-0 w-[142px]">
-                <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[8px]" />
+              <button className="bg-background content-stretch cursor-pointer flex h-[48px] items-center justify-center px-[20px] py-[16px] relative rounded-[8px] shrink-0 w-[142px]">
+                <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[8px]" />
                 <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
                   <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
                     <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                      <div className="flex flex-col font-['Lexend:Medium',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[#494455] text-[16px] text-center tracking-[0.15px] whitespace-nowrap">
+                      <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap">
                         <p className="leading-[24px]">Templates</p>
                       </div>
                     </div>
@@ -136,56 +135,36 @@ export default function CreateItemLayout({ children, shouldExpandItemDetails, sh
         </div>
       </div>
 
-      {/* Main Content: Left Panel + Right Panel */}
-      <div className="flex flex-1 gap-[24px] overflow-hidden border-l border-b border-[#CBC3D7] rounded-bl-[12px]">
-        {/* Left Panel - Scrollable Sections */}
-        <div className="flex-1 overflow-auto mx-[8px] my-[0px] pl-[4px] pr-[8px] py-[0px]">
-          <div className="flex flex-col gap-[24px] my-[36px] py-[8px]">
-            {/* Photos Section */}
+      {/* Main Content: Sections - No border here, removed individual borders */}
+      <div className="flex flex-col px-[12px] py-[0px]">
+        {/* Sections */}
+        <div className="flex flex-col gap-[24px] ml-[0px] mr-[8px] my-[36px] pl-[16px] pr-[4px] py-[8px]">
+          {/* Photos Section */}
+          <div id="listing-photos" data-step="photos">
             {children.photos}
+          </div>
 
-            {/* Item Details Section */}
+          {/* Item Details Section */}
+          <div id="listing-details" data-step="details">
             {children.itemDetails}
+          </div>
 
-            {/* Marketplaces Section */}
+          {/* Marketplaces Section */}
+          <div id="listing-marketplaces" data-step="marketplaces">
             {children.marketplaces}
+          </div>
 
-            {/* Pricing Section */}
+          {/* Pricing Section */}
+          <div id="listing-price-shipping" data-step="price-shipping">
             {children.pricing}
 
             {/* Shipping Section */}
             {children.shipping}
           </div>
         </div>
-
-        {/* Right Panel - Summary & Actions */}
-        {showRightPanel && (
-          null
-        )}
-
-        {/* Toggle Right Panel Button */}
-        <button
-          onClick={() => setShowRightPanel(!showRightPanel)}
-          className="fixed right-[24px] top-[50%] -translate-y-1/2 bg-white border border-[#cbc3d7] rounded-[8px] p-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)] hover:bg-[#f5eefc] transition-colors z-10"
-          aria-label={showRightPanel ? "Hide panel" : "Show panel"}
-        >
-          <div className="overflow-clip relative size-[24px]">
-            <div className="absolute inset-[5.53%_26.37%_11.14%_26.36%]">
-              <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 11.3458 19.9993">
-                <path
-                  d={svgPaths.p1a5f6bc0}
-                  fill="var(--fill-0, #1D1A24)"
-                  style={{
-                    transform: showRightPanel ? "rotate(0deg)" : "rotate(180deg)",
-                    transformOrigin: "center",
-                    transition: "transform 0.3s",
-                  }}
-                />
-              </svg>
-            </div>
-          </div>
-        </button>
       </div>
+
+      {/* Toggle Right Panel Button - Removed as no longer needed */}
     </div>
   );
 }
@@ -209,8 +188,8 @@ function CollapsibleSection({
 }: CollapsibleSectionProps) {
   return (
     <div
-      className={`bg-white content-stretch flex flex-col items-start relative rounded-[12px] shrink-0 w-full ${
-        isActive ? "border border-[#7a7486]" : "border border-[#cbc3d7]"
+      className={`bg-card content-stretch flex flex-col items-start relative rounded-[12px] shrink-0 w-full ${
+        isActive ? "border border-foreground-dim" : "border border-border"
       }`}
       style={{
         boxShadow: isActive
@@ -227,7 +206,7 @@ function CollapsibleSection({
         }`}
         style={
           !isActive
-            ? { background: "#f5eefc" }
+            ? { background: "var(--surface-variant)" }
             : {
                 backgroundImage:
                   "linear-gradient(90deg, rgba(104, 58, 223, 0.08) 0%, rgba(104, 58, 223, 0.08) 100%), linear-gradient(90deg, rgb(253, 247, 255) 0%, rgb(253, 247, 255) 100%)",
@@ -240,16 +219,16 @@ function CollapsibleSection({
               <div className="content-stretch flex items-center relative shrink-0 w-full">
                 <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
                   {/* Step Badge */}
-                  <div className="bg-[#64539b] content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
-                    <div aria-hidden="true" className="absolute border-[#64539b] border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
+                  <div className="bg-primary-container content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                    <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
                     <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
-                      <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] text-center text-white tracking-[0.5px] whitespace-nowrap">
+                      <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-primary-container-foreground tracking-[0.5px] whitespace-nowrap">
                         <p className="leading-[24px]">{stepNumber}</p>
                       </div>
                     </div>
                   </div>
                   <div className="content-stretch flex items-center justify-center relative shrink-0">
-                    <p className="font-['Lexend:Regular',sans-serif] font-normal leading-[32px] relative shrink-0 text-[#1d1a24] text-[24px] whitespace-nowrap">
+                    <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-foreground text-[var(--text-h3)] whitespace-nowrap">
                       {title}
                     </p>
                   </div>
@@ -267,16 +246,16 @@ function CollapsibleSection({
                   <div className="content-stretch flex items-center relative shrink-0 w-full">
                     <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
                       {/* Step Badge */}
-                      <div className="bg-[#64539b] content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
-                        <div aria-hidden="true" className="absolute border-[#64539b] border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
+                      <div className="bg-primary-container content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                        <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
                         <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
-                          <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] text-center text-white tracking-[0.5px] whitespace-nowrap">
+                          <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-primary-container-foreground tracking-[0.5px] whitespace-nowrap">
                             <p className="leading-[24px]">{stepNumber}</p>
                           </div>
                         </div>
                       </div>
                       <div className="content-stretch flex items-center justify-center relative shrink-0">
-                        <p className="font-['Lexend:Regular',sans-serif] font-normal leading-[32px] relative shrink-0 text-[#494455] text-[24px] whitespace-nowrap">
+                        <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-muted-foreground text-[var(--text-h3)] whitespace-nowrap">
                           {title}
                         </p>
                       </div>

@@ -1,10 +1,14 @@
 import { useState, useRef } from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import IllustrationSvg1 from "../../imports/IllustrationSvg1";
 import svgPaths from "../../imports/svg-wo4tf7tw77";
 import sparkleSvgPaths from "../../imports/svg-jpw0qaix23";
 import editSvgPaths from "../../imports/svg-2jobo4qree";
 import chevronSvgPaths from "../../imports/svg-nl9hp3fmvu";
+import lightbulbSvgPaths from "../../imports/svg-hty84dsl4r";
 import type { ItemDetails } from "../App";
+import { analyzeProductImages } from "../../utils/geminiApi";
 
 interface PhotosStepProps {
   onContinue: (photos: string[], generatedDetails?: ItemDetails) => void;
@@ -15,6 +19,7 @@ interface PhotosStepProps {
 export default function PhotosStep({ onContinue, isCollapsed = false, onToggleExpand }: PhotosStepProps) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_PHOTOS = 8;
@@ -80,6 +85,15 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const movePhoto = (fromIndex: number, toIndex: number) => {
+    setPhotos((prev) => {
+      const newPhotos = [...prev];
+      const [movedPhoto] = newPhotos.splice(fromIndex, 1);
+      newPhotos.splice(toIndex, 0, movedPhoto);
+      return newPhotos;
+    });
+  };
+
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
@@ -90,18 +104,37 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
     }
   };
 
-  const handleGenerateListing = () => {
+  const handleGenerateListing = async () => {
     if (hasPhotos) {
-      // Simulate AI analysis and generate mock item details
-      const generatedDetails: ItemDetails = {
-        title: "Classic Denim Jacket - Vintage Style",
-        description: "Beautiful vintage-style denim jacket in excellent condition. Features classic button-front closure, chest pockets, and adjustable cuffs. Perfect for layering in any season. The timeless design pairs well with both casual and dressy outfits. Shows minimal signs of wear, maintaining its original quality and appeal.",
-        category: "Women's Clothing",
-        brand: "Levi's",
-        condition: "Like New",
-      };
-      
-      onContinue(photos, generatedDetails);
+      setIsGenerating(true);
+      try {
+        const analysis = await analyzeProductImages(photos);
+        
+        if (analysis) {
+          // Convert ProductAnalysis to ItemDetails format — pass ALL AI fields
+          const generatedDetails: ItemDetails = {
+            title: analysis.title,
+            description: analysis.description,
+            brand: analysis.brand || "Unbranded",
+            category: analysis.category || "Women's Clothing",
+            condition: "Like New",
+            size: analysis.size || "N/A",
+            tags: Array.isArray(analysis.hashtags)
+              ? analysis.hashtags.map(t => t.startsWith('#') ? t : `#${t}`).join(' ')
+              : "",
+            suggestedPrice: analysis.suggested_price || "",
+          };
+
+          console.log("✅ Full AI-generated details:", generatedDetails);
+          onContinue(photos, generatedDetails);
+        } else {
+          throw new Error("Failed to analyze product image");
+        }
+      } catch (error) {
+        console.error("Error generating listing:", error);
+        alert("Failed to generate listing. Please try again.");
+        setIsGenerating(false);
+      }
     }
   };
 
@@ -119,9 +152,9 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
     const photoCount = photos.length;
     
     return (
-      <div className="bg-[#F5EEFC] content-stretch flex flex-col gap-[12px] items-start justify-center relative rounded-[16px] w-full">
-        <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-[-1px] pointer-events-none rounded-[17px]" />
-        <div className="bg-[#F5EEFC] content-stretch flex flex-col gap-[8px] items-start justify-center relative rounded-[16px] shrink-0 w-full">
+      <div className="bg-surface-variant content-stretch flex flex-col gap-[12px] items-start justify-center relative rounded-[16px] w-full">
+        <div aria-hidden="true" className="absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px]" />
+        <div className="bg-surface-variant content-stretch flex flex-col gap-[8px] items-start justify-center relative rounded-[16px] shrink-0 w-full">
           <div className="relative shrink-0 w-full">
             <div className="flex flex-row items-center size-full">
               <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
@@ -132,23 +165,23 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                         {/* Step with checkmark */}
                         <div className="relative shrink-0 size-[32px]">
                           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 32 32">
-                            <circle cx="16" cy="16" fill="var(--fill-0, #C3B0FF)" r="15.25" stroke="var(--stroke-0, #C3B0FF)" strokeWidth="1.5" />
+                            <circle cx="16" cy="16" fill="var(--fill-0, var(--secondary))" r="15.25" stroke="var(--stroke-0, var(--secondary))" strokeWidth="1.5" />
                           </svg>
                           <div className="absolute left-[4px] overflow-clip size-[24px] top-[4px]">
                             <div className="absolute inset-[19.32%_8.33%_19.99%_8.33%]">
                               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 14.5656">
-                                <path d={editSvgPaths.p97f8e00} fill="var(--fill-0, #503F86)" />
+                                <path d={editSvgPaths.p97f8e00} fill="var(--fill-0, var(--primary-dim))" />
                               </svg>
                             </div>
                           </div>
                         </div>
                         <div className="content-stretch flex items-center justify-center relative shrink-0">
-                          <p className="font-['Lexend:Regular',sans-serif] font-normal leading-[32px] relative shrink-0 text-[#494455] text-[24px] whitespace-nowrap">Photos</p>
+                          <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-muted-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos</p>
                         </div>
                       </div>
                     </div>
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
-                      <p className="font-['Lexend:Regular',sans-serif] font-normal leading-[20px] relative shrink-0 text-[#7a7486] text-[14px] tracking-[0.25px] whitespace-nowrap">
+                      <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[20px] relative shrink-0 text-foreground-dim text-[var(--text-sm)] tracking-[0.25px] whitespace-nowrap">
                         {photoCount} photo{photoCount !== 1 ? 's' : ''} uploaded
                       </p>
                     </div>
@@ -160,7 +193,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                     {displayPhotos.map((photo, index) => (
                       <div 
                         key={index}
-                        className="bg-[#f5eefc] mr-[-8px] relative rounded-[8px] shrink-0 size-[48px]"
+                        className="bg-surface-variant mr-[-8px] relative rounded-[8px] shrink-0 size-[48px]"
                         style={{ zIndex: 3 - index }}
                       >
                         <div className="absolute inset-0 overflow-hidden rounded-[8px]">
@@ -204,8 +237,142 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
 
   // Expanded view - with wrapper and header
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[12px] items-start relative rounded-[12px] w-full border border-[#7a7486]" style={!isCollapsed ? { boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 0px rgba(0,0,0,0.15)" } : {}}>
-      <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-[-1px] pointer-events-none rounded-[13px] bg-[#ffffff]" />
+    <DndProvider backend={HTML5Backend}>
+      <PhotosStepContent
+        photos={photos}
+        isDragging={isDragging}
+        hasPhotos={hasPhotos}
+        fileInputRef={fileInputRef}
+        tiles={tiles}
+        onToggleExpand={onToggleExpand}
+        handleDragOver={handleDragOver}
+        handleDragLeave={handleDragLeave}
+        handleDrop={handleDrop}
+        handleUploadClick={handleUploadClick}
+        handleFileInput={handleFileInput}
+        handleFiles={handleFiles}
+        handleRemovePhoto={handleRemovePhoto}
+        movePhoto={movePhoto}
+        handleNext={handleNext}
+        handleGenerateListing={handleGenerateListing}
+        isCollapsed={isCollapsed}
+      />
+    </DndProvider>
+  );
+}
+
+interface DraggablePhotoTileProps {
+  photo: string;
+  index: number;
+  onRemove: (index: number) => void;
+  movePhoto: (fromIndex: number, toIndex: number) => void;
+}
+
+const ITEM_TYPE = 'PHOTO';
+
+function DraggablePhotoTile({ photo, index, onRemove, movePhoto }: DraggablePhotoTileProps) {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ITEM_TYPE,
+    item: { index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }));
+
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: ITEM_TYPE,
+    drop: (item: { index: number }) => {
+      if (item.index !== index) {
+        movePhoto(item.index, index);
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  }));
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      className={`group relative aspect-square overflow-hidden border bg-surface-variant rounded-[16px] cursor-move transition-all ${
+        isDragging ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
+      } ${isOver ? 'border-primary-container border-2' : 'border-border'}`}
+    >
+      <img
+        src={photo}
+        alt={`Upload ${index + 1}`}
+        className="size-full object-cover"
+      />
+      <button
+        onClick={() => onRemove(index)}
+        className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive/90 group-hover:opacity-100 z-10"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M2 2L10 10M10 2L2 10"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+      {index === 0 && (
+        <div className="absolute bottom-2 left-2 rounded bg-primary-container px-2 py-0.5 font-['Lexend',sans-serif] font-[var(--font-weight-medium)] text-[var(--text-xs)] text-primary-container-foreground z-10">
+          Cover
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface PhotosStepContentProps {
+  photos: string[];
+  isDragging: boolean;
+  hasPhotos: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  tiles: Array<{ type: 'photo' | 'add'; photo?: string; index: number }>;
+  onToggleExpand?: () => void;
+  handleDragOver: (e: React.DragEvent) => void;
+  handleDragLeave: () => void;
+  handleDrop: (e: React.DragEvent) => void;
+  handleUploadClick: () => void;
+  handleFileInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleFiles: (files: File[]) => void;
+  handleRemovePhoto: (index: number) => void;
+  movePhoto: (fromIndex: number, toIndex: number) => void;
+  handleNext: () => void;
+  handleGenerateListing: () => void;
+  isCollapsed: boolean;
+}
+
+function PhotosStepContent({
+  photos,
+  isDragging,
+  hasPhotos,
+  fileInputRef,
+  tiles,
+  onToggleExpand,
+  handleDragOver,
+  handleDragLeave,
+  handleDrop,
+  handleUploadClick,
+  handleFileInput,
+  handleFiles,
+  handleRemovePhoto,
+  movePhoto,
+  handleNext,
+  handleGenerateListing,
+  isCollapsed,
+}: PhotosStepContentProps) {
+  return (
+    <div className="bg-card content-stretch flex flex-col gap-[12px] items-start relative rounded-[12px] w-full border border-foreground-dim" style={!isCollapsed ? { boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 0px rgba(0,0,0,0.15)" } : {}}>
+      <div aria-hidden="true" className="absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[13px] bg-card" />
       
       {/* Top Content - Header */}
       <div className="content-stretch flex flex-col gap-[8px] items-start pt-[24px] relative rounded-tl-[12px] rounded-tr-[12px] shrink-0 w-full" style={{ backgroundImage: "linear-gradient(90deg, rgba(104, 58, 223, 0.08) 0%, rgba(104, 58, 223, 0.08) 100%), linear-gradient(90deg, rgb(245, 238, 252) 0%, rgb(245, 238, 252) 100%)" }}>
@@ -216,16 +383,16 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
               <div className="content-stretch flex flex-[1_0_0] items-center min-h-px min-w-px relative">
                 {/* Step */}
                 <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                  <div className="bg-[#64539b] content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
-                    <div aria-hidden="true" className="absolute border-[#64539b] border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
+                  <div className="bg-primary-container content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                    <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
                     <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
-                      <div className="flex flex-col font-['Lexend:Regular',sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[16px] text-center text-white tracking-[0.5px] whitespace-nowrap">
+                      <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-primary-container-foreground tracking-[0.5px] whitespace-nowrap">
                         <p className="leading-[24px]">1</p>
                       </div>
                     </div>
                   </div>
                   <div className="content-stretch flex items-center justify-center relative shrink-0">
-                    <p className="font-['Lexend:Regular',sans-serif] font-normal leading-[32px] relative shrink-0 text-[#1d1a24] text-[24px] whitespace-nowrap">Photos</p>
+                    <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos</p>
                   </div>
                 </div>
               </div>
@@ -269,14 +436,14 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
               {/* Upload Area or Grid */}
               {photos.length === 0 ? (
                 <div
-                  className={`bg-[#f5eefc] h-[323px] relative rounded-[12px] shrink-0 w-full ${
-                    isDragging ? "border-2 border-[#64539b] border-dashed" : ""
+                  className={`bg-surface-variant h-[323px] relative rounded-[12px] shrink-0 w-full ${
+                    isDragging ? "border-2 border-primary-container border-dashed" : ""
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[12px]" />
+                  <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[12px]" />
                   <div className="flex flex-col items-center justify-center size-full">
                     <div className="content-stretch flex flex-col items-center justify-center p-[12px] relative size-full">
                       {/* Illustration */}
@@ -288,10 +455,10 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
 
                       {/* Text */}
                       <div className="content-stretch flex flex-col gap-[4px] items-center pb-[12px] relative shrink-0 text-center tracking-[0.5px] w-full whitespace-nowrap">
-                        <p className="font-['Lexend',sans-serif] leading-[24px] relative shrink-0 text-[#1d1a24] text-[16px] font-[Lexend]">
+                        <p className="font-['Lexend',sans-serif] leading-[24px] relative shrink-0 text-foreground text-[var(--text-base)] font-bold">
                           Drop images here or click to upload
                         </p>
-                        <p className="font-['Lexend:Medium',sans-serif] font-medium leading-[16px] relative shrink-0 text-[#6d6c71] text-[12px]">
+                        <p className="font-['Lexend',sans-serif] leading-[16px] relative shrink-0 text-on-surface-dim text-[var(--text-xs)] font-[Lexend] text-[14px]">
                           Support for JPG, PNG, SVG (max 10MB each)
                         </p>
                       </div>
@@ -301,7 +468,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                         onClick={handleUploadClick}
                         className="content-stretch flex h-[48px] items-center justify-center relative rounded-[5px] shrink-0 hover:bg-[rgba(29,26,36,0.08)] transition-colors"
                       >
-                        <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[5px]" />
+                        <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[5px]" />
                         <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
                           <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
                             <div className="relative shrink-0 size-[20px]">
@@ -319,7 +486,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                               </div>
                             </div>
                             <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                              <div className="flex flex-col font-['Lexend:Medium',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap">
+                              <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
                                 <p className="leading-[20px]">Upload</p>
                               </div>
                             </div>
@@ -345,40 +512,13 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                     {tiles.map((tile) => {
                       if (tile.type === 'photo') {
                         return (
-                          <div
+                          <DraggablePhotoTile
                             key={`photo-${tile.index}`}
-                            className="group relative aspect-square overflow-hidden border border-[#cbc3d7] bg-[#f5eefc] rounded-[16px]"
-                          >
-                            <img
-                              src={tile.photo}
-                              alt={`Upload ${tile.index + 1}`}
-                              className="size-full object-cover"
-                            />
-                            <button
-                              onClick={() => handleRemovePhoto(tile.index)}
-                              className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-[#d32f2f] text-white opacity-0 transition-opacity hover:bg-[#c62828] group-hover:opacity-100"
-                            >
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 12 12"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M2 2L10 10M10 2L2 10"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                />
-                              </svg>
-                            </button>
-                            {tile.index === 0 && (
-                              <div className="absolute bottom-2 left-2 rounded bg-[#64539b] px-2 py-0.5 font-['Lexend:Medium',sans-serif] font-medium text-xs text-white">
-                                Cover
-                              </div>
-                            )}
-                          </div>
+                            photo={tile.photo!}
+                            index={tile.index}
+                            onRemove={handleRemovePhoto}
+                            movePhoto={movePhoto}
+                          />
                         );
                       } else {
                         return (
@@ -391,24 +531,24 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                             onDragOver={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              e.currentTarget.classList.add('!border-[#64539b]', '!bg-[rgba(104,58,223,0.08)]');
+                              e.currentTarget.classList.add('!border-primary-container', '!bg-primary/8');
                             }}
                             onDragLeave={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              e.currentTarget.classList.remove('!border-[#64539b]', '!bg-[rgba(104,58,223,0.08)]');
+                              e.currentTarget.classList.remove('!border-primary-container', '!bg-primary/8');
                             }}
                             onDrop={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              e.currentTarget.classList.remove('!border-[#64539b]', '!bg-[rgba(104,58,223,0.08)]');
+                              e.currentTarget.classList.remove('!border-primary-container', '!bg-primary/8');
                               
                               if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
                                 const files = Array.from(e.dataTransfer.files);
                                 handleFiles(files);
                               }
                             }}
-                            className="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-[#cbc3d7] bg-[#f5eefc] transition-colors hover:border-[#64539b] hover:bg-[rgba(104,58,223,0.08)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#64539b] focus:ring-offset-2 cursor-pointer"
+                            className="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-border bg-surface-variant transition-colors hover:border-primary-container hover:bg-primary/8 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2 cursor-pointer"
                           >
                             <input
                               type="file"
@@ -432,19 +572,18 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
               )}
 
               {/* Info Caption */}
-              <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-full">
+              <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-full px-[2px] py-[0px]">
                 <div className="overflow-clip relative shrink-0 size-[24px]">
                   <div className="absolute inset-[4.17%]">
-                    <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22 22">
-                      <g id="Icon">
-                        <path d={svgPaths.p3b610d00} fill="var(--fill-0, #7A7486)" />
-                        <path d={svgPaths.p26d88780} fill="var(--fill-0, #7A7486)" />
-                        <path clipRule="evenodd" d={svgPaths.p396e0c00} fill="var(--fill-0, #7A7486)" fillRule="evenodd" />
-                      </g>
+                    <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
+                      <path d={lightbulbSvgPaths.p3ab2b500} fill="var(--fill-0, #7A7486)" />
+                      <path d={lightbulbSvgPaths.p2160fa00} fill="var(--fill-0, #7A7486)" />
+                      <path d={lightbulbSvgPaths.pceb4180} fill="var(--fill-0, #7A7486)" />
+                      <path d={lightbulbSvgPaths.p2d25fa80} fill="var(--fill-0, #7A7486)" />
                     </svg>
                   </div>
                 </div>
-                <p className="font-['Lexend:Regular',sans-serif] font-normal leading-[16px] relative shrink-0 text-[#7a7486] text-[12px] tracking-[0.4px]">
+                <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[16px] relative shrink-0 text-foreground-dim text-[var(--text-xs)] tracking-[0.4px] mx-[-6px] my-[0px] text-[12px]">
                   The more photos you add the better chance your listing has to sell
                 </p>
               </div>
@@ -455,15 +594,15 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                 <button
                   onClick={handleNext}
                   disabled={!hasPhotos}
-                  className={`content-stretch flex items-center justify-center relative rounded-[5px] h-[48px] ${
-                    !hasPhotos ? 'bg-[rgba(29,26,36,0.1)]' : ''
-                  } ${hasPhotos ? 'hover:bg-[rgba(29,26,36,0.08)] transition-colors' : 'cursor-not-allowed'}`}
+                  className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${
+                    !hasPhotos ? 'bg-foreground/10' : ''
+                  } ${hasPhotos ? 'hover:bg-foreground/8 transition-colors' : 'cursor-not-allowed'}`}
                 >
-                  <div aria-hidden="true" className="absolute border border-[#cbc3d7] border-solid inset-0 pointer-events-none rounded-[5px]" />
-                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
+                  <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[var(--radius)]" />
+                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
                     <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos ? 'opacity-38' : ''}`}>
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                        <div className="flex flex-col font-['Lexend:Medium',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[#494455] text-[14px] text-center tracking-[0.1px] whitespace-nowrap">
+                        <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
                           <p className="leading-[20px]">Next</p>
                         </div>
                       </div>
@@ -475,26 +614,26 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                 <button
                   onClick={handleGenerateListing}
                   disabled={!hasPhotos}
-                  className={`content-stretch flex items-center justify-center relative rounded-[5px] h-[48px] ${
-                    !hasPhotos ? 'bg-[rgba(29,26,36,0.1)] cursor-not-allowed' : 'bg-[#4a00bf]'
+                  className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${
+                    !hasPhotos ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'
                   }`}
                 >
-                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
+                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
                     <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos ? 'opacity-38' : ''}`}>
                       <div className="overflow-clip relative shrink-0 size-[20px]">
                         <div className="absolute inset-[9.3%_9.51%_9.5%_9.3%]">
                           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16.2384 16.2401">
                             <g id="Icon">
-                              <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill={!hasPhotos ? "#1D1A24" : "white"} fillRule="evenodd" />
-                              <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill={!hasPhotos ? "#1D1A24" : "white"} fillRule="evenodd" />
-                              <path d={sparkleSvgPaths.p39ab3c00} fill={!hasPhotos ? "var(--fill-0, #1D1A24)" : "var(--fill-0, white)"} />
-                              <path d={sparkleSvgPaths.p76d5230} fill={!hasPhotos ? "var(--fill-0, #1D1A24)" : "var(--fill-0, white)"} />
+                              <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
+                              <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
+                              <path d={sparkleSvgPaths.p39ab3c00} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} />
+                              <path d={sparkleSvgPaths.p76d5230} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} />
                             </g>
                           </svg>
                         </div>
                       </div>
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                        <div className={`flex flex-col font-['Lexend:Medium',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[14px] text-center tracking-[0.1px] whitespace-nowrap ${!hasPhotos ? 'text-[#1d1a24]' : 'text-white'}`}>
+                        <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap ${!hasPhotos ? 'text-foreground' : 'text-primary-foreground'}`}>
                           <p className="leading-[20px]">Generate Listing</p>
                         </div>
                       </div>
