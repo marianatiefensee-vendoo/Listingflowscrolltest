@@ -109,15 +109,6 @@ export default function Dropdown({
     return value;
   };
 
-  // Get display description for current value (for rich options)
-  const getDisplayDescription = () => {
-    if (!value || !isRich) return null;
-    const found = richOptions!.find(o => o.value === value);
-    return found?.description || null;
-  };
-
-  const displayDescription = getDisplayDescription();
-
   return (
     <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" ref={dropdownRef}>
       <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
