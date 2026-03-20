@@ -14,7 +14,12 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      'figma:asset': path.resolve(__dirname, './src/assets'),
     },
+  },
+
+  build: {
+    chunkSizeWarningLimit: 1000,
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.

@@ -19,7 +19,7 @@ const StyledWrapper = styled.div`
     align-items: center;
     border-radius: 5px;
     background: #183153;
-    font-family: "Montserrat", sans-serif;
+    font-family: var(--font-family-sans);
     box-shadow: 0px 6px 24px 0px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     cursor: pointer;
