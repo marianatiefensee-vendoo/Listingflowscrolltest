@@ -66,7 +66,7 @@ interface ItemDetailsContentProps {
 
 export default function ItemDetailsContent({ initialData, shouldExpand, onExpandChange, onContinue, onDetailsChange, shouldCollapse, onCollapseChange, onManualExpand }: ItemDetailsContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [itemSpecificsExpanded, setItemSpecificsExpanded] = useState(false);
+  const [itemSpecificsExpanded, setItemSpecificsExpanded] = useState(true);
   const [hasReceivedAIData, setHasReceivedAIData] = useState(false);
 
   // ─── Per-field AI source tracking ───
@@ -662,9 +662,6 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                             </div>
                           </div>
                         ) : null}
-                      </div>
-                      <div className="content-stretch flex items-start pr-[16px] pt-[4px] relative shrink-0">
-                        <p className="font-['Lexend',sans-serif] font-[350] leading-[14px] relative shrink-0 text-muted-foreground text-[11px] whitespace-nowrap">You can continue now, or review specifics.</p>
                       </div>
                     </div>
                     <div className="content-stretch flex items-start justify-end relative shrink-0">
