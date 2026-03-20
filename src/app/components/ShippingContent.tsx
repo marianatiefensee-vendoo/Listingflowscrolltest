@@ -197,7 +197,7 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
   const aiSuggestedTierValue = hasAiSuggestion ? aiSuggestion!.tier : undefined;
 
   return (
-    <div className={`bg-[var(--muted)] content-stretch flex flex-col items-start relative rounded-[var(--radius-xl)] w-full ${!isExpanded ? 'overflow-hidden' : ''}`}>
+    <div className="bg-[var(--muted)] content-stretch flex flex-col items-start relative rounded-[var(--radius-xl)] w-full">
       <div aria-hidden="true" className={`absolute border border-[var(--border)] border-solid inset-[-1px] pointer-events-none rounded-[17px] ${isExpanded ? 'shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]' : ''} bg-[var(--card)]`} />
       
       {/* Title Step */}
