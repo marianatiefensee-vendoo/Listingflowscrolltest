@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import IllustrationSvg1 from "../../imports/IllustrationSvg1";
@@ -9,6 +9,17 @@ import chevronSvgPaths from "../../imports/svg-nl9hp3fmvu";
 import lightbulbSvgPaths from "../../imports/svg-hty84dsl4r";
 import type { ItemDetails } from "../App";
 import { analyzeProductImages } from "../../utils/geminiApi";
+
+import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 
 interface PhotosStepProps {
   onContinue: (photos: string[], generatedDetails?: ItemDetails) => void;
@@ -23,7 +34,13 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_PHOTOS = 8;
+  const MIN_VALID_PHOTOS = 1;
   const hasPhotos = photos.length > 0;
+  const hasReachedMinimumPhotos = photos.length >= MIN_VALID_PHOTOS;
+  const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false);
+  const [hasShownDecisionModal, setHasShownDecisionModal] = useState(false);
+  const triggerButtonRef = useRef<HTMLButtonElement>(null);
+  const modalPrimaryActionRef = useRef<HTMLButtonElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -143,6 +160,34 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
       onToggleExpand?.();
     }
   };
+
+  useEffect(() => {
+    if (!hasReachedMinimumPhotos) {
+      if (photos.length === 0) {
+        setHasShownDecisionModal(false);
+        setIsDecisionModalOpen(false);
+      }
+      return;
+    }
+
+    if (!hasShownDecisionModal) {
+      setHasShownDecisionModal(true);
+      setIsDecisionModalOpen(true);
+    }
+  }, [hasReachedMinimumPhotos, hasShownDecisionModal, photos.length]);
+
+  const handleDecisionModalChange = (open: boolean) => {
+    setIsDecisionModalOpen(open);
+    if (!open) {
+      triggerButtonRef.current?.focus();
+    }
+  };
+
+  const handleContinueEditingPhotos = () => {
+    setIsDecisionModalOpen(false);
+    triggerButtonRef.current?.focus();
+  };
+
 
   // Create array of 8 tiles
   const tiles = Array.from({ length: MAX_PHOTOS }, (_, index) => {
@@ -268,6 +313,14 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
         handleNext={handleNext}
         handleGenerateListing={handleGenerateListing}
         isCollapsed={isCollapsed}
+        hasReachedMinimumPhotos={hasReachedMinimumPhotos}
+        hasShownDecisionModal={hasShownDecisionModal}
+        isDecisionModalOpen={isDecisionModalOpen}
+        onDecisionModalChange={handleDecisionModalChange}
+        onContinueEditingPhotos={handleContinueEditingPhotos}
+        triggerButtonRef={triggerButtonRef}
+        modalPrimaryActionRef={modalPrimaryActionRef}
+        isGenerating={isGenerating}
       />
     </DndProvider>
   );
@@ -343,6 +396,7 @@ function DraggablePhotoTile({ photo, index, onRemove, movePhoto }: DraggablePhot
   );
 }
 
+
 interface PhotosStepContentProps {
   photos: string[];
   isDragging: boolean;
@@ -361,6 +415,14 @@ interface PhotosStepContentProps {
   handleNext: () => void;
   handleGenerateListing: () => void;
   isCollapsed: boolean;
+  hasReachedMinimumPhotos: boolean;
+  hasShownDecisionModal: boolean;
+  isDecisionModalOpen: boolean;
+  onDecisionModalChange: (open: boolean) => void;
+  onContinueEditingPhotos: () => void;
+  triggerButtonRef: React.RefObject<HTMLButtonElement>;
+  modalPrimaryActionRef: React.RefObject<HTMLButtonElement>;
+  isGenerating: boolean;
 }
 
 function PhotosStepContent({
@@ -381,9 +443,58 @@ function PhotosStepContent({
   handleNext,
   handleGenerateListing,
   isCollapsed,
+  hasReachedMinimumPhotos,
+  hasShownDecisionModal,
+  isDecisionModalOpen,
+  onDecisionModalChange,
+  onContinueEditingPhotos,
+  triggerButtonRef,
+  modalPrimaryActionRef,
+  isGenerating,
 }: PhotosStepContentProps) {
   return (
-    <div className="bg-card content-stretch flex flex-col gap-[12px] items-start relative rounded-[12px] w-full border border-foreground-dim" style={!isCollapsed ? { boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 0px rgba(0,0,0,0.15)" } : {}}>
+    <>
+      <Dialog open={isDecisionModalOpen} onOpenChange={onDecisionModalChange}>
+        <DialogContent className="max-w-[560px] rounded-[24px] border-border bg-background px-0 py-0 shadow-[0px_24px_64px_rgba(29,26,36,0.18)]" onOpenAutoFocus={(event) => { event.preventDefault(); modalPrimaryActionRef.current?.focus(); }}>
+          <div className="flex flex-col gap-6 p-8">
+            <DialogHeader className="gap-3 text-left">
+              <DialogTitle className="font-['Lexend',sans-serif] text-[28px] leading-[36px] font-normal text-foreground">
+                How would you like to create this listing?
+              </DialogTitle>
+              <DialogDescription className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-muted-foreground">
+                You can generate details from your photos with AI or enter them manually.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex-col gap-3 sm:flex-col sm:justify-start">
+              <Button
+                ref={modalPrimaryActionRef}
+                onClick={handleGenerateListing}
+                disabled={isGenerating}
+                className="h-12 w-full rounded-[12px] bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {isGenerating ? 'Generating…' : 'Generate with AI'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleNext}
+                className="h-12 w-full rounded-[12px] border-border bg-background text-foreground hover:bg-accent"
+              >
+                Enter details manually
+              </Button>
+              <DialogClose asChild>
+                <button
+                  type="button"
+                  onClick={onContinueEditingPhotos}
+                  className="self-center font-['Lexend',sans-serif] text-[14px] leading-[20px] font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-[8px] px-2 py-1"
+                >
+                  Continue editing photos
+                </button>
+              </DialogClose>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <div className="bg-card content-stretch flex flex-col gap-[12px] items-start relative rounded-[12px] w-full border border-foreground-dim" style={!isCollapsed ? { boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 0px rgba(0,0,0,0.15)" } : {}}>
       <div aria-hidden="true" className="absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[13px] bg-card" />
       
       {/* Top Content - Header */}
@@ -601,57 +712,61 @@ function PhotosStepContent({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-[12px] items-center justify-end w-full mt-[8px]">
-                {/* Next Button - Outline */}
-                <button
-                  onClick={handleNext}
-                  disabled={!hasPhotos}
-                  className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${
-                    !hasPhotos ? 'bg-foreground/10' : ''
-                  } ${hasPhotos ? 'hover:bg-foreground/8 transition-colors' : 'cursor-not-allowed'}`}
-                >
-                  <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[var(--radius)]" />
-                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
-                    <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos ? 'opacity-38' : ''}`}>
-                      <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                        <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                          <p className="leading-[20px]">Next</p>
-                        </div>
-                      </div>
+              <div className={`w-full mt-[8px] ${hasShownDecisionModal && hasReachedMinimumPhotos ? 'sticky bottom-4 z-20' : ''}`}>
+                <div className={`flex w-full items-center justify-end gap-[12px] ${hasShownDecisionModal && hasReachedMinimumPhotos ? 'rounded-[20px] border border-border bg-background/95 px-[20px] py-[16px] shadow-[0px_12px_32px_rgba(29,26,36,0.12)] backdrop-blur-sm' : ''}`}>
+                  {hasShownDecisionModal && hasReachedMinimumPhotos && (
+                    <div className="mr-auto flex flex-col gap-[2px]">
+                      <p className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-foreground">Choose how to continue</p>
+                      <p className="font-['Lexend',sans-serif] text-[13px] leading-[18px] text-muted-foreground">Generate details from your photos or keep entering information yourself.</p>
                     </div>
-                  </div>
-                </button>
+                  )}
 
-                {/* Generate Listing Button - Filled */}
-                <button
-                  onClick={handleGenerateListing}
-                  disabled={!hasPhotos}
-                  className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${
-                    !hasPhotos ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'
-                  }`}
-                >
-                  <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
-                    <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos ? 'opacity-38' : ''}`}>
-                      <div className="overflow-clip relative shrink-0 size-[20px]">
-                        <div className="absolute inset-[9.3%_9.51%_9.5%_9.3%]">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16.2384 16.2401">
-                            <g id="Icon">
-                              <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
-                              <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
-                              <path d={sparkleSvgPaths.p39ab3c00} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} />
-                              <path d={sparkleSvgPaths.p76d5230} fill={!hasPhotos ? "var(--foreground)" : "var(--primary-foreground)"} />
-                            </g>
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                        <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap ${!hasPhotos ? 'text-foreground' : 'text-primary-foreground'}`}>
-                          <p className="leading-[20px]">Generate Listing</p>
+                  <button
+                    ref={triggerButtonRef}
+                    onClick={handleNext}
+                    disabled={!hasPhotos}
+                    className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${!hasPhotos ? 'bg-foreground/10' : ''} ${hasPhotos ? 'hover:bg-foreground/8 transition-colors' : 'cursor-not-allowed'}`}
+                  >
+                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[var(--radius)]" />
+                    <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
+                      <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos ? 'opacity-38' : ''}`}>
+                        <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
+                          <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
+                            <p className="leading-[20px]">Enter details manually</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+
+                  <button
+                    onClick={handleGenerateListing}
+                    disabled={!hasPhotos || isGenerating}
+                    className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${!hasPhotos || isGenerating ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'}`}
+                  >
+                    <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
+                      <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos || isGenerating ? 'opacity-38' : ''}`}>
+                        <div className="overflow-clip relative shrink-0 size-[20px]">
+                          <div className="absolute inset-[9.3%_9.51%_9.5%_9.3%]">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16.2384 16.2401">
+                              <g id="Icon">
+                                <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
+                                <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
+                                <path d={sparkleSvgPaths.p39ab3c00} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} />
+                                <path d={sparkleSvgPaths.p76d5230} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} />
+                              </g>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
+                          <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap ${!hasPhotos || isGenerating ? 'text-foreground' : 'text-primary-foreground'}`}>
+                            <p className="leading-[20px]">{isGenerating ? 'Generating…' : 'Generate with AI'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
               </div>
 
               {/* Hidden file input */}
@@ -667,6 +782,7 @@ function PhotosStepContent({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
