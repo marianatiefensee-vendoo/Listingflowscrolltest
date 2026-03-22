@@ -441,6 +441,18 @@ export default function ListingFlow() {
   const isPricingComplete = listingPrice.trim() !== "";
   const isShippingComplete = shippingCompleted;
 
+  const customizedMarketplaceCount = selectedMarketplaces.filter(
+    (marketplaceId) =>
+      !!marketplaceCustomizations[marketplaceId] &&
+      Object.values(marketplaceCustomizations[marketplaceId] ?? {}).some(Boolean),
+  ).length;
+  const baseListingReady =
+    isPhotosComplete &&
+    isItemDetailsComplete &&
+    isPricingComplete &&
+    isShippingComplete;
+  const marketplaceReadyCount = baseListingReady ? selectedMarketplaces.length : 0;
+
   const [currentSection, setCurrentSection] =
     useState<ListingSectionMeta["id"]>("photos");
 
@@ -458,8 +470,13 @@ export default function ListingFlow() {
       id: "photos",
       title: "Photos",
       description: isPhotosComplete
-        ? `${uploadedPhotos.length} photo${uploadedPhotos.length === 1 ? "" : "s"} added`
+        ? `${uploadedPhotos.length} photo${uploadedPhotos.length === 1 ? "" : "s"} added and ready to lead the listing.`
         : "Add the photos buyers will see first.",
+      shortDescription: isPhotosComplete
+        ? `${uploadedPhotos.length} ready`
+        : "Add cover photos",
+      actionLabel: isPhotosComplete ? "Reorder or replace anytime" : "Start the visual story",
+      connectedLabel: "Feeds every preview, summary card, and marketplace listing.",
       status: getSectionStatus(isPhotosComplete, uploadedPhotos.length > 0),
       isCurrent: currentSection === "photos",
     },
@@ -471,6 +488,16 @@ export default function ListingFlow() {
         : itemDetails
           ? "Shared listing started — finish the remaining required details."
           : "Create the shared title, description, specifics, and condition first.",
+      shortDescription: isItemDetailsComplete
+        ? "Shared listing ready"
+        : itemDetails
+          ? "Complete the shared fields"
+          : "Set the base listing",
+      actionLabel: isItemDetailsComplete
+        ? "Refine the base details that every marketplace inherits"
+        : "Finish the shared title, description, category, brand, size, and condition",
+      sourceOfTruthNote:
+        "Source of truth for every marketplace unless you add an override.",
       status: getSectionStatus(isItemDetailsComplete, !!itemDetails),
       isCurrent: currentSection === "itemDetails",
     },
@@ -478,8 +505,19 @@ export default function ListingFlow() {
       id: "marketplaces",
       title: "Marketplaces",
       description: isMarketplacesComplete
-        ? `${selectedMarketplaces.length} marketplace${selectedMarketplaces.length === 1 ? "" : "s"} selected`
+        ? `${selectedMarketplaces.length} marketplace${selectedMarketplaces.length === 1 ? "" : "s"} selected • ${customizedMarketplaceCount} customized`
         : "Choose where this listing should go.",
+      shortDescription: isMarketplacesComplete
+        ? `${marketplaceReadyCount}/${selectedMarketplaces.length} ready now`
+        : "Choose destinations",
+      actionLabel: isMarketplacesComplete
+        ? customizedMarketplaceCount > 0
+          ? "Open controls to review channel-specific overrides"
+          : "Add overrides only where a marketplace needs something different"
+        : "Select the channels that should inherit this base listing",
+      connectedLabel: baseListingReady
+        ? "Selected marketplaces can publish with the base listing right away."
+        : "Marketplace readiness increases automatically as the base listing is completed.",
       status: getSectionStatus(
         isMarketplacesComplete,
         selectedMarketplaces.length > 0,
@@ -490,8 +528,15 @@ export default function ListingFlow() {
       id: "pricing",
       title: "Pricing",
       description: isPricingComplete
-        ? `Price set at $${listingPrice}`
+        ? `Base price set at $${listingPrice}`
         : "Set a listing price before review.",
+      shortDescription: isPricingComplete
+        ? `$${listingPrice} base price`
+        : "Set base price",
+      actionLabel: isPricingComplete
+        ? "Marketplace overrides stay optional after the base price is set"
+        : "Set the shared price first, then customize only if needed",
+      connectedLabel: "Supports review readiness and marketplace pricing inheritance.",
       status: getSectionStatus(isPricingComplete, listingPrice.trim() !== ""),
       isCurrent: currentSection === "pricing",
     },
@@ -501,6 +546,13 @@ export default function ListingFlow() {
       description: isShippingComplete
         ? "Shipping is selected and ready."
         : "Choose a shipping option to finish prep.",
+      shortDescription: isShippingComplete
+        ? "Base shipping ready"
+        : "Confirm shipping",
+      actionLabel: isShippingComplete
+        ? "Review publish confidence next"
+        : "Choose the shared shipping setup before final review",
+      connectedLabel: "Completes the shared setup that marketplaces inherit by default.",
       status: getSectionStatus(
         isShippingComplete,
         selectedShippingMethod.trim() !== "",

@@ -37,10 +37,20 @@ function getCustomizationSummary(customization?: MarketplaceCustomization) {
   return summaries;
 }
 
-export default function MarketplacesContent({ shouldExpand, onExpandChange, onContinue, selectedMarketplaces, onMarketplacesChange, marketplaceCustomizations = {}, onEditMarketplace, shouldCollapse, onCollapseChange, onManualExpand }: MarketplacesContentProps) {
+export default function MarketplacesContent({
+  shouldExpand,
+  onExpandChange,
+  onContinue,
+  selectedMarketplaces,
+  onMarketplacesChange,
+  marketplaceCustomizations = {},
+  onEditMarketplace,
+  shouldCollapse,
+  onCollapseChange,
+  onManualExpand,
+}: MarketplacesContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Derive completion from required inputs: at least one marketplace selected
   const hasCompleted = selectedMarketplaces.length > 0;
 
   useEffect(() => {
@@ -65,8 +75,8 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
   ];
 
   const toggleMarketplace = (id: string) => {
-    const newMarketplaces = selectedMarketplaces.includes(id) 
-      ? selectedMarketplaces.filter((m) => m !== id) 
+    const newMarketplaces = selectedMarketplaces.includes(id)
+      ? selectedMarketplaces.filter((m) => m !== id)
       : [...selectedMarketplaces, id];
     onMarketplacesChange(newMarketplaces);
   };
@@ -83,27 +93,33 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
     }
   };
 
+  const selectedMarketplaceData = selectedMarketplaces
+    .map((marketplaceId) => marketplaces.find((marketplace) => marketplace.id === marketplaceId))
+    .filter(Boolean) as typeof marketplaces;
+  const customizedMarketplaceCount = selectedMarketplaces.filter((marketplaceId) => {
+    const customization = marketplaceCustomizations[marketplaceId];
+    return !!customization && Object.values(customization).some(Boolean);
+  }).length;
+  const usingBaseOnlyCount = selectedMarketplaces.length - customizedMarketplaceCount;
+
   return (
     <div className="bg-surface-variant content-stretch flex flex-col items-start relative rounded-[16px] w-full">
-      <div aria-hidden="true" className={`absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px] ${isExpanded ? 'shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]' : ''} bg-card`} />
-      
-      {/* Title Step */}
-      <div 
+      <div aria-hidden="true" className={`absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px] ${isExpanded ? "shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]" : ""} bg-card`} />
+
+      <div
         className={`bg-surface-variant content-stretch flex flex-col items-start relative shrink-0 w-full ${
-          isExpanded ? 'rounded-tl-[16px] rounded-tr-[16px]' : 'rounded-[16px]'
+          isExpanded ? "rounded-tl-[16px] rounded-tr-[16px]" : "rounded-[16px]"
         }`}
       >
         <div
-          className={`relative shrink-0 w-full ${!isExpanded ? 'cursor-pointer' : ''}`}
+          className={`relative shrink-0 w-full ${!isExpanded ? "cursor-pointer" : ""}`}
           onClick={handleHeaderClick}
         >
           <div className="flex flex-row items-center size-full">
             <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
-              {/* Title */}
               <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
                 <div className="content-stretch flex items-center relative shrink-0">
                   <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                    {/* Step Badge */}
                     {isExpanded ? (
                       <div className="bg-primary-container content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
                         <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
@@ -137,27 +153,24 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                       </div>
                     )}
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
-                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (hasCompleted ? 'text-muted-foreground' : 'text-foreground') } text-muted-foreground text-[24px]`}>Marketplaces</p>
+                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${isExpanded ? "text-foreground" : hasCompleted ? "text-muted-foreground" : "text-foreground"} text-[24px]`}>
+                        Marketplaces
+                      </p>
                     </div>
                   </div>
                 </div>
-                
-                {/* Marketplace Logos - Only show when collapsed and marketplaces are selected */}
+
                 {!isExpanded && hasCompleted && selectedMarketplaces.length > 0 && (
                   <div className="content-stretch flex gap-[4px] items-start opacity-38 p-[4px] relative shrink-0">
-                    {selectedMarketplaces.map((marketplaceId) => {
-                      const marketplace = marketplaces.find(m => m.id === marketplaceId);
-                      return marketplace ? (
-                        <div key={marketplaceId} className="bg-card overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
-                          <img src={marketplace.image} alt={marketplace.name} className="absolute inset-0 object-cover size-full" />
-                        </div>
-                      ) : null;
-                    })}
+                    {selectedMarketplaceData.map((marketplace) => (
+                      <div key={marketplace.id} className="bg-card overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
+                        <img src={marketplace.image} alt={marketplace.name} className="absolute inset-0 object-cover size-full" />
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* Actions */}
               <button
                 onClick={(event) => {
                   event.stopPropagation();
@@ -174,15 +187,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                       {isExpanded ? (
                         <div className="overflow-clip relative shrink-0 size-[24px]">
                           <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
-                            <svg
-                              className="absolute block size-full transition-transform duration-300"
-                              fill="none"
-                              preserveAspectRatio="none"
-                              viewBox="0 0 19.9993 11.3458"
-                              style={{
-                                transform: "rotate(180deg)",
-                              }}
-                            >
+                            <svg className="absolute block size-full transition-transform duration-300" fill="none" preserveAspectRatio="none" viewBox="0 0 19.9993 11.3458" style={{ transform: "rotate(180deg)" }}>
                               <path d={svgPaths.p28797e80} fill="var(--fill-0, var(--foreground))" />
                             </svg>
                           </div>
@@ -201,15 +206,7 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
                       ) : (
                         <div className="overflow-clip relative shrink-0 size-[24px]">
                           <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
-                            <svg
-                              className="absolute block size-full transition-transform duration-300"
-                              fill="none"
-                              preserveAspectRatio="none"
-                              viewBox="0 0 19.9993 11.3458"
-                              style={{
-                                transform: "rotate(0deg)",
-                              }}
-                            >
+                            <svg className="absolute block size-full transition-transform duration-300" fill="none" preserveAspectRatio="none" viewBox="0 0 19.9993 11.3458" style={{ transform: "rotate(0deg)" }}>
                               <path d={svgPaths.p28797e80} fill="var(--fill-0, var(--foreground))" />
                             </svg>
                           </div>
@@ -224,7 +221,6 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
         </div>
       </div>
 
-      {/* Divider */}
       {isExpanded && (
         <div className="h-[2px] relative shrink-0 w-full">
           <div className="absolute bottom-0 left-0 right-0 top-full">
@@ -237,333 +233,182 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
         </div>
       )}
 
-      {/* Content */}
       {isExpanded && (
         <div className="content-stretch flex flex-col gap-[22px] items-start py-[24px] relative shrink-0 w-full">
           <div className="px-[24px] w-full">
-            <div className="bg-muted rounded-[12px] px-[16px] py-[14px]">
-              <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                Your main listing details, price, and shipping apply to every selected marketplace by default. Open marketplace controls anytime to customize only the channels that need overrides.
-              </p>
+            <div className="grid gap-[12px] lg:grid-cols-[minmax(0,1.3fr)_minmax(240px,0.9fr)]">
+              <div className="bg-muted rounded-[12px] px-[16px] py-[14px]">
+                <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
+                  Item Details is the shared source of truth. Your main listing details, price, and shipping apply to every selected marketplace by default. Open marketplace controls anytime to customize only the channels that need overrides.
+                </p>
+              </div>
+              <div className="rounded-[12px] border border-border bg-background px-[16px] py-[14px]">
+                <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
+                  Marketplace setup
+                </p>
+                <div className="mt-[8px] flex flex-wrap gap-[8px]">
+                  <span className="rounded-full bg-primary/10 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
+                    {selectedMarketplaces.length} selected
+                  </span>
+                  <span className="rounded-full bg-background px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground border border-border/70">
+                    {customizedMarketplaceCount} customized
+                  </span>
+                  <span className="rounded-full bg-background px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground border border-border/70">
+                    {usingBaseOnlyCount > 0 ? `${usingBaseOnlyCount} using base` : "All customized"}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Marketplace Grid */}
           <div className="relative shrink-0 w-full">
             <div className="overflow-clip rounded-[inherit] size-full">
               <div className="content-stretch flex gap-[12px] items-start px-[24px] relative w-full">
-                {/* Left Column */}
-                <div className="content-stretch flex flex-[1_0_0] flex-col gap-[2px] items-start min-h-px min-w-px overflow-clip relative self-stretch">
-                  {/* eBay */}
-                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
-                    <div 
-                      className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("ebay") ? "bg-primary/16" : ""
-                      }`}
-                      onClick={() => toggleMarketplace("ebay")}
-                    >
-                      <div className="flex flex-row items-center size-full">
-                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
-                          {/* Thumbnail */}
-                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
-                            <div className="relative shrink-0 size-[56px]">
-                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
-                                <div aria-hidden="true" className="absolute inset-0 rounded-[4px]">
-                                  <div className="absolute bg-card inset-0 rounded-[4px]" />
-                                  <img alt="" className="absolute max-w-none object-cover rounded-[4px] size-full" src={imgEbay} />
-                                </div>
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("ebay") ? "border-foreground-dim" : "border-border"}`} />
-                              </div>
-                            </div>
-                          </div>
-                          {/* Content */}
-                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
-                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("ebay") ? "text-foreground" : "text-muted-foreground"}`}>
-                                <p className="leading-[24px]">eBay</p>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Checkbox */}
-                          <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0 z-[1]">
-                            <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
-                              {selectedMarketplaces.includes("ebay") ? (
-                                <>
-                                  <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
-                                  <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
-                                    <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
-                                      <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
-                                        <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
-                                      </svg>
+                {[marketplaces.slice(0, 2), marketplaces.slice(2)].map((column, columnIndex) => (
+                  <div key={columnIndex} className="content-stretch flex flex-[1_0_0] flex-col gap-[2px] items-start min-h-px min-w-px overflow-clip relative self-stretch">
+                    {column.map((marketplace) => {
+                      const isSelected = selectedMarketplaces.includes(marketplace.id);
+                      return (
+                        <div key={marketplace.id} className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
+                          <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
+                          <div
+                            className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${isSelected ? "bg-primary/16" : ""}`}
+                            onClick={() => toggleMarketplace(marketplace.id)}
+                          >
+                            <div className="flex flex-row items-center size-full">
+                              <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
+                                <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
+                                  <div className="relative shrink-0 size-[56px]">
+                                    <div className="absolute inset-0 pointer-events-none rounded-[4px]">
+                                      <img alt="" className="absolute inset-0 max-w-none object-cover rounded-[4px] size-full" src={marketplace.image} />
+                                      <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${isSelected ? "border-foreground-dim" : "border-border"}`} />
                                     </div>
                                   </div>
-                                </>
-                              ) : (
-                                <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                  <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
                                 </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Mercari */}
-                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
-                    <div 
-                      className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("mercari") ? "bg-primary/16" : ""
-                      }`}
-                      onClick={() => toggleMarketplace("mercari")}
-                    >
-                      <div className="flex flex-row items-center size-full">
-                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
-                          {/* Thumbnail */}
-                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
-                            <div className="relative shrink-0 size-[56px]">
-                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
-                                <div aria-hidden="true" className="absolute inset-0 rounded-[4px]">
-                                  <div className="absolute bg-card inset-0 rounded-[4px]" />
-                                  <img alt="" className="absolute max-w-none object-cover rounded-[4px] size-full" src={imgMercari} />
-                                </div>
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("mercari") ? "border-foreground-dim" : "border-border"}`} />
-                              </div>
-                            </div>
-                          </div>
-                          {/* Content */}
-                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
-                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("mercari") ? "text-foreground" : "text-muted-foreground"}`}>
-                                <p className="leading-[24px]">Mercari</p>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Checkbox */}
-                          <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0 z-[1]">
-                            <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
-                              {selectedMarketplaces.includes("mercari") ? (
-                                <>
-                                  <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
-                                  <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
-                                    <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
-                                      <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
-                                        <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
-                                      </svg>
+                                <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
+                                  <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-full">
+                                    <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
+                                      <p className="leading-[24px]">{marketplace.name}</p>
                                     </div>
+                                    <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[14px] text-muted-foreground">
+                                      {isSelected ? "Selected — inherits the shared listing by default" : "Select to include this marketplace"}
+                                    </p>
                                   </div>
-                                </>
-                              ) : (
-                                <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                  <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
                                 </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="content-stretch flex flex-[1_0_0] flex-col gap-[2px] items-start min-h-px min-w-px overflow-clip relative self-stretch">
-                  {/* Depop */}
-                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
-                    <div 
-                      className={`relative rounded-[4px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("depop") ? "bg-primary/16" : ""
-                      }`}
-                      onClick={() => toggleMarketplace("depop")}
-                    >
-                      <div className="flex flex-row items-center size-full">
-                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
-                          {/* Thumbnail */}
-                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
-                            <div className="relative shrink-0 size-[56px]">
-                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
-                                <img alt="" className="absolute inset-0 max-w-none object-cover rounded-[4px] size-full" src={imgDepop} />
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("depop") ? "border-foreground-dim" : "border-border"}`} />
-                              </div>
-                            </div>
-                          </div>
-                          {/* Content */}
-                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
-                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("depop") ? "text-foreground" : "text-muted-foreground"}`}>
-                                <p className="leading-[24px]">Depop</p>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Checkbox */}
-                          <div className="content-stretch flex gap-[8px] items-center justify-end relative shrink-0 z-[1]">
-                            <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0">
-                              <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
-                                {selectedMarketplaces.includes("depop") ? (
-                                  <>
-                                    <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
-                                    <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
-                                      <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
-                                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
-                                          <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
-                                        </svg>
+                                <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0 z-[1]">
+                                  <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
+                                    {isSelected ? (
+                                      <>
+                                        <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
+                                        <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
+                                          <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
+                                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
+                                              <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
+                                            </svg>
+                                          </div>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className="relative rounded-[2px] shrink-0 size-[18px]">
+                                        <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
                                       </div>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                    <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
+                                    )}
                                   </div>
-                                )}
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
-
-                  {/* Facebook */}
-                  <div className="bg-card content-stretch flex flex-col items-start justify-center min-h-[48px] relative rounded-[4px] shrink-0 w-full">
-                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
-                    <div 
-                      className={`relative rounded-[12px] shrink-0 w-full cursor-pointer ${
-                        selectedMarketplaces.includes("facebook") ? "bg-primary/16" : ""
-                      }`}
-                      onClick={() => toggleMarketplace("facebook")}
-                    >
-                      <div className="flex flex-row items-center size-full">
-                        <div className="content-stretch flex gap-[12px] isolate items-center px-[16px] py-[10px] relative w-full">
-                          {/* Thumbnail */}
-                          <div className="content-stretch flex items-center justify-center overflow-clip relative shrink-0 z-[3]">
-                            <div className="relative shrink-0 size-[56px]">
-                              <div className="absolute inset-0 pointer-events-none rounded-[4px]">
-                                <img alt="" className="absolute inset-0 max-w-none object-cover rounded-[4px] size-full" src={imgFacebook} />
-                                <div aria-hidden="true" className={`absolute border border-solid inset-0 rounded-[4px] ${selectedMarketplaces.includes("facebook") ? "border-foreground-dim" : "border-border"}`} />
-                              </div>
-                            </div>
-                          </div>
-                          {/* Content */}
-                          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative z-[2]">
-                            <div className="content-stretch flex flex-col items-start justify-center min-h-[32px] relative shrink-0 w-[42px]">
-                              <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] tracking-[0.5px] w-full ${selectedMarketplaces.includes("facebook") ? "text-foreground" : "text-muted-foreground"}`}>
-                                <p className="leading-[24px]">Facebook</p>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Checkbox */}
-                          <div className="content-stretch flex gap-[8px] items-center justify-end relative shrink-0 z-[1]">
-                            <div className="content-stretch flex flex-col items-center justify-center p-[4px] relative shrink-0">
-                              <div className="content-stretch flex items-center justify-center p-[11px] relative rounded-[100px] shrink-0">
-                                {selectedMarketplaces.includes("facebook") ? (
-                                  <>
-                                    <div className="bg-primary rounded-[2px] shrink-0 size-[18px]" />
-                                    <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 overflow-clip size-[24px] top-1/2">
-                                      <div className="absolute bottom-[31.67%] left-1/4 right-1/4 top-[29.17%]">
-                                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 9.4">
-                                          <path d={svgPaths.p35d39780} fill="var(--fill-0, white)" />
-                                        </svg>
-                                      </div>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <div className="relative rounded-[2px] shrink-0 size-[18px]">
-                                    <div aria-hidden="true" className="absolute border-2 border-muted-foreground border-solid inset-0 pointer-events-none rounded-[2px]" />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
 
           {selectedMarketplaces.length > 0 && (
             <div className="px-[24px] w-full">
-              <div className="flex items-center justify-between mb-[12px]">
-                <div>
-                  <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
-                    Marketplace overrides
-                  </p>
-                  <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                    Customize individual marketplaces now or revisit them later from the right rail.
-                  </p>
+              <div className="rounded-[16px] border border-border bg-muted/50 px-[16px] py-[14px]">
+                <div className="flex flex-wrap items-start justify-between gap-[12px]">
+                  <div>
+                    <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
+                      Marketplace overrides
+                    </p>
+                    <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
+                      Start with the shared listing, then open marketplace controls only where channel-specific edits add value.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-[6px]">
+                    <span className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[4px] rounded-[999px] border border-border/70">
+                      Item Details stays primary
+                    </span>
+                    <span className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[4px] rounded-[999px] border border-border/70">
+                      Controls open in the side sheet
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-[8px]">
-                {selectedMarketplaces.map((marketplaceId) => {
-                  const marketplace = marketplaces.find((m) => m.id === marketplaceId);
-                  if (!marketplace) return null;
-                  const customizationSummary = getCustomizationSummary(
-                    marketplaceCustomizations[marketplaceId],
-                  );
-                  const hasCustomizations = customizationSummary.length > 0;
+                <div className="mt-[12px] flex flex-col gap-[8px]">
+                  {selectedMarketplaceData.map((marketplace) => {
+                    const customizationSummary = getCustomizationSummary(
+                      marketplaceCustomizations[marketplace.id],
+                    );
+                    const hasCustomizations = customizationSummary.length > 0;
 
-                  return (
-                    <button
-                      key={marketplaceId}
-                      type="button"
-                      onClick={() => onEditMarketplace?.(marketplaceId)}
-                      className="bg-card border border-border rounded-[8px] px-[16px] py-[12px] flex items-center gap-[12px] text-left hover:bg-background transition-colors"
-                    >
-                      <div className="bg-card overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
-                        <img
-                          src={marketplace.image}
-                          alt={marketplace.name}
-                          className="absolute inset-0 object-cover size-full"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-[8px]">
-                          <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
-                            {marketplace.name}
-                          </p>
-                          <span className="text-[11px] leading-[14px] tracking-[0.1px] font-[350] text-muted-foreground">
-                            {hasCustomizations ? "Overrides added" : "Using base listing"}
-                          </span>
+                    return (
+                      <button
+                        key={marketplace.id}
+                        type="button"
+                        onClick={() => onEditMarketplace?.(marketplace.id)}
+                        className="bg-card border border-border rounded-[12px] px-[16px] py-[12px] flex items-center gap-[12px] text-left hover:bg-background transition-colors"
+                      >
+                        <div className="bg-card overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
+                          <img src={marketplace.image} alt={marketplace.name} className="absolute inset-0 object-cover size-full" />
                         </div>
-                        <div className="flex flex-wrap gap-[6px] mt-[6px]">
-                          {hasCustomizations ? (
-                            customizationSummary.map((summary) => (
-                              <span
-                                key={summary}
-                                className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-foreground-dim px-[8px] py-[2px] rounded-[999px]"
-                              >
-                                {summary}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
-                              No marketplace-specific changes
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-[8px]">
+                            <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
+                              {marketplace.name}
+                            </p>
+                            <span className={`text-[11px] leading-[14px] tracking-[0.1px] font-[350] ${hasCustomizations ? "text-primary" : "text-muted-foreground"}`}>
+                              {hasCustomizations ? "Overrides visible" : "Using the base listing"}
                             </span>
-                          )}
+                          </div>
+                          <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
+                            {hasCustomizations
+                              ? "Open marketplace controls to review or refine this channel-specific setup."
+                              : "No overrides yet — this marketplace will publish with the shared title, price, and shipping."}
+                          </p>
+                          <div className="flex flex-wrap gap-[6px] mt-[6px]">
+                            {hasCustomizations ? (
+                              customizationSummary.map((summary) => (
+                                <span key={summary} className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-foreground-dim px-[8px] py-[2px] rounded-[999px]">
+                                  {summary}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
+                                Ready to inherit shared listing details
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <span className="font-['Lexend',sans-serif] font-medium text-[12px] leading-[16px] tracking-[0.2px] text-primary">
-                        {hasCustomizations ? "Review" : "Customize"}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span className="font-['Lexend',sans-serif] font-medium text-[12px] leading-[16px] tracking-[0.2px] text-primary">
+                          {hasCustomizations ? "Open controls" : "Customize"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
-          
-          {/* Continue Button */}
+
           <div className="relative shrink-0 w-full">
             <div className="flex flex-row items-end justify-end size-full">
               <div className="content-stretch flex items-end justify-end px-[24px] relative w-full">
-                <button 
+                <button
                   onClick={handleContinue}
                   className="bg-secondary content-stretch cursor-pointer flex h-[48px] items-center justify-center relative rounded-[var(--radius)] shrink-0"
                 >
