@@ -90,10 +90,12 @@ function SectionWrapper({
   index: number;
   children: ReactNode;
 }) {
+  const isItemDetailsSection = section.id === "itemDetails";
+
   return (
     <section className="relative scroll-mt-[230px]">
       <div
-        className={`overflow-hidden rounded-[20px] border transition-all duration-200 ${section.isCurrent ? "shadow-[0_10px_30px_rgba(31,27,36,0.08)]" : "shadow-[0_2px_10px_rgba(31,27,36,0.03)]"} ${section.isCurrent ? "border-primary/35 bg-primary/5" : sectionFrameMap[section.status]}`}
+        className={`overflow-hidden rounded-[20px] border transition-all duration-200 ${section.isCurrent ? "shadow-[0_10px_30px_rgba(31,27,36,0.08)]" : isItemDetailsSection ? "shadow-[0_8px_24px_rgba(83,77,95,0.07)]" : "shadow-[0_2px_10px_rgba(31,27,36,0.03)]"} ${section.isCurrent ? "border-primary/35 bg-primary/5" : isItemDetailsSection ? "border-primary/20 bg-primary/4" : sectionFrameMap[section.status]}`}
       >
         <div className="flex items-start justify-between gap-[16px] border-b border-border/60 px-[20px] py-[18px]">
           <div className="min-w-0">
@@ -110,6 +112,11 @@ function SectionWrapper({
                 <StatusGlyph status={section.status} />
                 {statusLabelMap[section.status]}
               </span>
+              {isItemDetailsSection && (
+                <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
+                  Base listing
+                </span>
+              )}
               {section.isCurrent && (
                 <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
                   Active section
@@ -263,7 +270,7 @@ export default function CreateItemLayout({
               <button
                 key={section.id}
                 onClick={() => onJumpToSection(section.id)}
-                className={`group relative flex min-w-[148px] flex-1 items-start gap-[12px] rounded-[14px] border px-[14px] py-[12px] text-left transition-all duration-200 ${section.isCurrent ? "border-primary/35 bg-primary/8 shadow-[0_4px_18px_rgba(83,77,95,0.10)]" : chipToneMap[section.status] + " hover:bg-muted/80"}`}
+                className={`group relative flex min-w-[148px] flex-1 items-start gap-[12px] rounded-[14px] border px-[14px] py-[12px] text-left transition-all duration-200 ${section.isCurrent ? "border-primary/35 bg-primary/8 shadow-[0_4px_18px_rgba(83,77,95,0.10)]" : section.id === "itemDetails" ? "border-primary/20 bg-primary/5 hover:bg-primary/8" : chipToneMap[section.status] + " hover:bg-muted/80"}`}
                 type="button"
                 aria-current={section.isCurrent ? "step" : undefined}
               >
@@ -289,6 +296,11 @@ export default function CreateItemLayout({
                     <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
                       {section.title}
                     </p>
+                    {section.id === "itemDetails" && !section.isCurrent && (
+                      <span className="rounded-full bg-primary/10 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
+                        Shared listing
+                      </span>
+                    )}
                     {section.isCurrent && (
                       <span className="rounded-full bg-primary/10 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
                         Viewing

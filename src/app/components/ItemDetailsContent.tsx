@@ -64,15 +64,28 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
   const [tags, setTags] = useState("");
   const [sku, setSku] = useState("");
 
+  const requiredFields = [
+    { label: "Title", value: title },
+    { label: "Description", value: description },
+    { label: "Brand", value: brand },
+    { label: "Category", value: category },
+    { label: "Size", value: size },
+    { label: "Condition", value: condition },
+  ];
+  const missingRequiredFields = requiredFields
+    .filter((field) => !field.value.trim())
+    .map((field) => field.label);
+  const completedRequiredCount =
+    requiredFields.length - missingRequiredFields.length;
+
   // Derive completion from required fields (Title, Description, Brand, Category, Size, Condition)
-  const isCompleted = !!(
-    title.trim() &&
-    description.trim() &&
-    brand.trim() &&
-    category.trim() &&
-    size.trim() &&
-    condition.trim()
-  );
+  const isCompleted = missingRequiredFields.length === 0;
+  const completionLabel = isCompleted
+    ? "Base listing ready for all marketplaces"
+    : `${completedRequiredCount}/${requiredFields.length} required fields complete`;
+  const missingFieldsLabel = missingRequiredFields.length
+    ? `Still needed: ${missingRequiredFields.join(", ")}`
+    : "All required base listing fields are filled.";
 
   // Track AI-added brands and categories — hydrated from sessionStorage to survive page navigations
   const [customBrands, setCustomBrands] = useState<string[]>(() => {
@@ -284,7 +297,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
 
   return (
     <div className="bg-surface-variant content-stretch flex flex-col gap-[12px] items-start relative rounded-[16px] w-full">
-      <div aria-hidden="true" className="absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[17px] bg-card" />
+      <div aria-hidden="true" className={`absolute border border-solid inset-[-1px] pointer-events-none rounded-[17px] bg-card transition-colors ${isExpanded || isCompleted ? "border-primary/35" : missingRequiredFields.length > 0 ? "border-amber-200" : "border-border"}`} />
       
       {/* Top Content */}
       <div 
@@ -298,10 +311,10 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
           onClick={handleHeaderClick}
         >
           <div className="flex flex-row items-center size-full">
-            <div className="content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full">
+            <div className={`content-stretch flex items-center justify-between px-[24px] py-[16px] relative w-full ${isExpanded ? "pb-[18px]" : ""}`}>
               {/* Title */}
-              <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-center min-h-px min-w-px relative">
-                <div className="content-stretch flex items-center relative shrink-0">
+              <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-start min-h-px min-w-px relative">
+                <div className="content-stretch flex items-start relative shrink-0 pt-[2px]">
                   <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
                     {/* Step Badge */}
                     {isExpanded ? (
@@ -337,17 +350,32 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                       </div>
                     )}
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
-                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (isCompleted ? 'text-muted-foreground' : 'text-foreground') } text-[24px]`}>Item Details</p>
+                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (isCompleted ? 'text-foreground' : 'text-foreground') } text-[24px]`}>Item Details</p>
                     </div>
                   </div>
                 </div>
-                
-                {/* Summary text - only show when collapsed and completed */}
-                {!isExpanded && isCompleted && (
-                  <div className="content-stretch flex flex-[1_0_0] items-center justify-center min-h-px min-w-px relative self-stretch">
-                    <p className="flex-[1_0_0] font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[20px] min-h-px min-w-px relative text-foreground-dim text-[var(--text-sm)] tracking-[0.25px] overflow-hidden text-ellipsis whitespace-nowrap">{title || "Untitled"}</p>
+
+                <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-h-px min-w-px relative">
+                  <div className="content-stretch flex flex-wrap gap-[8px] items-center relative w-full">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] tracking-[0.4px] text-primary">
+                      Base listing source of truth
+                    </span>
+                    <span className={`inline-flex items-center rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] tracking-[0.4px] ${isCompleted ? 'bg-secondary text-secondary-foreground' : 'bg-amber-100 text-amber-800'}`}>
+                      {isCompleted ? 'Ready for marketplaces' : 'Needs required details'}
+                    </span>
                   </div>
-                )}
+                  <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] text-foreground text-[var(--text-sm)] tracking-[0.2px]">
+                    These details apply to all marketplaces unless customized later.
+                  </p>
+                  <p className="font-['Lexend',sans-serif] leading-[18px] text-muted-foreground text-[12px] tracking-[0.2px]">
+                    {isExpanded ? missingFieldsLabel : completionLabel}
+                  </p>
+                  {!isExpanded && title && (
+                    <p className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-['Lexend',sans-serif] leading-[20px] text-foreground-dim text-[var(--text-sm)] tracking-[0.25px]">
+                      {title}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Actions */}
@@ -602,12 +630,20 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                 </div>
 
                 {/* Item Specifics */}
-                <div className="content-stretch flex flex-col gap-[4px] items-start py-[4px] relative rounded-[8px] shrink-0 w-full">
+                <div className="content-stretch flex flex-col gap-[4px] items-start py-[4px] px-[16px] relative rounded-[12px] shrink-0 w-full border border-primary/15 bg-primary/5">
                   <div className="content-stretch flex gap-[10px] items-start relative shrink-0 w-full">
                     <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative">
                       <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-full">
                         <div className="content-stretch flex items-center relative shrink-0">
                           <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[24px] relative shrink-0 text-foreground text-[var(--text-base)] tracking-[0.15px] whitespace-nowrap">Item Specifics</p>
+                        </div>
+                        <span className="inline-flex items-center rounded-full bg-background/90 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
+                          Required for your base listing
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
+                            Brand, category, size, and condition help populate every marketplace before any custom edits.
+                          </p>
                         </div>
                         {isAnySpecificAIGenerated ? (
                           <div className="content-stretch flex items-start relative shrink-0">
@@ -647,6 +683,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                           setItemSpecificsExpanded(!itemSpecificsExpanded);
                         }}
                         className="block cursor-pointer relative shrink-0 size-[48px]"
+                        aria-label={itemSpecificsExpanded ? "Hide Item Specifics" : "Show Item Specifics"}
                       >
                         <div className="-translate-x-1/2 -translate-y-1/2 absolute content-stretch flex flex-col items-center justify-center left-[calc(50%-0.5px)] overflow-clip rounded-[100px] top-1/2 w-[40px]">
                           <div className="content-stretch flex h-[40px] items-center justify-center relative shrink-0 w-full">
@@ -662,6 +699,11 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                       </button>
                     </div>
                   </div>
+                  {!itemSpecificsExpanded && (
+                    <p className="px-[4px] pt-[4px] font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
+                      Reopen Item Specifics to finish brand, category, size, and condition for the shared listing.
+                    </p>
+                  )}
                   <div className="h-[2px] relative shrink-0 w-full">
                     <div className="absolute bottom-0 left-0 right-0 top-full">
                       <div className="absolute inset-[-1px_0_0_0]">
@@ -1225,7 +1267,12 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
               </div>
 
               {/* Actions */}
-              <div className="content-stretch flex gap-[12px] items-center justify-end pb-[24px] relative shrink-0 w-full">
+              <div className="content-stretch flex flex-wrap gap-[12px] items-center justify-between pb-[24px] relative shrink-0 w-full">
+                <p className="font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
+                  {isCompleted
+                    ? 'You can come back to Item Details anytime to update the shared listing for every marketplace.'
+                    : 'Complete the remaining required base listing fields before moving on.'}
+                </p>
                 <div className="bg-secondary content-stretch flex h-[48px] items-center justify-center relative rounded-[var(--radius)] shrink-0">
                   <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
                     <button 
