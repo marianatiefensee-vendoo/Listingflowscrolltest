@@ -430,10 +430,10 @@ export default function ListingFlow() {
       id: "itemDetails",
       title: "Item Details",
       description: isItemDetailsComplete
-        ? "Core listing details are filled in."
+        ? "Base listing ready to sync across marketplaces."
         : itemDetails
-          ? "Finish the remaining required details."
-          : "Add title, description, specifics, and condition.",
+          ? "Shared listing started — finish the remaining required details."
+          : "Create the shared title, description, specifics, and condition first.",
       status: getSectionStatus(isItemDetailsComplete, !!itemDetails),
       isCurrent: currentSection === "itemDetails",
     },
