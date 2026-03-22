@@ -182,7 +182,7 @@ function SectionWrapper({
                   </p>
                   <p className="mt-[4px] font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
                     {section.isCurrent
-                      ? "This section is active. You can continue, collapse it, or come back here anytime."
+                      ? "In progress"
                       : nextInfo}
                   </p>
                   {section.actionLabel && (
@@ -263,7 +263,7 @@ export default function CreateItemLayout({
                     Create item
                   </p>
                   <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] leading-[20px] text-muted-foreground">
-                    Guided progress keeps the full listing flow editable while you scroll.
+                    Build the listing section by section.
                   </p>
                 </div>
               </div>
@@ -300,8 +300,8 @@ export default function CreateItemLayout({
               </p>
               <p className="font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
                 {nearReview
-                  ? "You’re almost ready to review and publish."
-                  : "Jump between sections, keep context, and resolve the next area that needs attention."}
+                  ? "Almost ready for review."
+                  : "Open any section to keep going."}
               </p>
             </div>
             <div className="text-right">
@@ -324,7 +324,7 @@ export default function CreateItemLayout({
                 </p>
               </div>
               <p className="max-w-[440px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
-                {activeSectionContext ?? "The open accordion is highlighted below so it is easy to resume editing without losing your place."}
+                {activeSectionContext ?? "Open below"}
               </p>
             </div>
           )}
@@ -368,20 +368,10 @@ export default function CreateItemLayout({
                   <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
                     {statusLabelMap[section.status]}
                   </p>
-                  {section.shortDescription && (
-                    <p className="mt-[6px] line-clamp-2 font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground/90">
-                      {section.shortDescription}
-                    </p>
-                  )}
                   <div className="mt-[8px] flex flex-wrap items-center gap-[6px]">
                     {section.id === "itemDetails" && (
                       <span className="rounded-full bg-primary/10 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
                         Source of truth
-                      </span>
-                    )}
-                    {section.actionLabel && (
-                      <span className="rounded-full bg-background/90 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                        {section.actionLabel}
                       </span>
                     )}
                   </div>
@@ -397,7 +387,7 @@ export default function CreateItemLayout({
                   Review
                 </p>
                 <p className="font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
-                  Final checks, marketplace confidence, and publish readiness without locking the flow.
+                  Final check before publishing.
                 </p>
               </div>
               <div className={`rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.4px] ${statusToneMap[reviewStatus]}`}>
@@ -405,7 +395,7 @@ export default function CreateItemLayout({
               </div>
             </div>
             <p className="mt-[8px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
-              You can still jump back into any accordion after review if something needs one more pass.
+              Review when all sections are complete.
             </p>
           </div>
         </div>
@@ -452,11 +442,11 @@ export default function CreateItemLayout({
                   Get ready for your final check
                 </h2>
                 <p className="mt-[4px] font-['Lexend',sans-serif] text-[var(--text-sm)] leading-[20px] text-muted-foreground">
-                  Once these sections feel complete, head to review for a final pass before publishing.
+                  Review everything before publishing.
                 </p>
               </div>
               <div className={`shrink-0 rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.4px] ${nearReview ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}>
-                {nearReview ? "Almost ready" : "Build confidence"}
+                {nearReview ? "Almost ready" : "Not started"}
               </div>
             </div>
           </div>

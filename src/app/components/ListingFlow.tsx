@@ -110,9 +110,7 @@ export default function ListingFlow() {
     useState<Marketplace | null>(null);
   const [activeEditSection, setActiveEditSection] =
     useState<ListingSectionMeta["id"]>("photos");
-  const [activeEditContext, setActiveEditContext] = useState<string | null>(
-    "Start with photos, then move forward or jump back at any time.",
-  );
+  const [activeEditContext, setActiveEditContext] = useState<string | null>(null);
 
   // Ref for the edit mode scroll container
   const editScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -152,7 +150,7 @@ export default function ListingFlow() {
         if (expandKey) {
           openSection(expandKey, {
             context:
-              "This section reopened from your saved progress so it is immediately visible and ready to edit.",
+              "In progress",
             routeStep: state.step as "photos" | "details" | "marketplaces" | "price-shipping",
           });
         }
@@ -236,15 +234,15 @@ export default function ListingFlow() {
   };
 
   const sectionContextMap: Record<ListingSectionMeta["id"], string> = {
-    photos: "Photos are open. Add, review, or reorder them without leaving the main flow.",
+    photos: "In progress",
     itemDetails:
-      "Shared listing details are open so you can refine the core information buyers will see everywhere.",
+      "In progress",
     marketplaces:
-      "Marketplace selection is open. You can reopen it anytime and safely tweak destinations or overrides.",
+      "In progress",
     pricing:
-      "Pricing is open so you can review the base price before moving on.",
+      "In progress",
     shipping:
-      "Shipping is open. Continue when ready, or come back here anytime before publishing.",
+      "In progress",
   };
 
   const handleContinueFromPhotos = (
@@ -299,7 +297,7 @@ export default function ListingFlow() {
     if (willExpand) {
       openSection("photos", {
         context:
-          "Photos reopened. This completed section is still fully editable whenever you want to make changes.",
+          "In progress",
       });
     }
   };
@@ -308,25 +306,25 @@ export default function ListingFlow() {
   const handleManualExpandItemDetails = () => {
     openSection("itemDetails", {
       context:
-        "Item details reopened. This section stays flexible even after you move forward.",
+        "In progress",
     });
   };
   const handleManualExpandMarketplaces = () => {
     openSection("marketplaces", {
       context:
-        "Marketplaces reopened so you can adjust destinations or overrides without friction.",
+        "In progress",
     });
   };
   const handleManualExpandPricing = () => {
     openSection("pricing", {
       context:
-        "Pricing reopened. Completed sections remain easy to revisit and edit.",
+        "In progress",
     });
   };
   const handleManualExpandShipping = () => {
     openSection("shipping", {
       context:
-        "Shipping reopened. You can review or adjust it anytime before publishing.",
+        "In progress",
     });
   };
 
@@ -381,7 +379,7 @@ export default function ListingFlow() {
   const handleBackFromReview = () => {
     openSection(activeEditSection, {
       context:
-        "Returned from review. The section you were working on is reopened so you can keep editing without losing your place.",
+        "In progress",
     });
   };
 
@@ -473,10 +471,10 @@ export default function ListingFlow() {
         ? `${uploadedPhotos.length} photo${uploadedPhotos.length === 1 ? "" : "s"} added and ready to lead the listing.`
         : "Add the photos buyers will see first.",
       shortDescription: isPhotosComplete
-        ? `${uploadedPhotos.length} ready`
-        : "Add cover photos",
-      actionLabel: isPhotosComplete ? "Reorder or replace anytime" : "Start the visual story",
-      connectedLabel: "Feeds every preview, summary card, and marketplace listing.",
+        ? "Completed"
+        : "Not started",
+      actionLabel: undefined,
+      connectedLabel: undefined,
       status: getSectionStatus(isPhotosComplete, uploadedPhotos.length > 0),
       isCurrent: currentSection === "photos",
     },
@@ -484,20 +482,17 @@ export default function ListingFlow() {
       id: "itemDetails",
       title: "Item Details",
       description: isItemDetailsComplete
-        ? "Base listing ready to sync across marketplaces."
+        ? "Details complete"
         : itemDetails
-          ? "Shared listing started — finish the remaining required details."
-          : "Create the shared title, description, specifics, and condition first.",
+          ? "Finish the required fields"
+          : "Add the main listing details.",
       shortDescription: isItemDetailsComplete
-        ? "Shared listing ready"
+        ? "Completed"
         : itemDetails
-          ? "Complete the shared fields"
-          : "Set the base listing",
-      actionLabel: isItemDetailsComplete
-        ? "Refine the base details that every marketplace inherits"
-        : "Finish the shared title, description, category, brand, size, and condition",
-      sourceOfTruthNote:
-        "Source of truth for every marketplace unless you add an override.",
+          ? "In progress"
+          : "Not started",
+      actionLabel: undefined,
+      sourceOfTruthNote: undefined,
       status: getSectionStatus(isItemDetailsComplete, !!itemDetails),
       isCurrent: currentSection === "itemDetails",
     },
@@ -505,19 +500,13 @@ export default function ListingFlow() {
       id: "marketplaces",
       title: "Marketplaces",
       description: isMarketplacesComplete
-        ? `${selectedMarketplaces.length} marketplace${selectedMarketplaces.length === 1 ? "" : "s"} selected • ${customizedMarketplaceCount} customized`
-        : "Choose where this listing should go.",
+        ? `${selectedMarketplaces.length} selected`
+        : "Choose marketplaces.",
       shortDescription: isMarketplacesComplete
-        ? `${marketplaceReadyCount}/${selectedMarketplaces.length} ready now`
-        : "Choose destinations",
-      actionLabel: isMarketplacesComplete
-        ? customizedMarketplaceCount > 0
-          ? "Open controls to review channel-specific overrides"
-          : "Add overrides only where a marketplace needs something different"
-        : "Select the channels that should inherit this base listing",
-      connectedLabel: baseListingReady
-        ? "Selected marketplaces can publish with the base listing right away."
-        : "Marketplace readiness increases automatically as the base listing is completed.",
+        ? "In progress"
+        : "Not started",
+      actionLabel: undefined,
+      connectedLabel: undefined,
       status: getSectionStatus(
         isMarketplacesComplete,
         selectedMarketplaces.length > 0,
@@ -528,15 +517,13 @@ export default function ListingFlow() {
       id: "pricing",
       title: "Pricing",
       description: isPricingComplete
-        ? `Base price set at $${listingPrice}`
-        : "Set a listing price before review.",
+        ? `$${listingPrice}`
+        : "Set a price.",
       shortDescription: isPricingComplete
-        ? `$${listingPrice} base price`
-        : "Set base price",
-      actionLabel: isPricingComplete
-        ? "Marketplace overrides stay optional after the base price is set"
-        : "Set the shared price first, then customize only if needed",
-      connectedLabel: "Supports review readiness and marketplace pricing inheritance.",
+        ? "Completed"
+        : "Not started",
+      actionLabel: undefined,
+      connectedLabel: undefined,
       status: getSectionStatus(isPricingComplete, listingPrice.trim() !== ""),
       isCurrent: currentSection === "pricing",
     },
@@ -544,15 +531,13 @@ export default function ListingFlow() {
       id: "shipping",
       title: "Shipping",
       description: isShippingComplete
-        ? "Shipping is selected and ready."
-        : "Choose a shipping option to finish prep.",
+        ? "Shipping selected"
+        : "Choose shipping.",
       shortDescription: isShippingComplete
-        ? "Base shipping ready"
-        : "Confirm shipping",
-      actionLabel: isShippingComplete
-        ? "Review publish confidence next"
-        : "Choose the shared shipping setup before final review",
-      connectedLabel: "Completes the shared setup that marketplaces inherit by default.",
+        ? "Completed"
+        : "Not started",
+      actionLabel: undefined,
+      connectedLabel: undefined,
       status: getSectionStatus(
         isShippingComplete,
         selectedShippingMethod.trim() !== "",

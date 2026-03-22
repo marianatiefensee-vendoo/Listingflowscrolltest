@@ -462,7 +462,7 @@ function PhotosStepContent({
                 How would you like to create this listing?
               </DialogTitle>
               <DialogDescription className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-muted-foreground">
-                You can generate details from your photos with AI or enter them manually.
+Choose how to start.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex-col gap-3 sm:flex-col sm:justify-start">
