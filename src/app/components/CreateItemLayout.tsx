@@ -59,6 +59,14 @@ const chipToneMap: Record<ListingSectionStatus, string> = {
   completed: "border-secondary/40 bg-secondary/10 text-secondary-foreground",
 };
 
+const sectionActionMap: Record<string, string> = {
+  photos: "Add or reorder photos",
+  itemDetails: "Finish the shared listing fields",
+  marketplaces: "Choose destinations and customize later",
+  pricing: "Set the listing price",
+  shipping: "Confirm the shipping method",
+};
+
 function StatusGlyph({ status }: { status: ListingSectionStatus }) {
   if (status === "completed") {
     return (
@@ -81,6 +89,18 @@ function StatusGlyph({ status }: { status: ListingSectionStatus }) {
   return <span className="block size-[8px] rounded-full border border-current/50" />;
 }
 
+function getNextInfo(section: ListingSectionMeta) {
+  if (section.isCurrent) {
+    return "Editing is open below.";
+  }
+
+  if (section.status === "completed") {
+    return "Ready to reopen if you want to update anything.";
+  }
+
+  return sectionActionMap[section.id] ?? "Open this section to continue.";
+}
+
 function SectionWrapper({
   section,
   index,
@@ -91,56 +111,88 @@ function SectionWrapper({
   children: ReactNode;
 }) {
   const isItemDetailsSection = section.id === "itemDetails";
+  const summaryTitle = section.shortTitle ?? section.title;
+  const summaryDescription = section.description ?? "Continue editing this section below.";
+  const nextInfo = getNextInfo(section);
 
   return (
     <section className="relative scroll-mt-[230px]">
       <div
         className={`overflow-hidden rounded-[20px] border transition-all duration-200 ${section.isCurrent ? "shadow-[0_10px_30px_rgba(31,27,36,0.08)]" : isItemDetailsSection ? "shadow-[0_8px_24px_rgba(83,77,95,0.07)]" : "shadow-[0_2px_10px_rgba(31,27,36,0.03)]"} ${section.isCurrent ? "border-primary/35 bg-primary/5" : isItemDetailsSection ? "border-primary/20 bg-primary/4" : sectionFrameMap[section.status]}`}
       >
-        <div className="flex items-start justify-between gap-[16px] border-b border-border/60 px-[20px] py-[18px]">
-          <div className="min-w-0">
-            <div className="mb-[8px] flex flex-wrap items-center gap-[10px]">
-              <span className="inline-flex items-center gap-[8px] rounded-full bg-background/90 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] uppercase tracking-[0.5px] text-muted-foreground">
-                <span className="inline-flex size-[18px] items-center justify-center rounded-full border border-border/80 bg-muted/60 text-[11px] text-foreground">
-                  {index + 1}
+        <div className="relative border-b border-border/60 bg-background/72 px-[20px] py-[18px]">
+          <div
+            aria-hidden="true"
+            className={`absolute inset-x-[20px] bottom-0 h-[1px] ${section.isCurrent ? "bg-primary/20" : section.status === "completed" ? "bg-secondary/20" : "bg-border/80"}`}
+          />
+          <div className="flex items-start justify-between gap-[16px]">
+            <div className="min-w-0 flex-1">
+              <div className="mb-[12px] flex flex-wrap items-center gap-[10px]">
+                <span className="inline-flex items-center gap-[8px] rounded-full bg-background/90 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] uppercase tracking-[0.5px] text-muted-foreground">
+                  <span className="inline-flex size-[18px] items-center justify-center rounded-full border border-border/80 bg-muted/60 text-[11px] text-foreground">
+                    {index + 1}
+                  </span>
+                  Overview
                 </span>
-                {section.shortTitle ?? section.title}
-              </span>
-              <span
-                className={`inline-flex items-center gap-[6px] rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] ${statusToneMap[section.status]}`}
-              >
-                <StatusGlyph status={section.status} />
-                {statusLabelMap[section.status]}
-              </span>
-              {isItemDetailsSection && (
-                <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
-                  Base listing
+                <span className="inline-flex items-center gap-[6px] rounded-full bg-background/90 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] uppercase tracking-[0.5px] text-foreground">
+                  {summaryTitle}
                 </span>
-              )}
-              {section.isCurrent && (
-                <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
-                  Active section
+                <span
+                  className={`inline-flex items-center gap-[6px] rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] ${statusToneMap[section.status]}`}
+                >
+                  <StatusGlyph status={section.status} />
+                  {statusLabelMap[section.status]}
                 </span>
-              )}
+                {isItemDetailsSection && (
+                  <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
+                    Base listing
+                  </span>
+                )}
+                {section.isCurrent && (
+                  <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
+                    Editing now
+                  </span>
+                )}
+              </div>
+
+              <div className="grid gap-[14px] lg:grid-cols-[minmax(0,1.5fr)_minmax(240px,0.9fr)] lg:items-start">
+                <div className="min-w-0">
+                  <h2 className="font-['Lexend',sans-serif] text-[22px] leading-[28px] text-foreground">
+                    {section.title}
+                  </h2>
+                  <p className="mt-[6px] max-w-[720px] font-['Lexend',sans-serif] text-[var(--text-sm)] leading-[20px] text-muted-foreground">
+                    {summaryDescription}
+                  </p>
+                </div>
+
+                <div className={`rounded-[16px] border px-[14px] py-[12px] ${section.isCurrent ? "border-primary/20 bg-primary/6" : section.status === "completed" ? "border-secondary/25 bg-secondary/10" : "border-border/70 bg-background/90"}`}>
+                  <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
+                    Next
+                  </p>
+                  <p className="mt-[4px] font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
+                    {nextInfo}
+                  </p>
+                </div>
+              </div>
             </div>
-            <h2 className="font-['Lexend',sans-serif] text-[var(--text-h4)] leading-[28px] text-foreground">
-              {section.title}
-            </h2>
-            {section.description && (
-              <p className="mt-[6px] max-w-[720px] font-['Lexend',sans-serif] text-[var(--text-sm)] leading-[20px] text-muted-foreground">
-                {section.description}
-              </p>
-            )}
           </div>
         </div>
 
-        <div className="relative bg-surface-container/40 px-[14px] py-[14px]">
+        <div className="relative bg-surface-container/50 px-[14px] pb-[14px] pt-[10px]">
           <div
             aria-hidden="true"
-            className={`absolute inset-y-[14px] left-[20px] w-[2px] rounded-full ${section.isCurrent ? "bg-primary/25" : section.status === "completed" ? "bg-secondary/25" : "bg-border/80"}`}
+            className={`absolute inset-y-[10px] left-[20px] w-[2px] rounded-full ${section.isCurrent ? "bg-primary/25" : section.status === "completed" ? "bg-secondary/25" : "bg-border/80"}`}
           />
-          <div className="relative ml-[14px] rounded-[18px] border border-border/60 bg-background/88 p-[4px] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
-            {children}
+          <div className="ml-[14px]">
+            <div className="mb-[10px] flex items-center gap-[10px] pl-[10px]">
+              <span className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
+                Edit section
+              </span>
+              <div className="h-px flex-1 bg-border/70" />
+            </div>
+            <div className="relative rounded-[18px] border border-border/60 bg-background/92 p-[4px] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
+              {children}
+            </div>
           </div>
         </div>
       </div>
