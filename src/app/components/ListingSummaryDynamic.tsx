@@ -236,6 +236,39 @@ export default function ListingSummaryDynamic({
 
   const remainingSections = sectionStates.filter((section) => !section.complete);
   const nextSectionToResolve = remainingSections[0];
+  const missingRequirementCards = remainingSections;
+  const baseListingReady =
+    isPhotosComplete &&
+    isItemDetailsComplete &&
+    isPricingComplete &&
+    isShippingComplete;
+  const marketplacesReadyCount = selectedMarketplaces.filter((marketplace) => {
+    const customization = marketplaceCustomizations[marketplace.id];
+    if (!baseListingReady) return false;
+    if (!customization) return true;
+
+    const hasBlockingOverride =
+      (customization.title !== undefined && customization.title.trim() === "") ||
+      (customization.price !== undefined && customization.price.trim() === "") ||
+      (customization.category !== undefined && customization.category.trim() === "") ||
+      (customization.brand !== undefined && customization.brand.trim() === "") ||
+      (customization.size !== undefined && customization.size.trim() === "") ||
+      (customization.shippingType !== undefined && customization.shippingType.trim() === "") ||
+      (customization.pricingFormat !== undefined && customization.pricingFormat.trim() === "");
+
+    return !hasBlockingOverride;
+  }).length;
+  const marketplaceReadinessLabel = !hasSelectedMarketplaces
+    ? "Choose marketplaces to review channel readiness."
+    : baseListingReady
+      ? `${marketplacesReadyCount} of ${selectedMarketplaces.length} marketplace${selectedMarketplaces.length === 1 ? '' : 's'} ready with the current listing.`
+      : "Finish the base listing first, then each selected marketplace will inherit that readiness.";
+  const publishButtonLabel = allSectionsComplete ? 'Review & Publish' : 'Finish required sections';
+  const publishButtonSupport = allSectionsComplete
+    ? 'Opens the final review with your latest listing details and marketplace setup.'
+    : nextSectionToResolve
+      ? `Complete ${nextSectionToResolve.label.toLowerCase()} to unlock review & publish.`
+      : 'Complete the remaining required sections to unlock review & publish.';
   const previewChecklist = [
     isPhotosComplete ? "Cover photo ready" : "Add a cover photo",
     itemDetails?.title?.trim()
@@ -1284,7 +1317,7 @@ export default function ListingSummaryDynamic({
                         <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] text-foreground text-[var(--text-sm)] tracking-[0.1px]">Marketplaces</p>
                         <p className="mt-[4px] font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-foreground-dim">
                           {hasSelectedMarketplaces
-                            ? `${selectedMarketplaces.length} selected • ${customizedMarketplaceCount} customized`
+                            ? `${selectedMarketplaces.length} selected • ${customizedMarketplaceCount} customized • ${marketplaceReadinessLabel}`
                             : 'Choose marketplaces and jump back here anytime to fine-tune each one.'}
                         </p>
                       </div>
@@ -1297,6 +1330,32 @@ export default function ListingSummaryDynamic({
 
                     {hasSelectedMarketplaces ? (
                       <>
+                        <div className="grid w-full gap-[8px] rounded-[10px] bg-background px-[12px] py-[12px]">
+                          <div className="flex items-start justify-between gap-[8px]">
+                            <div>
+                              <p className="font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[15px] text-foreground">Base readiness</p>
+                              <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
+                                {baseListingReady
+                                  ? 'Shared photos, details, price, and shipping are ready to flow into every selected marketplace.'
+                                  : 'A few shared sections still need attention before every marketplace can be fully ready.'}
+                              </p>
+                            </div>
+                            <span className={`rounded-full px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${baseListingReady ? 'bg-secondary/20 text-secondary-foreground' : 'bg-background text-muted-foreground'}`}>
+                              {baseListingReady ? 'Base ready' : 'Base in progress'}
+                            </span>
+                          </div>
+                          <div className="flex items-start justify-between gap-[8px]">
+                            <div>
+                              <p className="font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[15px] text-foreground">Marketplace readiness</p>
+                              <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
+                                {marketplaceReadinessLabel}
+                              </p>
+                            </div>
+                            <span className={`rounded-full px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${hasSelectedMarketplaces && marketplacesReadyCount === selectedMarketplaces.length && baseListingReady ? 'bg-secondary/20 text-secondary-foreground' : 'bg-background text-muted-foreground'}`}>
+                              {hasSelectedMarketplaces && marketplacesReadyCount === selectedMarketplaces.length && baseListingReady ? 'All ready' : `${marketplacesReadyCount}/${selectedMarketplaces.length}`}
+                            </span>
+                          </div>
+                        </div>
                         <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
                           {selectedMarketplaces.map((marketplace) => {
                             const customization = marketplaceCustomizations[marketplace.id];
@@ -1345,7 +1404,9 @@ export default function ListingSummaryDynamic({
                                         </>
                                       ) : (
                                         <span className="text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground">
-                                          Ready to publish with shared listing details.
+                                          {baseListingReady
+                                            ? 'Ready to publish with shared listing details.'
+                                            : 'Will be ready once the shared listing details are complete.'}
                                         </span>
                                       )}
                                     </div>
@@ -1483,21 +1544,31 @@ export default function ListingSummaryDynamic({
                       <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
                         {allSectionsComplete
                           ? 'Everything needed for review is in place. Do one final pass, then publish when you are ready.'
-                          : nextSectionToResolve
-                            ? `Blocked until ${nextSectionToResolve.label.toLowerCase()} is ready.`
-                            : 'Finish the remaining required sections to unlock review.'}
+                          : readinessTone === 'close'
+                            ? 'You are close. A few finishing touches will unlock final review and publishing.'
+                            : 'Keep building the shared listing details below to unlock final review and publishing.'}
                       </p>
                     </div>
                     <span className={`rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${allSectionsComplete ? 'bg-secondary text-secondary-foreground' : readinessTone === 'close' ? 'bg-amber-100 text-amber-800' : 'bg-muted text-muted-foreground'}`}>
                       {allSectionsComplete ? 'Ready now' : readinessTone === 'close' ? 'Almost ready' : 'Keep building'}
                     </span>
                   </div>
-                  {!allSectionsComplete && remainingSections.length > 0 && (
-                    <div className="mt-[10px] flex flex-wrap gap-[6px]">
-                      {remainingSections.map((section) => (
-                        <span key={section.id} className="rounded-full bg-background px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                          {section.label}
-                        </span>
+                  {!allSectionsComplete && missingRequirementCards.length > 0 && (
+                    <div className="mt-[10px] grid gap-[8px]">
+                      {missingRequirementCards.map((section) => (
+                        <div key={section.id} className="rounded-[10px] bg-background px-[10px] py-[9px]">
+                          <div className="flex items-center justify-between gap-[8px]">
+                            <p className="font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[15px] text-foreground">
+                              {section.label}
+                            </p>
+                            <span className="rounded-full bg-muted px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
+                              Required
+                            </span>
+                          </div>
+                          <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
+                            {section.hint}
+                          </p>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -1521,7 +1592,7 @@ export default function ListingSummaryDynamic({
                       </div>
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0" data-name="Label">
                         <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap ${allSectionsComplete ? 'text-[#FFFFFF]' : 'text-[var(--muted-foreground)]'}`}>
-                          <p className="leading-[24px]">Review & Publish</p>
+                          <p className="leading-[24px]">{publishButtonLabel}</p>
                         </div>
                       </div>
                       <div className="overflow-clip relative shrink-0 size-[24px]" data-name="Chevron Right">
@@ -1537,11 +1608,7 @@ export default function ListingSummaryDynamic({
                 <div className="content-stretch flex flex-col items-center relative shrink-0 w-full" data-name="Container">
                   <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-foreground-dim text-[var(--text-xs)] text-center tracking-[0.2px] w-full">
                     <p className="leading-[16px] text-[12px]">
-                      {allSectionsComplete
-                        ? 'You are set up for a final confidence check before publishing.'
-                        : nextSectionToResolve
-                          ? `${nextSectionToResolve.label} is the next step to unlock review.`
-                          : 'Complete all sections to publish.'}
+                      {publishButtonSupport}
                     </p>
                   </div>
                 </div>
