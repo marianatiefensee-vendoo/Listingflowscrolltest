@@ -25,14 +25,8 @@ interface CreateItemLayoutProps {
   completionCount: number;
   onJumpToSection: (sectionId: string) => void;
   reviewStatus?: ListingSectionStatus;
-  shouldExpandItemDetails?: boolean;
-  shouldExpandMarketplaces?: boolean;
-  shouldExpandPricing?: boolean;
-  shouldExpandShipping?: boolean;
-  onItemDetailsSectionShown?: () => void;
-  onMarketplacesSectionShown?: () => void;
-  onPricingSectionShown?: () => void;
-  onShippingSectionShown?: () => void;
+  activeSectionId?: string;
+  activeSectionContext?: string | null;
 }
 
 const statusLabelMap: Record<ListingSectionStatus, string> = {
@@ -105,10 +99,12 @@ function SectionWrapper({
   section,
   index,
   children,
+  activeContext,
 }: {
   section: ListingSectionMeta;
   index: number;
   children: ReactNode;
+  activeContext?: string | null;
 }) {
   const isItemDetailsSection = section.id === "itemDetails";
   const summaryTitle = section.shortTitle ?? section.title;
@@ -118,7 +114,7 @@ function SectionWrapper({
   return (
     <section className="relative scroll-mt-[230px]">
       <div
-        className={`overflow-hidden rounded-[20px] border transition-all duration-200 ${section.isCurrent ? "shadow-[0_10px_30px_rgba(31,27,36,0.08)]" : isItemDetailsSection ? "shadow-[0_8px_24px_rgba(83,77,95,0.07)]" : "shadow-[0_2px_10px_rgba(31,27,36,0.03)]"} ${section.isCurrent ? "border-primary/35 bg-primary/5" : isItemDetailsSection ? "border-primary/20 bg-primary/4" : sectionFrameMap[section.status]}`}
+        className={`overflow-hidden rounded-[20px] border transition-all duration-200 ${section.isCurrent ? "shadow-[0_14px_38px_rgba(83,77,95,0.14)] ring-2 ring-primary/20" : isItemDetailsSection ? "shadow-[0_8px_24px_rgba(83,77,95,0.07)]" : "shadow-[0_2px_10px_rgba(31,27,36,0.03)]"} ${section.isCurrent ? "border-primary/40 bg-primary/5" : isItemDetailsSection ? "border-primary/20 bg-primary/4" : sectionFrameMap[section.status]}`}
       >
         <div className="relative border-b border-border/60 bg-background/72 px-[20px] py-[18px]">
           <div
@@ -149,7 +145,7 @@ function SectionWrapper({
                   </span>
                 )}
                 {section.isCurrent && (
-                  <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
+                  <span className="inline-flex rounded-full bg-primary px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary-foreground shadow-sm">
                     Editing now
                   </span>
                 )}
@@ -163,14 +159,21 @@ function SectionWrapper({
                   <p className="mt-[6px] max-w-[720px] font-['Lexend',sans-serif] text-[var(--text-sm)] leading-[20px] text-muted-foreground">
                     {summaryDescription}
                   </p>
+                  {section.isCurrent && activeContext && (
+                    <p className="mt-[8px] inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[16px] text-primary">
+                      {activeContext}
+                    </p>
+                  )}
                 </div>
 
                 <div className={`rounded-[16px] border px-[14px] py-[12px] ${section.isCurrent ? "border-primary/20 bg-primary/6" : section.status === "completed" ? "border-secondary/25 bg-secondary/10" : "border-border/70 bg-background/90"}`}>
                   <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                    Next
+                    {section.isCurrent ? "Now editing" : "Next"}
                   </p>
                   <p className="mt-[4px] font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
-                    {nextInfo}
+                    {section.isCurrent
+                      ? "This section is active. You can continue, collapse it, or come back here anytime."
+                      : nextInfo}
                   </p>
                 </div>
               </div>
@@ -181,7 +184,7 @@ function SectionWrapper({
         <div className="relative bg-surface-container/50 px-[14px] pb-[14px] pt-[10px]">
           <div
             aria-hidden="true"
-            className={`absolute inset-y-[10px] left-[20px] w-[2px] rounded-full ${section.isCurrent ? "bg-primary/25" : section.status === "completed" ? "bg-secondary/25" : "bg-border/80"}`}
+            className={`absolute inset-y-[10px] left-[20px] w-[2px] rounded-full ${section.isCurrent ? "bg-primary" : section.status === "completed" ? "bg-secondary/25" : "bg-border/80"}`}
           />
           <div className="ml-[14px]">
             <div className="mb-[10px] flex items-center gap-[10px] pl-[10px]">
@@ -206,12 +209,17 @@ export default function CreateItemLayout({
   completionCount,
   onJumpToSection,
   reviewStatus = "not-started",
+  activeSectionId,
+  activeSectionContext,
 }: CreateItemLayoutProps) {
   const completionPercent = Math.round(
     (completionCount / progressSections.length) * 100,
   );
   const nearReview =
     completionCount >= Math.max(progressSections.length - 1, 1);
+  const activeSection =
+    progressSections.find((section) => section.id === activeSectionId) ??
+    progressSections.find((section) => section.isCurrent);
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -226,17 +234,8 @@ export default function CreateItemLayout({
                       <div className="content-stretch relative flex h-[40px] w-full shrink-0 items-center justify-center">
                         <div className="relative shrink-0 size-[24px] overflow-clip">
                           <div className="absolute inset-[5.53%_26.37%_11.14%_26.36%]">
-                            <svg
-                              className="absolute block size-full"
-                              fill="none"
-                              preserveAspectRatio="none"
-                              viewBox="0 0 11.3458 19.9993"
-                            >
-                              <path
-                                d={svgPaths.p1a5f6bc0}
-                                fill="var(--fill-0, #1D1A24)"
-                                id="Icon"
-                              />
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 11.3458 19.9993">
+                              <path d={svgPaths.p1a5f6bc0} fill="var(--fill-0, #1D1A24)" id="Icon" />
                             </svg>
                           </div>
                         </div>
@@ -256,10 +255,7 @@ export default function CreateItemLayout({
             </div>
             <div className="content-stretch relative flex shrink-0 items-center gap-[8px] overflow-clip">
               <button className="bg-background content-stretch relative flex h-[48px] w-[142px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] px-[20px] py-[16px]">
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 pointer-events-none rounded-[8px] border border-border border-solid"
-                />
+                <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[8px] border border-border border-solid" />
                 <div className="content-stretch relative flex shrink-0 flex-col items-center justify-center rounded-[5px]">
                   <div className="content-stretch relative flex shrink-0 items-center gap-[10px] px-[16px] py-[10px]">
                     <div className="content-stretch relative flex shrink-0 items-center justify-center px-[4px]">
@@ -269,17 +265,8 @@ export default function CreateItemLayout({
                     </div>
                     <div className="relative h-[26.399px] w-[24px] shrink-0 overflow-clip">
                       <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
-                        <svg
-                          className="absolute block size-full"
-                          fill="none"
-                          preserveAspectRatio="none"
-                          viewBox="0 0 19.9992 12.4799"
-                        >
-                          <path
-                            d={svgPaths.p2dcfbd00}
-                            fill="var(--fill-0, #494455)"
-                            id="Icon"
-                          />
+                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.9992 12.4799">
+                          <path d={svgPaths.p2dcfbd00} fill="var(--fill-0, #494455)" id="Icon" />
                         </svg>
                       </div>
                     </div>
@@ -311,11 +298,23 @@ export default function CreateItemLayout({
               </p>
             </div>
           </div>
+          {activeSection && (
+            <div className="mb-[16px] flex flex-wrap items-center justify-between gap-[12px] rounded-[16px] border border-primary/15 bg-primary/6 px-[14px] py-[12px]">
+              <div>
+                <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
+                  Active section
+                </p>
+                <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
+                  {activeSection.title}
+                </p>
+              </div>
+              <p className="max-w-[440px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
+                {activeSectionContext ?? "The open accordion is highlighted below so it is easy to resume editing without losing your place."}
+              </p>
+            </div>
+          )}
           <div className="mb-[16px] h-[6px] overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${nearReview ? "bg-secondary" : "bg-primary"}`}
-              style={{ width: `${completionPercent}%` }}
-            />
+            <div className={`h-full rounded-full transition-all duration-300 ${nearReview ? "bg-secondary" : "bg-primary"}`} style={{ width: `${completionPercent}%` }} />
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {progressSections.map((section, index) => (
@@ -326,18 +325,10 @@ export default function CreateItemLayout({
                 type="button"
                 aria-current={section.isCurrent ? "step" : undefined}
               >
-                <div
-                  className={`mt-[1px] flex size-[26px] shrink-0 items-center justify-center rounded-full border text-[11px] font-medium ${section.isCurrent ? "border-primary/40 bg-primary/12 text-primary" : section.status === "completed" ? "border-secondary/40 bg-secondary text-secondary-foreground" : section.status === "in-progress" ? "border-amber-200 bg-amber-100 text-amber-800" : "border-border bg-muted text-muted-foreground"}`}
-                >
+                <div className={`mt-[1px] flex size-[26px] shrink-0 items-center justify-center rounded-full border text-[11px] font-medium ${section.isCurrent ? "border-primary/40 bg-primary/12 text-primary" : section.status === "completed" ? "border-secondary/40 bg-secondary text-secondary-foreground" : section.status === "in-progress" ? "border-amber-200 bg-amber-100 text-amber-800" : "border-border bg-muted text-muted-foreground"}`}>
                   {section.status === "completed" ? (
                     <svg className="size-[12px]" fill="none" viewBox="0 0 12 12">
-                      <path
-                        d="M2.5 6.1L4.8 8.4L9.5 3.7"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                      />
+                      <path d="M2.5 6.1L4.8 8.4L9.5 3.7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
                     </svg>
                   ) : (
                     index + 1
@@ -382,12 +373,8 @@ export default function CreateItemLayout({
                   Final checks and marketplace confidence before publish.
                 </p>
               </div>
-              <div
-                className={`rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.4px] ${statusToneMap[reviewStatus]}`}
-              >
-                {reviewStatus === "completed"
-                  ? "Ready"
-                  : statusLabelMap[reviewStatus]}
+              <div className={`rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.4px] ${statusToneMap[reviewStatus]}`}>
+                {reviewStatus === "completed" ? "Ready" : statusLabelMap[reviewStatus]}
               </div>
             </div>
           </div>
@@ -397,33 +384,29 @@ export default function CreateItemLayout({
       <div className="flex flex-col px-[12px] py-[0px]">
         <div className="ml-[0px] mr-[8px] my-[36px] flex flex-col gap-[28px] pl-[16px] pr-[4px] py-[8px]">
           <div id="listing-photos" data-step="photos">
-            <SectionWrapper section={progressSections[0]} index={0}>
+            <SectionWrapper section={progressSections[0]} index={0} activeContext={activeSectionId === "photos" ? activeSectionContext : null}>
               {children.photos}
             </SectionWrapper>
           </div>
 
           <div id="listing-details" data-step="details">
-            <SectionWrapper section={progressSections[1]} index={1}>
+            <SectionWrapper section={progressSections[1]} index={1} activeContext={activeSectionId === "itemDetails" ? activeSectionContext : null}>
               {children.itemDetails}
             </SectionWrapper>
           </div>
 
           <div id="listing-marketplaces" data-step="marketplaces">
-            <SectionWrapper section={progressSections[2]} index={2}>
+            <SectionWrapper section={progressSections[2]} index={2} activeContext={activeSectionId === "marketplaces" ? activeSectionContext : null}>
               {children.marketplaces}
             </SectionWrapper>
           </div>
 
-          <div
-            id="listing-price-shipping"
-            data-step="price-shipping"
-            className="flex flex-col gap-[28px]"
-          >
-            <SectionWrapper section={progressSections[3]} index={3}>
+          <div id="listing-price-shipping" data-step="price-shipping" className="flex flex-col gap-[28px]">
+            <SectionWrapper section={progressSections[3]} index={3} activeContext={activeSectionId === "pricing" ? activeSectionContext : null}>
               {children.pricing}
             </SectionWrapper>
             <div id="listing-shipping-section">
-              <SectionWrapper section={progressSections[4]} index={4}>
+              <SectionWrapper section={progressSections[4]} index={4} activeContext={activeSectionId === "shipping" ? activeSectionContext : null}>
                 {children.shipping}
               </SectionWrapper>
             </div>
@@ -442,9 +425,7 @@ export default function CreateItemLayout({
                   Once these sections feel complete, head to review for a final pass before publishing.
                 </p>
               </div>
-              <div
-                className={`shrink-0 rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.4px] ${nearReview ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}
-              >
+              <div className={`shrink-0 rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.4px] ${nearReview ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}>
                 {nearReview ? "Almost ready" : "Build confidence"}
               </div>
             </div>
