@@ -239,12 +239,12 @@ export default function MarketplacesContent({
             <div className="grid gap-[12px] lg:grid-cols-[minmax(0,1.3fr)_minmax(240px,0.9fr)]">
               <div className="bg-muted rounded-[12px] px-[16px] py-[14px]">
                 <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                  Item Details is the shared source of truth. Your main listing details, price, and shipping apply to every selected marketplace by default. Open marketplace controls anytime to customize only the channels that need overrides.
+                  Choose where to publish, then customize only the marketplaces that need changes.
                 </p>
               </div>
               <div className="rounded-[12px] border border-border bg-background px-[16px] py-[14px]">
                 <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                  Marketplace setup
+                  Selected
                 </p>
                 <div className="mt-[8px] flex flex-wrap gap-[8px]">
                   <span className="rounded-full bg-primary/10 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
@@ -291,7 +291,7 @@ export default function MarketplacesContent({
                                       <p className="leading-[24px]">{marketplace.name}</p>
                                     </div>
                                     <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[14px] text-muted-foreground">
-                                      {isSelected ? "Selected — inherits the shared listing by default" : "Select to include this marketplace"}
+                                      {isSelected ? "Selected" : "Select marketplace"}
                                     </p>
                                   </div>
                                 </div>
@@ -336,16 +336,8 @@ export default function MarketplacesContent({
                       Marketplace overrides
                     </p>
                     <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                      Start with the shared listing, then open marketplace controls only where channel-specific edits add value.
+                      Open controls only for marketplace-specific changes.
                     </p>
-                  </div>
-                  <div className="flex flex-wrap gap-[6px]">
-                    <span className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[4px] rounded-[999px] border border-border/70">
-                      Item Details stays primary
-                    </span>
-                    <span className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[4px] rounded-[999px] border border-border/70">
-                      Controls open in the side sheet
-                    </span>
                   </div>
                 </div>
 
@@ -372,13 +364,13 @@ export default function MarketplacesContent({
                               {marketplace.name}
                             </p>
                             <span className={`text-[11px] leading-[14px] tracking-[0.1px] font-[350] ${hasCustomizations ? "text-primary" : "text-muted-foreground"}`}>
-                              {hasCustomizations ? "Overrides visible" : "Using the base listing"}
+                              {hasCustomizations ? "Customized" : "Base listing"}
                             </span>
                           </div>
                           <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
                             {hasCustomizations
-                              ? "Open marketplace controls to review or refine this channel-specific setup."
-                              : "No overrides yet — this marketplace will publish with the shared title, price, and shipping."}
+                              ? "Open to edit marketplace-specific fields."
+                              : "Uses your shared listing."}
                           </p>
                           <div className="flex flex-wrap gap-[6px] mt-[6px]">
                             {hasCustomizations ? (
@@ -389,7 +381,7 @@ export default function MarketplacesContent({
                               ))
                             ) : (
                               <span className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
-                                Ready to inherit shared listing details
+                                Shared details apply
                               </span>
                             )}
                           </div>

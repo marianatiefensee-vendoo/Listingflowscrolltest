@@ -81,11 +81,11 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
   // Derive completion from required fields (Title, Description, Brand, Category, Size, Condition)
   const isCompleted = missingRequiredFields.length === 0;
   const completionLabel = isCompleted
-    ? "Base listing ready for all marketplaces"
-    : `${completedRequiredCount}/${requiredFields.length} required fields complete`;
+    ? "Completed"
+    : `${completedRequiredCount}/${requiredFields.length} complete`;
   const missingFieldsLabel = missingRequiredFields.length
     ? `Still needed: ${missingRequiredFields.join(", ")}`
-    : "All required base listing fields are filled.";
+    : "All required fields complete.";
 
   // Track AI-added brands and categories — hydrated from sessionStorage to survive page navigations
   const [customBrands, setCustomBrands] = useState<string[]>(() => {
@@ -358,14 +358,14 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                 <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-h-px min-w-px relative">
                   <div className="content-stretch flex flex-wrap gap-[8px] items-center relative w-full">
                     <span className="inline-flex items-center rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] tracking-[0.4px] text-primary">
-                      Base listing source of truth
+                      Shared details
                     </span>
                     <span className={`inline-flex items-center rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] tracking-[0.4px] ${isCompleted ? 'bg-secondary text-secondary-foreground' : 'bg-amber-100 text-amber-800'}`}>
-                      {isCompleted ? 'Ready for marketplaces' : 'Needs required details'}
+                      {isCompleted ? 'Completed' : 'In progress'}
                     </span>
                   </div>
                   <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] text-foreground text-[var(--text-sm)] tracking-[0.2px]">
-                    These details apply to all marketplaces unless customized later.
+                    Add the core details for this listing.
                   </p>
                   <p className="font-['Lexend',sans-serif] leading-[18px] text-muted-foreground text-[12px] tracking-[0.2px]">
                     {isExpanded ? missingFieldsLabel : completionLabel}
@@ -638,11 +638,11 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                           <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[24px] relative shrink-0 text-foreground text-[var(--text-base)] tracking-[0.15px] whitespace-nowrap">Item Specifics</p>
                         </div>
                         <span className="inline-flex items-center rounded-full bg-background/90 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
-                          Required for your base listing
+Required
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
-                            Brand, category, size, and condition help populate every marketplace before any custom edits.
+Brand, category, size, and condition.
                           </p>
                         </div>
                         {isAnySpecificAIGenerated ? (
@@ -1270,8 +1270,8 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
               <div className="content-stretch flex flex-wrap gap-[12px] items-center justify-between pb-[24px] relative shrink-0 w-full">
                 <p className="font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
                   {isCompleted
-                    ? 'You can come back to Item Details anytime to update the shared listing for every marketplace.'
-                    : 'Complete the remaining required base listing fields before moving on.'}
+                    ? 'Completed'
+                    : 'Finish the required fields.'}
                 </p>
                 <div className="bg-secondary content-stretch flex h-[48px] items-center justify-center relative rounded-[var(--radius)] shrink-0">
                   <div className="content-stretch flex flex-col items-center justify-center relative rounded-[5px] shrink-0">
