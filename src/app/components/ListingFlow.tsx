@@ -108,6 +108,11 @@ export default function ListingFlow() {
   // Lifted marketplace preview dialog state (so dialog renders outside overflow containers)
   const [previewMarketplace, setPreviewMarketplace] =
     useState<Marketplace | null>(null);
+  const [activeEditSection, setActiveEditSection] =
+    useState<ListingSectionMeta["id"]>("photos");
+  const [activeEditContext, setActiveEditContext] = useState<string | null>(
+    "Start with photos, then move forward or jump back at any time.",
+  );
 
   // Ref for the edit mode scroll container
   const editScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -143,20 +148,17 @@ export default function ListingFlow() {
         setIsReviewMode(false);
         setIsPublished(false);
 
-        // Expand the appropriate section
-        const expandKey = STEP_TO_EXPAND_MAP[state.step];
-        if (expandKey === "photos") {
-          setIsPhotosCollapsed(false);
-        } else if (expandKey === "itemDetails") {
-          setShouldExpandItemDetails(true);
-        } else if (expandKey === "marketplaces") {
-          setShouldExpandMarketplaces(true);
-        } else if (expandKey === "pricing") {
-          setShouldExpandPricing(true);
+        const expandKey = STEP_TO_EXPAND_MAP[state.step] as ListingSectionMeta["id"] | undefined;
+        if (expandKey) {
+          openSection(expandKey, {
+            context:
+              "This section reopened from your saved progress so it is immediately visible and ready to edit.",
+            routeStep: state.step as "photos" | "details" | "marketplaces" | "price-shipping",
+          });
         }
       }
     },
-    [],
+    [openSection],
   );
 
   const {
@@ -233,6 +235,18 @@ export default function ListingFlow() {
     if (except !== "shipping") setShouldCollapseShipping(true);
   };
 
+  const sectionContextMap: Record<ListingSectionMeta["id"], string> = {
+    photos: "Photos are open. Add, review, or reorder them without leaving the main flow.",
+    itemDetails:
+      "Shared listing details are open so you can refine the core information buyers will see everywhere.",
+    marketplaces:
+      "Marketplace selection is open. You can reopen it anytime and safely tweak destinations or overrides.",
+    pricing:
+      "Pricing is open so you can review the base price before moving on.",
+    shipping:
+      "Shipping is open. Continue when ready, or come back here anytime before publishing.",
+  };
+
   const handleContinueFromPhotos = (
     photos: string[],
     generatedDetails?: ItemDetails,
@@ -252,63 +266,82 @@ export default function ListingFlow() {
         }
       }
     }
-    collapseAllExcept("itemDetails");
-    setShouldExpandItemDetails(true);
-    navigateToSection("details");
+    openSection("itemDetails", {
+      context:
+        "Photos are saved. Item details opened automatically so you can keep momentum without hunting for the next section.",
+    });
   };
 
   const handleContinueFromItemDetails = () => {
-    collapseAllExcept("marketplaces");
-    setShouldExpandMarketplaces(true);
-    navigateToSection("marketplaces");
+    openSection("marketplaces", {
+      context:
+        "Item details are saved. Marketplaces opened next so you can continue the listing flow smoothly.",
+    });
   };
 
   const handleContinueFromMarketplaces = () => {
-    collapseAllExcept("pricing");
-    setShouldExpandPricing(true);
-    navigateToSection("price-shipping");
+    openSection("pricing", {
+      context:
+        "Marketplaces are set. Pricing opened next so the transition feels continuous, not forced.",
+    });
   };
 
   const handleContinueFromPricing = () => {
-    collapseAllExcept("shipping");
-    setShouldExpandShipping(true);
-    navigateToSection("price-shipping");
+    openSection("shipping", {
+      context:
+        "Pricing is ready. Shipping opened next so you can finish this pass without losing context.",
+    });
   };
 
   const handleTogglePhotosExpand = () => {
     const willExpand = isPhotosCollapsed;
     setIsPhotosCollapsed(!isPhotosCollapsed);
     if (willExpand) {
-      collapseAllExcept("photos");
-      navigateToSection("photos");
+      openSection("photos", {
+        context:
+          "Photos reopened. This completed section is still fully editable whenever you want to make changes.",
+      });
     }
   };
 
   // Handle manual expansion of sections (user clicks chevron to re-expand)
   const handleManualExpandItemDetails = () => {
-    collapseAllExcept("itemDetails");
-    navigateToSection("details");
+    openSection("itemDetails", {
+      context:
+        "Item details reopened. This section stays flexible even after you move forward.",
+    });
   };
   const handleManualExpandMarketplaces = () => {
-    collapseAllExcept("marketplaces");
-    navigateToSection("marketplaces");
+    openSection("marketplaces", {
+      context:
+        "Marketplaces reopened so you can adjust destinations or overrides without friction.",
+    });
   };
   const handleManualExpandPricing = () => {
-    collapseAllExcept("pricing");
-    navigateToSection("price-shipping");
+    openSection("pricing", {
+      context:
+        "Pricing reopened. Completed sections remain easy to revisit and edit.",
+    });
   };
   const handleManualExpandShipping = () => {
-    collapseAllExcept("shipping");
-    navigateToSection("price-shipping");
+    openSection("shipping", {
+      context:
+        "Shipping reopened. You can review or adjust it anytime before publishing.",
+    });
   };
 
   const handleGoToMarketplaces = () => {
-    collapseAllExcept("marketplaces");
-    setShouldExpandMarketplaces(true);
-    navigateToSection("marketplaces");
+    openSection("marketplaces", {
+      context:
+        "Opened from summary so the marketplace accordion is visible right away and ready for edits.",
+    });
   };
 
   const handleEditMarketplace = (marketplaceId: string) => {
+    openSection("marketplaces", {
+      context:
+        "Opened from review or the right rail so the matching marketplace section is visible behind the override panel.",
+    });
     setSelectedMarketplaceForEdit(marketplaceId);
     setIsSideSheetOpen(true);
     // Route sync hook handles URL update for review/marketplace
@@ -346,13 +379,17 @@ export default function ListingFlow() {
   };
 
   const handleBackFromReview = () => {
-    setIsReviewMode(false);
-    navigateToSection("photos");
+    openSection(activeEditSection, {
+      context:
+        "Returned from review. The section you were working on is reopened so you can keep editing without losing your place.",
+    });
   };
 
   const handleBackToEditFromReview = () => {
-    setIsReviewMode(false);
-    navigateToSection("photos");
+    openSection(activeEditSection, {
+      context:
+        "Returned from review. Your active accordion is visible again and ready for edits.",
+    });
   };
 
   const handleListAnother = () => {
@@ -497,7 +534,49 @@ export default function ListingFlow() {
     const nextTop = target.offsetTop - stickyOffset;
     container.scrollTo({ top: Math.max(nextTop, 0), behavior: "smooth" });
     setCurrentSection(sectionId);
+    setActiveEditSection(sectionId);
   }, []);
+
+  function openSection(
+    section: ListingSectionMeta["id"],
+    options?: {
+      context?: string;
+      routeStep?: "photos" | "details" | "marketplaces" | "price-shipping";
+    },
+  ) {
+    setIsReviewMode(false);
+    collapseAllExcept(section);
+    setActiveEditSection(section);
+    setActiveEditContext(options?.context ?? sectionContextMap[section]);
+
+    if (section === "photos") {
+      setIsPhotosCollapsed(false);
+    }
+    if (section === "itemDetails") {
+      setShouldExpandItemDetails(true);
+    }
+    if (section === "marketplaces") {
+      setShouldExpandMarketplaces(true);
+    }
+    if (section === "pricing") {
+      setShouldExpandPricing(true);
+    }
+    if (section === "shipping") {
+      setShouldExpandShipping(true);
+    }
+
+    const step =
+      options?.routeStep ??
+      (section === "itemDetails"
+        ? "details"
+        : section === "marketplaces"
+          ? "marketplaces"
+          : section === "photos"
+            ? "photos"
+            : "price-shipping");
+    navigateToSection(step);
+    window.setTimeout(() => scrollToSection(section), 60);
+  }
 
   useEffect(() => {
     const container = editScrollContainerRef.current;
@@ -652,18 +731,8 @@ export default function ListingFlow() {
                   completionCount={completedSectionCount}
                   onJumpToSection={scrollToSection}
                   reviewStatus={reviewStatus}
-                  shouldExpandItemDetails={shouldExpandItemDetails}
-                  shouldExpandMarketplaces={shouldExpandMarketplaces}
-                  shouldExpandPricing={shouldExpandPricing}
-                  shouldExpandShipping={shouldExpandShipping}
-                  onItemDetailsSectionShown={() =>
-                    setShouldExpandItemDetails(false)
-                  }
-                  onMarketplacesSectionShown={() =>
-                    setShouldExpandMarketplaces(false)
-                  }
-                  onPricingSectionShown={() => setShouldExpandPricing(false)}
-                  onShippingSectionShown={() => setShouldExpandShipping(false)}
+                  activeSectionId={activeEditSection}
+                  activeSectionContext={activeEditContext}
                   children={{
                     photos: (
                       <PhotosStep
