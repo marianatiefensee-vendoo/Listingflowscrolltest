@@ -8,6 +8,10 @@ export interface ListingSectionMeta {
   title: string;
   shortTitle?: string;
   description?: string;
+  shortDescription?: string;
+  actionLabel?: string;
+  connectedLabel?: string;
+  sourceOfTruthNote?: string;
   status: ListingSectionStatus;
   isCurrent?: boolean;
   isPublishReady?: boolean;
@@ -109,6 +113,7 @@ function SectionWrapper({
   const isItemDetailsSection = section.id === "itemDetails";
   const summaryTitle = section.shortTitle ?? section.title;
   const summaryDescription = section.description ?? "Continue editing this section below.";
+  const summaryFootnote = section.sourceOfTruthNote ?? section.connectedLabel;
   const nextInfo = getNextInfo(section);
 
   return (
@@ -159,6 +164,11 @@ function SectionWrapper({
                   <p className="mt-[6px] max-w-[720px] font-['Lexend',sans-serif] text-[var(--text-sm)] leading-[20px] text-muted-foreground">
                     {summaryDescription}
                   </p>
+                  {summaryFootnote && (
+                    <p className={`mt-[8px] inline-flex rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[16px] ${section.id === "itemDetails" ? "bg-primary/10 text-primary" : "bg-background text-muted-foreground border border-border/70"}`}>
+                      {summaryFootnote}
+                    </p>
+                  )}
                   {section.isCurrent && activeContext && (
                     <p className="mt-[8px] inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[16px] text-primary">
                       {activeContext}
@@ -175,6 +185,11 @@ function SectionWrapper({
                       ? "This section is active. You can continue, collapse it, or come back here anytime."
                       : nextInfo}
                   </p>
+                  {section.actionLabel && (
+                    <p className="mt-[6px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
+                      {section.actionLabel}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -353,11 +368,23 @@ export default function CreateItemLayout({
                   <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
                     {statusLabelMap[section.status]}
                   </p>
-                  {section.description && (
+                  {section.shortDescription && (
                     <p className="mt-[6px] line-clamp-2 font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground/90">
-                      {section.description}
+                      {section.shortDescription}
                     </p>
                   )}
+                  <div className="mt-[8px] flex flex-wrap items-center gap-[6px]">
+                    {section.id === "itemDetails" && (
+                      <span className="rounded-full bg-primary/10 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
+                        Source of truth
+                      </span>
+                    )}
+                    {section.actionLabel && (
+                      <span className="rounded-full bg-background/90 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
+                        {section.actionLabel}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className={`absolute inset-x-[14px] bottom-0 h-[2px] rounded-full transition-opacity ${section.isCurrent ? "bg-primary opacity-100" : "bg-transparent opacity-0 group-hover:opacity-100 group-hover:bg-border"}`} />
               </button>
@@ -370,13 +397,16 @@ export default function CreateItemLayout({
                   Review
                 </p>
                 <p className="font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
-                  Final checks and marketplace confidence before publish.
+                  Final checks, marketplace confidence, and publish readiness without locking the flow.
                 </p>
               </div>
               <div className={`rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.4px] ${statusToneMap[reviewStatus]}`}>
                 {reviewStatus === "completed" ? "Ready" : statusLabelMap[reviewStatus]}
               </div>
             </div>
+            <p className="mt-[8px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
+              You can still jump back into any accordion after review if something needs one more pass.
+            </p>
           </div>
         </div>
       </div>

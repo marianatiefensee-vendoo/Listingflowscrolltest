@@ -73,6 +73,17 @@ export default function MarketplaceSideSheet({
   const activeCustomizationSummary = getCustomizationSummary(activeCustomization);
   const marketplaceEditedTabs = new Set<TabType>();
 
+  const activeEditedTabCount = [
+    activeCustomization?.title,
+    activeCustomization?.category,
+    activeCustomization?.brand,
+    activeCustomization?.size,
+    activeCustomization?.price,
+    activeCustomization?.shippingType,
+    activeCustomization?.pricingFormat,
+  ].filter(Boolean).length;
+  const readyTabCount = [hasItemDetails, hasPricing, hasShipping, true].filter(Boolean).length;
+
   const handleTabClick = (tab: TabType) => {
     setActiveTab(tab);
   };
@@ -193,7 +204,7 @@ export default function MarketplaceSideSheet({
                               <p className="leading-[36px]">Marketplace Controls</p>
                             </div>
                             <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                              Base listing stays unchanged here. You are editing overrides for {activeMarketplace?.name || "this marketplace"}.
+                              Item Details remains the source of truth. You are editing optional overrides for {activeMarketplace?.name || "this marketplace"}.
                             </p>
                           </div>
                         </div>
@@ -228,17 +239,23 @@ export default function MarketplaceSideSheet({
                 <div className="relative shrink-0 w-full">
                   <div className="content-stretch flex flex-col items-start px-[24px] relative w-full">
                     <div className="bg-muted rounded-[12px] px-[16px] py-[12px] w-full mb-[12px]">
-                      <div className="flex items-center justify-between gap-[12px]">
+                      <div className="flex items-start justify-between gap-[12px]">
                         <div>
                           <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
                             {activeMarketplace?.name || "Marketplace"} overrides
                           </p>
                           <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                            Pick a marketplace, then use the tabs below to adjust only that channel.
+                            Pick a marketplace, then use the tabs below to adjust only that channel. Shared listing values remain visible and unchanged underneath.
                           </p>
                         </div>
-                        <div className="flex flex-wrap justify-end gap-[6px] max-w-[220px]">
-                          {activeCustomizationSummary.length > 0 ? (
+                        <div className="flex flex-wrap justify-end gap-[6px] max-w-[260px]">
+                          <span className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
+                            {readyTabCount}/4 tabs available
+                          </span>
+                          <span className={`bg-background text-[11px] leading-[14px] tracking-[0.1px] px-[8px] py-[2px] rounded-[999px] ${activeEditedTabCount > 0 ? "text-primary" : "text-muted-foreground"}`}>
+                            {activeEditedTabCount > 0 ? `${activeEditedTabCount} override${activeEditedTabCount === 1 ? "" : "s"}` : "Using base listing"}
+                          </span>
+                          {activeCustomizationSummary.length > 0 &&
                             activeCustomizationSummary.map((summary) => (
                               <span
                                 key={summary}
@@ -246,12 +263,7 @@ export default function MarketplaceSideSheet({
                               >
                                 {summary}
                               </span>
-                            ))
-                          ) : (
-                            <span className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
-                              Using base listing
-                            </span>
-                          )}
+                            ))}
                         </div>
                       </div>
                     </div>
@@ -352,7 +364,7 @@ export default function MarketplaceSideSheet({
           <div className="bg-surface-container-high content-stretch flex flex-col items-start relative shrink-0 w-full">
             <div className="px-[24px] pt-[12px]">
               <p className="font-['Lexend',sans-serif] font-[350] text-[11px] leading-[14px] tracking-[0.2px] text-muted-foreground uppercase">
-                Editing {activeMarketplace?.name || "marketplace"} · {activeTab === "itemDetails" ? "Item Details" : activeTab === "pricing" ? "Pricing" : activeTab === "shipping" ? "Shipping" : "Optional"}
+                Editing {activeMarketplace?.name || "marketplace"} · {activeTab === "itemDetails" ? "Item Details" : activeTab === "pricing" ? "Pricing" : activeTab === "shipping" ? "Shipping" : "Optional"} · shared listing stays intact
               </p>
             </div>
             <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
