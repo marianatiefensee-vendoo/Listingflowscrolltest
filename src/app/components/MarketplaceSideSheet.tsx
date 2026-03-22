@@ -21,6 +21,23 @@ interface MarketplaceSideSheetProps {
 
 type TabType = "itemDetails" | "pricing" | "shipping" | "optional";
 
+function getCustomizationSummary(customization?: MarketplaceCustomization) {
+  if (!customization) return [];
+  const customFields = [
+    customization.title,
+    customization.category,
+    customization.brand,
+    customization.size,
+  ].filter((value) => !!value).length;
+  const summaries: string[] = [];
+  if (customization.price) summaries.push("Custom pricing");
+  if (customFields > 0) {
+    summaries.push(`${customFields} custom field${customFields > 1 ? "s" : ""}`);
+  }
+  if (customization.shippingType) summaries.push("Shipping customized");
+  return summaries;
+}
+
 export default function MarketplaceSideSheet({
   isOpen,
   onClose,
@@ -50,6 +67,10 @@ export default function MarketplaceSideSheet({
   if (!isOpen || marketplaces.length === 0) return null;
 
   const activeMarketplace = marketplaces.find((m) => m.id === activeMarketplaceId);
+  const activeCustomization = activeMarketplaceId
+    ? marketplaceCustomizations[activeMarketplaceId]
+    : undefined;
+  const activeCustomizationSummary = getCustomizationSummary(activeCustomization);
   const marketplaceEditedTabs = new Set<TabType>();
 
   const handleTabClick = (tab: TabType) => {
@@ -165,13 +186,18 @@ export default function MarketplaceSideSheet({
             <div className="h-[96px] relative shrink-0 w-full">
               <div className="flex flex-row items-center size-full">
                 <div className="content-stretch flex items-center p-[24px] relative size-full">
-                  <div className="flex flex-[1_0_0] flex-row items-center self-stretch">
-                    <div className="content-stretch flex flex-[1_0_0] h-full items-end min-h-px min-w-px relative">
-                      <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] h-full justify-end leading-[0] relative shrink-0 text-foreground text-[28px] w-[404px]">
-                        <p className="leading-[36px]">Marketplace Controls</p>
+                      <div className="flex flex-[1_0_0] flex-row items-center self-stretch">
+                        <div className="content-stretch flex flex-[1_0_0] h-full items-end min-h-px min-w-px relative">
+                          <div className="flex flex-col justify-end gap-[4px] h-full">
+                            <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[0] relative shrink-0 text-foreground text-[28px] w-[404px]">
+                              <p className="leading-[36px]">Marketplace Controls</p>
+                            </div>
+                            <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
+                              Base listing stays unchanged here. You are editing overrides for {activeMarketplace?.name || "this marketplace"}.
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
                   <div className="flex flex-row items-center self-stretch">
                     <div className="content-stretch flex h-full items-center justify-end relative shrink-0">
                       <button
@@ -201,9 +227,40 @@ export default function MarketplaceSideSheet({
               <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-h-px min-w-px py-[12px] relative">
                 <div className="relative shrink-0 w-full">
                   <div className="content-stretch flex flex-col items-start px-[24px] relative w-full">
+                    <div className="bg-muted rounded-[12px] px-[16px] py-[12px] w-full mb-[12px]">
+                      <div className="flex items-center justify-between gap-[12px]">
+                        <div>
+                          <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
+                            {activeMarketplace?.name || "Marketplace"} overrides
+                          </p>
+                          <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
+                            Pick a marketplace, then use the tabs below to adjust only that channel.
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap justify-end gap-[6px] max-w-[220px]">
+                          {activeCustomizationSummary.length > 0 ? (
+                            activeCustomizationSummary.map((summary) => (
+                              <span
+                                key={summary}
+                                className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-foreground-dim px-[8px] py-[2px] rounded-[999px]"
+                              >
+                                {summary}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
+                              Using base listing
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                     <div className="content-stretch flex gap-[12px] items-start relative shrink-0 w-full">
                       {marketplaces.map((marketplace) => {
                         const isActive = activeMarketplaceId === marketplace.id;
+                        const marketplaceSummary = getCustomizationSummary(
+                          marketplaceCustomizations[marketplace.id],
+                        );
                         return (
                         <button
                           key={marketplace.id}
@@ -262,6 +319,14 @@ export default function MarketplaceSideSheet({
                               </div>
                             )}
                           </div>
+                          <div className="mt-[8px] w-[60px]">
+                            <p className={`font-['Lexend',sans-serif] text-[11px] leading-[14px] tracking-[0.1px] text-center ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                              {marketplace.name}
+                            </p>
+                            <p className={`font-['Lexend',sans-serif] text-[10px] leading-[12px] tracking-[0.1px] text-center mt-[2px] ${marketplaceSummary.length > 0 ? "text-primary" : "text-muted-foreground"}`}>
+                              {marketplaceSummary.length > 0 ? "Customized" : "Base"}
+                            </p>
+                          </div>
                         </button>
                         );
                       })}
@@ -285,6 +350,11 @@ export default function MarketplaceSideSheet({
 
           {/* Tabs */}
           <div className="bg-surface-container-high content-stretch flex flex-col items-start relative shrink-0 w-full">
+            <div className="px-[24px] pt-[12px]">
+              <p className="font-['Lexend',sans-serif] font-[350] text-[11px] leading-[14px] tracking-[0.2px] text-muted-foreground uppercase">
+                Editing {activeMarketplace?.name || "marketplace"} · {activeTab === "itemDetails" ? "Item Details" : activeTab === "pricing" ? "Pricing" : activeTab === "shipping" ? "Shipping" : "Optional"}
+              </p>
+            </div>
             <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
               <div className="content-stretch cursor-pointer flex items-center overflow-clip relative shrink-0 w-full">
                 <button

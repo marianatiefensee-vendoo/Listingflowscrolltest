@@ -5,6 +5,7 @@ import imgEbay from "figma:asset/fc302d572214546f8204178ed8fb7d0af8c7506e.png";
 import imgMercari from "figma:asset/818d7c9ebebd26d98ee60737907006a9b258dce3.png";
 import imgDepop from "figma:asset/9fc19e9b972ada34a5069710f93ea92cd4258fea.png";
 import imgFacebook from "figma:asset/55ad25062cf42038188e8437b6d83a149a822f83.png";
+import type { MarketplaceCustomization } from "../App";
 
 interface MarketplacesContentProps {
   shouldExpand?: boolean;
@@ -12,12 +13,31 @@ interface MarketplacesContentProps {
   onContinue?: () => void;
   selectedMarketplaces: string[];
   onMarketplacesChange: (marketplaces: string[]) => void;
+  marketplaceCustomizations?: Record<string, MarketplaceCustomization>;
+  onEditMarketplace?: (marketplaceId: string) => void;
   shouldCollapse?: boolean;
   onCollapseChange?: () => void;
   onManualExpand?: () => void;
 }
 
-export default function MarketplacesContent({ shouldExpand, onExpandChange, onContinue, selectedMarketplaces, onMarketplacesChange, shouldCollapse, onCollapseChange, onManualExpand }: MarketplacesContentProps) {
+function getCustomizationSummary(customization?: MarketplaceCustomization) {
+  if (!customization) return [];
+  const customFields = [
+    customization.title,
+    customization.category,
+    customization.brand,
+    customization.size,
+  ].filter((value) => !!value).length;
+  const summaries: string[] = [];
+  if (customization.price) summaries.push("Custom pricing");
+  if (customFields > 0) {
+    summaries.push(`${customFields} custom field${customFields > 1 ? "s" : ""}`);
+  }
+  if (customization.shippingType) summaries.push("Shipping customized");
+  return summaries;
+}
+
+export default function MarketplacesContent({ shouldExpand, onExpandChange, onContinue, selectedMarketplaces, onMarketplacesChange, marketplaceCustomizations = {}, onEditMarketplace, shouldCollapse, onCollapseChange, onManualExpand }: MarketplacesContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Derive completion from required inputs: at least one marketplace selected
@@ -220,6 +240,14 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
       {/* Content */}
       {isExpanded && (
         <div className="content-stretch flex flex-col gap-[22px] items-start py-[24px] relative shrink-0 w-full">
+          <div className="px-[24px] w-full">
+            <div className="bg-muted rounded-[12px] px-[16px] py-[14px]">
+              <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
+                Your main listing details, price, and shipping apply to every selected marketplace by default. Open marketplace controls anytime to customize only the channels that need overrides.
+              </p>
+            </div>
+          </div>
+
           {/* Marketplace Grid */}
           <div className="relative shrink-0 w-full">
             <div className="overflow-clip rounded-[inherit] size-full">
@@ -459,6 +487,78 @@ export default function MarketplacesContent({ shouldExpand, onExpandChange, onCo
             </div>
           </div>
 
+          {selectedMarketplaces.length > 0 && (
+            <div className="px-[24px] w-full">
+              <div className="flex items-center justify-between mb-[12px]">
+                <div>
+                  <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
+                    Marketplace overrides
+                  </p>
+                  <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
+                    Customize individual marketplaces now or revisit them later from the right rail.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-[8px]">
+                {selectedMarketplaces.map((marketplaceId) => {
+                  const marketplace = marketplaces.find((m) => m.id === marketplaceId);
+                  if (!marketplace) return null;
+                  const customizationSummary = getCustomizationSummary(
+                    marketplaceCustomizations[marketplaceId],
+                  );
+                  const hasCustomizations = customizationSummary.length > 0;
+
+                  return (
+                    <button
+                      key={marketplaceId}
+                      type="button"
+                      onClick={() => onEditMarketplace?.(marketplaceId)}
+                      className="bg-card border border-border rounded-[8px] px-[16px] py-[12px] flex items-center gap-[12px] text-left hover:bg-background transition-colors"
+                    >
+                      <div className="bg-card overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
+                        <img
+                          src={marketplace.image}
+                          alt={marketplace.name}
+                          className="absolute inset-0 object-cover size-full"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-[8px]">
+                          <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
+                            {marketplace.name}
+                          </p>
+                          <span className="text-[11px] leading-[14px] tracking-[0.1px] font-[350] text-muted-foreground">
+                            {hasCustomizations ? "Overrides added" : "Using base listing"}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-[6px] mt-[6px]">
+                          {hasCustomizations ? (
+                            customizationSummary.map((summary) => (
+                              <span
+                                key={summary}
+                                className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-foreground-dim px-[8px] py-[2px] rounded-[999px]"
+                              >
+                                {summary}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
+                              No marketplace-specific changes
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="font-['Lexend',sans-serif] font-medium text-[12px] leading-[16px] tracking-[0.2px] text-primary">
+                        {hasCustomizations ? "Review" : "Customize"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
           {/* Continue Button */}
           <div className="relative shrink-0 w-full">
             <div className="flex flex-row items-end justify-end size-full">

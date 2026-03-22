@@ -695,6 +695,8 @@ export default function ListingFlow() {
                         onContinue={handleContinueFromMarketplaces}
                         selectedMarketplaces={selectedMarketplaces}
                         onMarketplacesChange={setSelectedMarketplaces}
+                        marketplaceCustomizations={marketplaceCustomizations}
+                        onEditMarketplace={handleEditMarketplace}
                         shouldCollapse={shouldCollapseMarketplaces}
                         onCollapseChange={() =>
                           setShouldCollapseMarketplaces(false)

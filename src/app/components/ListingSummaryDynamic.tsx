@@ -61,6 +61,35 @@ const allMarketplaces: Marketplace[] = [
   },
 ];
 
+function getCustomizationSummary(
+  customization: import("../App").MarketplaceCustomization | undefined,
+  itemDetails: ListingSummaryDynamicProps["itemDetails"],
+  price: string,
+) {
+  if (!customization) return [];
+
+  const detailOverrides = [
+    customization.title && customization.title !== itemDetails?.title,
+    customization.category && customization.category !== itemDetails?.category,
+    customization.brand && customization.brand !== itemDetails?.brand,
+    customization.size && customization.size !== itemDetails?.size,
+  ].filter(Boolean).length;
+
+  const summaries: string[] = [];
+  if (customization.price && customization.price !== price) {
+    summaries.push("Custom pricing");
+  }
+  if (detailOverrides > 0) {
+    summaries.push(
+      `${detailOverrides} custom field${detailOverrides > 1 ? "s" : ""}`,
+    );
+  }
+  if (customization.shippingType) {
+    summaries.push("Shipping customized");
+  }
+  return summaries;
+}
+
 export default function ListingSummaryDynamic({
   selectedMarketplaceIds,
   onSelectMarketplaces,
@@ -620,7 +649,7 @@ export default function ListingSummaryDynamic({
 
                         {/* Caption */}
                         <p className="font-['Lexend',sans-serif] font-[350] text-[var(--text-xs)] leading-[16px] text-foreground-dim tracking-[0.2px] -mt-[4px]">
-                          Click a marketplace to review or edit
+                          Base listing applies everywhere unless you customize a marketplace.
                         </p>
 
                         {/* Marketplace List - Now Clickable */}
@@ -628,12 +657,8 @@ export default function ListingSummaryDynamic({
                           {selectedMarketplaces.map(
                             (marketplace) => {
                               const customization = marketplaceCustomizations[marketplace.id];
-                              const hasCustomTitle = customization?.title && customization.title !== itemDetails?.title;
-                              const hasCustomPrice = customization?.price && customization.price !== price;
-                              const hasCustomCategory = customization?.category && customization.category !== itemDetails?.category;
-                              const hasCustomBrand = customization?.brand && customization.brand !== itemDetails?.brand;
-                              const hasCustomSize = customization?.size && customization.size !== itemDetails?.size;
-                              const isCustomized = hasCustomTitle || hasCustomPrice || hasCustomCategory || hasCustomBrand || hasCustomSize;
+                              const customizationSummary = getCustomizationSummary(customization, itemDetails, price);
+                              const isCustomized = customizationSummary.length > 0;
                               const displayTitle = customization?.title || itemDetails?.title || "Untitled";
                               const displayPrice = customization?.price || price || "0.00";
 
@@ -676,7 +701,7 @@ export default function ListingSummaryDynamic({
                                       </p>
 
                                       {/* Price + Tag Row */}
-                                      <div className="flex items-center gap-[8px] w-full">
+                                      <div className="flex items-center gap-[8px] w-full flex-wrap">
                                         <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] text-[var(--text-sm)] leading-[20px] text-foreground tracking-[0.1px]">
                                           ${displayPrice}
                                         </p>
@@ -705,9 +730,26 @@ export default function ListingSummaryDynamic({
                                         ) : (
                                           <div className="bg-success/20 rounded-[4px] px-[8px] py-[2px] flex items-center gap-[4px] shrink-0">
                                             <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[16px] text-success text-[11px] tracking-[0.5px] whitespace-nowrap">
-                                              Ready to list
+                                              Using base listing
                                             </p>
                                           </div>
+                                        )}
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-[6px] w-full">
+                                        {isCustomized ? (
+                                          customizationSummary.map((summary) => (
+                                            <span
+                                              key={summary}
+                                              className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-foreground-dim px-[8px] py-[2px] rounded-[999px]"
+                                            >
+                                              {summary}
+                                            </span>
+                                          ))
+                                        ) : (
+                                          <span className="text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground">
+                                            No marketplace-specific changes yet
+                                          </span>
                                         )}
                                       </div>
                                     </div>
@@ -1329,18 +1371,17 @@ export default function ListingSummaryDynamic({
                           Marketplaces
                         </p>
                       </div>
+                      <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-foreground-dim -mt-[4px]">
+                        The form on the left is your base listing. Open any marketplace here to add overrides you can revisit anytime.
+                      </p>
 
                       {/* Marketplace List */}
                       <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
                         {selectedMarketplaces.map(
                           (marketplace) => {
                             const customization = marketplaceCustomizations[marketplace.id];
-                            const hasCustomTitle = customization?.title && customization.title !== itemDetails?.title;
-                            const hasCustomPrice = customization?.price && customization.price !== price;
-                            const hasCustomCategory = customization?.category && customization.category !== itemDetails?.category;
-                            const hasCustomBrand = customization?.brand && customization.brand !== itemDetails?.brand;
-                            const hasCustomSize = customization?.size && customization.size !== itemDetails?.size;
-                            const isCustomized = hasCustomTitle || hasCustomPrice || hasCustomCategory || hasCustomBrand || hasCustomSize;
+                            const customizationSummary = getCustomizationSummary(customization, itemDetails, price);
+                            const isCustomized = customizationSummary.length > 0;
                             
                             return (
                             <button
@@ -1377,8 +1418,9 @@ export default function ListingSummaryDynamic({
                                       {marketplace.name}
                                     </p>
                                   </div>
-                                  {isCustomized && (
-                                    <div className="content-stretch flex items-center gap-[4px] relative shrink-0">
+                                  <div className="content-stretch flex items-center gap-[4px] relative shrink-0 flex-wrap">
+                                    {isCustomized ? (
+                                      <>
                                       <div className="overflow-clip relative shrink-0 size-[12px]" data-name="Icon leading">
                                         <div className="absolute inset-[4.17%]" data-name="Icon">
                                           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 11 11">
@@ -1393,8 +1435,21 @@ export default function ListingSummaryDynamic({
                                       <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-[11px] text-primary tracking-[0.1px] whitespace-nowrap">
                                         <p className="leading-[14px]">Customized</p>
                                       </div>
-                                    </div>
-                                  )}
+                                      {customizationSummary.map((summary) => (
+                                        <span
+                                          key={summary}
+                                          className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-foreground-dim px-[8px] py-[2px] rounded-[999px]"
+                                        >
+                                          {summary}
+                                        </span>
+                                      ))}
+                                      </>
+                                    ) : (
+                                      <span className="text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground">
+                                        Using base listing
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
 
                                 {/* Edit Icon */}
