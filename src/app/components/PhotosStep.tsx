@@ -25,12 +25,16 @@ interface PhotosStepProps {
   onContinue: (photos: string[], generatedDetails?: ItemDetails) => void;
   isCollapsed?: boolean;
   onToggleExpand?: () => void;
+  autosaveState?: "idle" | "saving" | "saved";
+  initialPhotos?: string[];
 }
 
-export default function PhotosStep({ onContinue, isCollapsed = false, onToggleExpand }: PhotosStepProps) {
-  const [photos, setPhotos] = useState<string[]>([]);
+export default function PhotosStep({ onContinue, isCollapsed = false, onToggleExpand, autosaveState = "idle", initialPhotos = [] }: PhotosStepProps) {
+  const [photos, setPhotos] = useState<string[]>(initialPhotos);
   const [isDragging, setIsDragging] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_PHOTOS = 8;
@@ -67,19 +71,27 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   };
 
   const handleFiles = (files: File[]) => {
+    setUploadError(null);
+    setAiError(null);
+
     const validFiles = files.filter((file) =>
       ["image/jpeg", "image/png", "image/svg+xml"].includes(file.type)
     );
 
+    if (validFiles.length === 0) {
+      setUploadError("Upload JPG, PNG, or SVG files so AI can understand the item and buyers can preview it clearly.");
+      return;
+    }
+
     const availableSlots = MAX_PHOTOS - photos.length;
     if (validFiles.length > availableSlots) {
-      alert(`You can add ${availableSlots} more photo${availableSlots === 1 ? '' : 's'}. This listing supports up to ${MAX_PHOTOS} photos.`);
+      setUploadError(`Only ${availableSlots} more photo${availableSlots === 1 ? "" : "s"} fit in this listing. We kept the first ${availableSlots}.`);
       validFiles.splice(availableSlots);
     }
 
     validFiles.forEach((file) => {
       if (file.size > 10 * 1024 * 1024) {
-        alert(`${file.name} is over the 10MB limit. Choose a smaller file to keep uploading.`);
+        setUploadError(`${file.name} is over the 10MB limit. Choose a smaller image and try again.`);
         return;
       }
 
@@ -124,6 +136,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   const handleGenerateListing = async () => {
     if (hasPhotos) {
       setIsGenerating(true);
+      setAiError(null);
       try {
         const analysis = await analyzeProductImages(photos);
         
@@ -149,7 +162,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
         }
       } catch (error) {
         console.error("Error generating listing:", error);
-        alert("We couldn't create a draft from these photos just yet. Please try again, or continue manually.");
+        setAiError("AI couldn’t finish the draft right now. Your photos are still saved, so you can retry or continue entering details manually.");
         setIsGenerating(false);
       }
     }
@@ -160,6 +173,10 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
       onToggleExpand?.();
     }
   };
+
+  useEffect(() => {
+    setPhotos(initialPhotos);
+  }, [initialPhotos]);
 
   useEffect(() => {
     if (!hasReachedMinimumPhotos) {
@@ -189,6 +206,12 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   };
 
 
+  const autosaveMessage = autosaveState === "saving"
+    ? "Saving your draft…"
+    : autosaveState === "saved"
+      ? "Draft autosaved on this device."
+      : "Start by adding at least one photo.";
+
   // Create array of 8 tiles
   const tiles = Array.from({ length: MAX_PHOTOS }, (_, index) => {
     if (index < photos.length) {
@@ -196,6 +219,26 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
     }
     return { type: 'add' as const, index };
   });
+
+  const statusCard = (
+    <div className="flex w-full flex-col gap-3">
+      <div className="rounded-[16px] border border-dashed border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+        {hasPhotos
+          ? `${photos.length} photo${photos.length === 1 ? " is" : "s are"} ready. ${autosaveMessage}`
+          : `No photos uploaded yet. Add at least one clear cover photo to unlock AI suggestions and the next step. ${autosaveMessage}`}
+      </div>
+      {uploadError ? (
+        <div className="rounded-[16px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {uploadError}
+        </div>
+      ) : null}
+      {aiError ? (
+        <div className="rounded-[16px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          {aiError}
+        </div>
+      ) : null}
+    </div>
+  );
 
   // Collapsed view when photos are uploaded and user is in item details
   if (isCollapsed && hasPhotos) {
