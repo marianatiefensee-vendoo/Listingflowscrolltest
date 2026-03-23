@@ -452,6 +452,8 @@ function PhotosStepContent({
   modalPrimaryActionRef,
   isGenerating,
 }: PhotosStepContentProps) {
+  const shouldShowDecisionCheckpoint = hasShownDecisionModal && hasReachedMinimumPhotos;
+
   return (
     <>
       <Dialog open={isDecisionModalOpen} onOpenChange={onDecisionModalChange}>
@@ -459,35 +461,88 @@ function PhotosStepContent({
           <div className="flex flex-col gap-6 p-8">
             <DialogHeader className="gap-3 text-left">
               <DialogTitle className="font-['Lexend',sans-serif] text-[28px] leading-[36px] font-normal text-foreground">
-                How would you like to create this listing?
+                Choose how to build the rest of this listing
               </DialogTitle>
               <DialogDescription className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-muted-foreground">
-Choose how to start.
+                Your photos are ready. Pick the path that feels best for this item — AI is recommended when you want a faster first draft, and manual entry stays fully flexible.
               </DialogDescription>
             </DialogHeader>
+            <div className="flex flex-col gap-4">
+              <div className="rounded-[20px] border border-primary/20 bg-[linear-gradient(180deg,rgba(104,58,223,0.12)_0%,rgba(104,58,223,0.04)_100%)] p-5">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-['Lexend',sans-serif] text-[13px] font-medium uppercase tracking-[0.4px] text-primary">
+                      Recommended
+                    </p>
+                    <h3 className="mt-1 font-['Lexend',sans-serif] text-[22px] leading-[30px] text-foreground">
+                      Generate with AI
+                    </h3>
+                  </div>
+                  <div className="rounded-full bg-primary/10 px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-primary">
+                    Faster start
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="font-['Lexend',sans-serif] text-[15px] leading-[22px] text-foreground">
+                    Turn your photos into a polished first draft so you can review and edit instead of starting from a blank form.
+                  </p>
+                  <div className="rounded-[16px] border border-border/80 bg-background/80 p-4">
+                    <p className="font-['Lexend',sans-serif] text-[13px] font-medium uppercase tracking-[0.3px] text-muted-foreground">
+                      Example output
+                    </p>
+                    <p className="mt-2 font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
+                      Title, description, category, brand, size, condition, tags, and a suggested price based on what&apos;s visible in your photos.
+                    </p>
+                  </div>
+                  <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
+                    You stay in control — nothing is final, and you can revise every generated field before publishing.
+                  </p>
+                </div>
+                <Button
+                  ref={modalPrimaryActionRef}
+                  onClick={handleGenerateListing}
+                  disabled={isGenerating}
+                  className="mt-5 h-12 w-full rounded-[12px] bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {isGenerating ? 'Generating draft…' : 'Generate draft with AI'}
+                </Button>
+              </div>
+
+              <div className="rounded-[20px] border border-border bg-surface p-5">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-['Lexend',sans-serif] text-[22px] leading-[30px] text-foreground">
+                      Enter manually
+                    </h3>
+                    <p className="mt-1 font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
+                      Best when you already know the exact details or want full control from the first field.
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-background px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-foreground-dim">
+                    Flexible path
+                  </div>
+                </div>
+                <p className="font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
+                  You&apos;ll move to the item details form with your photos saved and can complete the listing at your own pace.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={handleNext}
+                  className="mt-5 h-12 w-full rounded-[12px] border-border bg-background text-foreground hover:bg-accent"
+                >
+                  Continue manually
+                </Button>
+              </div>
+            </div>
+
             <DialogFooter className="flex-col gap-3 sm:flex-col sm:justify-start">
-              <Button
-                ref={modalPrimaryActionRef}
-                onClick={handleGenerateListing}
-                disabled={isGenerating}
-                className="h-12 w-full rounded-[12px] bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {isGenerating ? 'Generating…' : 'Generate with AI'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleNext}
-                className="h-12 w-full rounded-[12px] border-border bg-background text-foreground hover:bg-accent"
-              >
-                Enter details manually
-              </Button>
               <DialogClose asChild>
                 <button
                   type="button"
                   onClick={onContinueEditingPhotos}
                   className="self-center font-['Lexend',sans-serif] text-[14px] leading-[20px] font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-[8px] px-2 py-1"
                 >
-                  Continue editing photos
+                  Not ready yet — keep editing photos
                 </button>
               </DialogClose>
             </DialogFooter>
@@ -711,61 +766,58 @@ Choose how to start.
                 </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className={`w-full mt-[8px] ${hasShownDecisionModal && hasReachedMinimumPhotos ? 'sticky bottom-4 z-20' : ''}`}>
-                <div className={`flex w-full items-center justify-end gap-[12px] ${hasShownDecisionModal && hasReachedMinimumPhotos ? 'rounded-[20px] border border-border bg-background/95 px-[20px] py-[16px] shadow-[0px_12px_32px_rgba(29,26,36,0.12)] backdrop-blur-sm' : ''}`}>
-                  {hasShownDecisionModal && hasReachedMinimumPhotos && (
-                    <div className="mr-auto flex flex-col gap-[2px]">
-                      <p className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-foreground">Choose how to continue</p>
-                      <p className="font-['Lexend',sans-serif] text-[13px] leading-[18px] text-muted-foreground">Generate details from your photos or keep entering information yourself.</p>
+              {/* Decision Checkpoint */}
+              <div className={`w-full mt-[8px] ${shouldShowDecisionCheckpoint ? 'sticky bottom-4 z-20' : ''}`}>
+                <div className={`${shouldShowDecisionCheckpoint ? 'rounded-[24px] border border-primary/15 bg-background/95 p-[20px] shadow-[0px_16px_40px_rgba(29,26,36,0.14)] backdrop-blur-sm' : ''}`}>
+                  {shouldShowDecisionCheckpoint ? (
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex flex-col gap-[4px]">
+                        <p className="font-['Lexend',sans-serif] text-[12px] font-medium uppercase tracking-[0.4px] text-primary">
+                          Next step checkpoint
+                        </p>
+                        <p className="font-['Lexend',sans-serif] text-[20px] leading-[28px] text-foreground">
+                          Decide how you want to create the rest of this listing.
+                        </p>
+                        <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
+                          Review the recommended AI path or choose manual entry — either way, you&apos;ll make this choice intentionally before moving on.
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <button
+                          ref={triggerButtonRef}
+                          type="button"
+                          onClick={() => onDecisionModalChange(true)}
+                          className="content-stretch flex h-[48px] items-center justify-center rounded-[12px] border border-border bg-background px-[16px] transition-colors hover:bg-accent"
+                        >
+                          <span className="font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] text-foreground">
+                            Review options
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleGenerateListing}
+                          disabled={!hasPhotos || isGenerating}
+                          className={`content-stretch flex h-[48px] items-center justify-center rounded-[12px] px-[16px] ${!hasPhotos || isGenerating ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'} transition-colors`}
+                        >
+                          <span className={`font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] ${!hasPhotos || isGenerating ? 'text-foreground/60' : 'text-primary-foreground'}`}>
+                            {isGenerating ? 'Generating draft…' : 'Use recommended AI path'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex w-full items-center justify-end">
+                      <button
+                        ref={triggerButtonRef}
+                        onClick={handleUploadClick}
+                        className="content-stretch flex h-[48px] items-center justify-center rounded-[12px] border border-border bg-background px-[16px] transition-colors hover:bg-accent"
+                      >
+                        <span className="font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] text-foreground">
+                          Add more photos
+                        </span>
+                      </button>
                     </div>
                   )}
-
-                  <button
-                    ref={triggerButtonRef}
-                    onClick={handleNext}
-                    disabled={!hasPhotos}
-                    className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${!hasPhotos ? 'bg-foreground/10' : ''} ${hasPhotos ? 'hover:bg-foreground/8 transition-colors' : 'cursor-not-allowed'}`}
-                  >
-                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[var(--radius)]" />
-                    <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
-                      <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos ? 'opacity-38' : ''}`}>
-                        <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                          <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                            <p className="leading-[20px]">Enter details manually</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleGenerateListing}
-                    disabled={!hasPhotos || isGenerating}
-                    className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${!hasPhotos || isGenerating ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'}`}
-                  >
-                    <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
-                      <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos || isGenerating ? 'opacity-38' : ''}`}>
-                        <div className="overflow-clip relative shrink-0 size-[20px]">
-                          <div className="absolute inset-[9.3%_9.51%_9.5%_9.3%]">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16.2384 16.2401">
-                              <g id="Icon">
-                                <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
-                                <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
-                                <path d={sparkleSvgPaths.p39ab3c00} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} />
-                                <path d={sparkleSvgPaths.p76d5230} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} />
-                              </g>
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                          <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap ${!hasPhotos || isGenerating ? 'text-foreground' : 'text-primary-foreground'}`}>
-                            <p className="leading-[20px]">{isGenerating ? 'Generating…' : 'Generate with AI'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
                 </div>
               </div>
 
