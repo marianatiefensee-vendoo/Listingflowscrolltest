@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import svgPaths from "../../imports/svg-nl9hp3fmvu";
 import conditionSvgPaths from "../../imports/svg-eidwq1eo1i";
 import completedSvgPaths from "../../imports/svg-qt0lwj09d3";
@@ -18,6 +18,62 @@ interface ItemDetailsContentProps {
   shouldCollapse?: boolean;
   onCollapseChange?: () => void;
   onManualExpand?: () => void;
+}
+
+type AIConfidenceLevel = "High" | "Medium" | "Low";
+
+function AIInsightCard({
+  confidence,
+  basedOn,
+  reason,
+  actions,
+}: {
+  confidence: AIConfidenceLevel;
+  basedOn: string;
+  reason: string;
+  actions?: ReactNode;
+}) {
+  const confidenceStyles: Record<AIConfidenceLevel, string> = {
+    High: "bg-emerald-100 text-emerald-800",
+    Medium: "bg-amber-100 text-amber-800",
+    Low: "bg-rose-100 text-rose-800",
+  };
+
+  return (
+    <div className="w-full rounded-[16px] border border-primary/15 bg-[linear-gradient(180deg,rgba(104,58,223,0.08)_0%,rgba(104,58,223,0.02)_100%)] p-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.35px] text-primary">
+              Generated based on your photos
+            </span>
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium ${confidenceStyles[confidence]}`}>
+              Confidence: {confidence}
+            </span>
+          </div>
+          <p className="font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
+            {reason}
+          </p>
+          <p className="font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
+            {basedOn} · You can edit everything. AI suggests a starting point, but you stay in control.
+          </p>
+        </div>
+        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+function AIActionButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-[36px] items-center justify-center rounded-[10px] border border-border bg-background px-3 text-[12px] font-medium text-foreground transition-colors hover:bg-accent"
+    >
+      {children}
+    </button>
+  );
 }
 
 export default function ItemDetailsContent({ initialData, shouldExpand, onExpandChange, onContinue, onDetailsChange, shouldCollapse, onCollapseChange, onManualExpand }: ItemDetailsContentProps) {
@@ -63,6 +119,8 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
   const [condition, setCondition] = useState("");
   const [tags, setTags] = useState("");
   const [sku, setSku] = useState("");
+
+  const aiConfidence: AIConfidenceLevel = hasReceivedAIData ? "High" : title || description ? "Medium" : "Low";
 
   const requiredFields = [
     { label: "Title", value: title },
@@ -156,6 +214,10 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     setWasTitleAIGenerated(true);
   };
 
+  const regenerateTitle = () => {
+    generateTitle();
+  };
+
   const generateDescription = () => {
     const descriptions = [
       "Beautiful vintage-style item in excellent condition. Features classic design elements and timeless appeal. Perfect for any season. Shows minimal signs of wear, maintaining its original quality and character. A must-have addition to any collection.",
@@ -164,6 +226,18 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     ];
     const randomDesc = descriptions[Math.floor(Math.random() * descriptions.length)];
     setDescription(randomDesc);
+    setIsDescriptionAIGenerated(true);
+    setWasDescriptionAIGenerated(true);
+  };
+
+  const improveDescription = () => {
+    if (!description.trim()) {
+      generateDescription();
+      return;
+    }
+
+    const improvedDescription = `${description.trim()} ${description.trim().endswith(".") ? "" : "."} Includes the key details spotted in your photos so buyers know what to expect.`.trim();
+    setDescription(improvedDescription);
     setIsDescriptionAIGenerated(true);
     setWasDescriptionAIGenerated(true);
   };
@@ -465,6 +539,19 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
             <div className="content-stretch flex flex-col gap-[16px] items-start justify-center px-[24px] relative w-full">
               {/* Input Fields */}
               <div className="content-stretch flex flex-col gap-[22px] items-start py-[12px] relative shrink-0 w-full">
+                {(hasReceivedAIData || isTitleAIGenerated || isDescriptionAIGenerated) && (
+                  <AIInsightCard
+                    confidence={aiConfidence}
+                    basedOn="Reasoning: visible style, category clues, and item details detected in the uploaded photos"
+                    reason="This draft is generated based on your photos so you can start faster, then adjust wording, attributes, or structure inline."
+                    actions={
+                      <>
+                        <AIActionButton onClick={regenerateTitle}>Not accurate? Regenerate title</AIActionButton>
+                        <AIActionButton onClick={improveDescription}>Improve description</AIActionButton>
+                      </>
+                    }
+                  />
+                )}
                 {/* Title and Description */}
                 <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
                   {/* Title */}
@@ -519,7 +606,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                             </div>
                           </div>
                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary text-[11px] text-center tracking-[0.5px] whitespace-nowrap">
-                            <p className="leading-[16px]">{isTitleAIGenerated ? "Refresh draft" : "Draft with AI"}</p>
+                            <p className="leading-[16px]">{isTitleAIGenerated ? "Not accurate? Regenerate" : "Draft with AI"}</p>
                           </div>
                         </button>
                       </div>
@@ -601,7 +688,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                             </div>
                           </div>
                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary text-[11px] text-center tracking-[0.5px] whitespace-nowrap">
-                            <p className="leading-[16px]">{isDescriptionAIGenerated ? "Refine with AI" : "Draft with AI"}</p>
+                            <p className="leading-[16px]">{isDescriptionAIGenerated ? "Improve description" : "Draft with AI"}</p>
                           </div>
                         </button>
                       </div>

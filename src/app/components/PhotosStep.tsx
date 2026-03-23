@@ -497,6 +497,24 @@ function PhotosStepContent({
                   <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
                     AI suggests the first draft only. Your photos are used to create suggestions, and you can rewrite, remove, or keep any field.
                   </p>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="rounded-[14px] border border-border/80 bg-background/80 p-4">
+                      <p className="font-['Lexend',sans-serif] text-[12px] font-medium uppercase tracking-[0.3px] text-muted-foreground">
+                        Why AI is confident
+                      </p>
+                      <p className="mt-2 font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
+                        Best when your photos clearly show the silhouette, labels, and item condition.
+                      </p>
+                    </div>
+                    <div className="rounded-[14px] border border-border/80 bg-background/80 p-4">
+                      <p className="font-['Lexend',sans-serif] text-[12px] font-medium uppercase tracking-[0.3px] text-muted-foreground">
+                        Control stays with you
+                      </p>
+                      <p className="mt-2 font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
+                        Generated based on your photos, then fully editable field-by-field in the next step.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <Button
                   ref={modalPrimaryActionRef}
@@ -781,6 +799,14 @@ function PhotosStepContent({
                         <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
                           Review the recommended AI path or choose manual entry — either way, you&apos;ll make this choice intentionally before moving on.
                         </p>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-primary">
+                            Generated based on your photos
+                          </span>
+                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-emerald-800">
+                            Confidence improves with clear labels + detail shots
+                          </span>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <button
