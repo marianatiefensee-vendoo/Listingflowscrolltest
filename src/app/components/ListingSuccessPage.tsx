@@ -69,6 +69,14 @@ export default function ListingSuccessPage({
                       <p className="mb-0">Your item is now live on {marketplaceCount} {marketplaceCount === 1 ? 'marketplace' : 'marketplaces'}</p>
                       <p>and ready for shoppers to discover.</p>
                     </div>
+                    <div className="mt-[16px] w-full rounded-[16px] border border-border bg-background px-[16px] py-[14px] text-left">
+                      <p className="font-['Lexend',sans-serif] text-[12px] uppercase tracking-[0.5px] text-muted-foreground">What happens next</p>
+                      <ul className="mt-[8px] space-y-[6px] text-[14px] leading-[20px] text-foreground-dim">
+                        <li>• Buyers can now find this listing in search and marketplace feeds.</li>
+                        <li>• We'll keep your photos and details attached to the live listing for edits later.</li>
+                        <li>• Use View inventory to monitor performance or make marketplace-specific updates.</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>

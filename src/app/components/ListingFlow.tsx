@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router";
 import Header from "../../imports/Header";
 import NavigationRail from "./NavigationRail";
@@ -22,6 +22,20 @@ import imgDepop from "figma:asset/9fc19e9b972ada34a5069710f93ea92cd4258fea.png";
 import imgFacebook from "figma:asset/55ad25062cf42038188e8437b6d83a149a822f83.png";
 
 // Vendoo Listing Creation Flow
+const LISTING_FLOW_STORAGE_KEY = "vendoo-listing-flow-draft";
+const AUTOSAVE_DEBOUNCE_MS = 800;
+
+interface ListingFlowDraft {
+  uploadedPhotos: string[];
+  itemDetails: ItemDetails | null;
+  aiGeneratedDetails: ItemDetails | null;
+  selectedMarketplaces: string[];
+  listingPrice: string;
+  selectedShippingMethod: string;
+  marketplaceCustomizations: Record<string, MarketplaceCustomization>;
+  wasAIGeneratedFromPhotos: boolean;
+}
+
 export interface ItemDetails {
   title: string;
   description: string;
@@ -111,9 +125,79 @@ export default function ListingFlow() {
   const [activeEditSection, setActiveEditSection] =
     useState<ListingSectionMeta["id"]>("photos");
   const [activeEditContext, setActiveEditContext] = useState<string | null>(null);
+  const [autosaveState, setAutosaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
 
   // Ref for the edit mode scroll container
   const editScrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const savedDraft = window.localStorage.getItem(LISTING_FLOW_STORAGE_KEY);
+      if (!savedDraft) {
+        setHasRestoredDraft(true);
+        return;
+      }
+
+      const parsedDraft = JSON.parse(savedDraft) as Partial<ListingFlowDraft>;
+      setUploadedPhotos(Array.isArray(parsedDraft.uploadedPhotos) ? parsedDraft.uploadedPhotos : []);
+      setItemDetails(parsedDraft.itemDetails ?? null);
+      setAiGeneratedDetails(parsedDraft.aiGeneratedDetails ?? null);
+      setSelectedMarketplaces(Array.isArray(parsedDraft.selectedMarketplaces) ? parsedDraft.selectedMarketplaces : []);
+      setListingPrice(parsedDraft.listingPrice ?? "");
+      setSelectedShippingMethod(parsedDraft.selectedShippingMethod ?? "");
+      setMarketplaceCustomizations(parsedDraft.marketplaceCustomizations ?? {});
+      setWasAIGeneratedFromPhotos(Boolean(parsedDraft.wasAIGeneratedFromPhotos));
+      setAutosaveState("saved");
+    } catch (error) {
+      console.error("Failed to restore listing draft", error);
+      window.localStorage.removeItem(LISTING_FLOW_STORAGE_KEY);
+    } finally {
+      setHasRestoredDraft(true);
+    }
+  }, []);
+
+  const autosaveDraft = useMemo<ListingFlowDraft>(() => ({
+    uploadedPhotos,
+    itemDetails,
+    aiGeneratedDetails,
+    selectedMarketplaces,
+    listingPrice,
+    selectedShippingMethod,
+    marketplaceCustomizations,
+    wasAIGeneratedFromPhotos,
+  }), [
+    uploadedPhotos,
+    itemDetails,
+    aiGeneratedDetails,
+    selectedMarketplaces,
+    listingPrice,
+    selectedShippingMethod,
+    marketplaceCustomizations,
+    wasAIGeneratedFromPhotos,
+  ]);
+
+  useEffect(() => {
+    if (!hasRestoredDraft || isPublished) {
+      return;
+    }
+
+    setAutosaveState("saving");
+    const timeoutId = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          LISTING_FLOW_STORAGE_KEY,
+          JSON.stringify(autosaveDraft),
+        );
+        setAutosaveState("saved");
+      } catch (error) {
+        console.error("Failed to autosave listing draft", error);
+        setAutosaveState("idle");
+      }
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [autosaveDraft, hasRestoredDraft, isPublished]);
 
   // Derive shipping completion from selected method (input-driven, not button-driven)
   const shippingCompleted = selectedShippingMethod !== "";
@@ -355,8 +439,10 @@ export default function ListingFlow() {
     // Navigate to publish route briefly, then success
     navigateToPublish();
     setTimeout(() => {
+      window.localStorage.removeItem(LISTING_FLOW_STORAGE_KEY);
       setIsPublished(true);
       setIsReviewMode(false);
+      setAutosaveState("idle");
       navigateToSuccess();
     }, 500);
   };
@@ -391,6 +477,7 @@ export default function ListingFlow() {
   };
 
   const handleListAnother = () => {
+    window.localStorage.removeItem(LISTING_FLOW_STORAGE_KEY);
     setIsPublished(false);
     setIsReviewMode(false);
     setUploadedPhotos([]);
@@ -411,6 +498,7 @@ export default function ListingFlow() {
     setWasAIGeneratedFromPhotos(false);
     setPreviewMarketplace(null);
     setMarketplaceCustomizations({});
+    setAutosaveState("idle");
     navigateToPhotos();
   };
 
@@ -425,6 +513,22 @@ export default function ListingFlow() {
     pricing: "listing-price-shipping",
     shipping: "listing-shipping-section",
   } as const;
+
+  const requiredFieldSummary = [
+    { label: "Photos", missing: uploadedPhotos.length === 0 },
+    { label: "Title", missing: !(itemDetails?.title?.trim()) },
+    { label: "Description", missing: !(itemDetails?.description?.trim()) },
+    { label: "Brand", missing: !(itemDetails?.brand?.trim()) },
+    { label: "Category", missing: !(itemDetails?.category?.trim()) },
+    { label: "Size", missing: !((itemDetails?.size ?? "").trim()) },
+    { label: "Condition", missing: !(itemDetails?.condition?.trim()) },
+    { label: "Marketplace", missing: selectedMarketplaces.length === 0 },
+    { label: "Price", missing: listingPrice.trim() === "" },
+    { label: "Shipping", missing: selectedShippingMethod.trim() === "" },
+  ];
+  const missingRequiredFields = requiredFieldSummary
+    .filter((field) => field.missing)
+    .map((field) => field.label);
 
   const isPhotosComplete = uploadedPhotos.length > 0;
   const isItemDetailsComplete = !!(
@@ -771,6 +875,16 @@ export default function ListingFlow() {
         </div>
 
         {/* Content Area - Success page unmounts everything; Review/Edit kept mounted */}
+        {!isPublished && (
+          <div className="absolute right-[24px] top-[12px] z-[20] rounded-full border border-border bg-background/95 px-3 py-2 text-[12px] text-muted-foreground shadow-sm backdrop-blur">
+            {autosaveState === "saving"
+              ? "Saving draft…"
+              : autosaveState === "saved"
+                ? "Draft autosaved"
+                : "Changes stay on this device until you publish."}
+          </div>
+        )}
+
         {isPublished ? (
           <ListingSuccessPage
             photos={uploadedPhotos}
@@ -836,6 +950,8 @@ export default function ListingFlow() {
                   shippingCompleted={shippingCompleted}
                   onPublish={handlePublish}
                   isReviewMode={true}
+                  missingRequiredFields={missingRequiredFields}
+                  autosaveState={autosaveState}
                   onBackToEdit={handleBackToEditFromReview}
                   marketplaceCustomizations={marketplaceCustomizations}
                   onPreviewMarketplace={setPreviewMarketplace}
@@ -863,6 +979,8 @@ export default function ListingFlow() {
                         onContinue={handleContinueFromPhotos}
                         isCollapsed={isPhotosCollapsed}
                         onToggleExpand={handleTogglePhotosExpand}
+                        autosaveState={autosaveState}
+                        initialPhotos={uploadedPhotos}
                       />
                     ),
                     itemDetails: (
@@ -952,6 +1070,8 @@ export default function ListingFlow() {
                   shippingCompleted={shippingCompleted}
                   onPublish={handleGoToReview}
                   marketplaceCustomizations={marketplaceCustomizations}
+                  missingRequiredFields={missingRequiredFields}
+                  autosaveState={autosaveState}
                 />
               </div>
             </div>

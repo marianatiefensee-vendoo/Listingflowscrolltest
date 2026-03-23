@@ -37,6 +37,8 @@ interface ListingSummaryDynamicProps {
   onBackToEdit?: () => void; // New prop for navigating back to editing
   marketplaceCustomizations?: Record<string, import("../App").MarketplaceCustomization>; // NEW: marketplace-specific overrides
   onPreviewMarketplace?: (marketplace: Marketplace) => void; // Lifted dialog trigger to App level
+  missingRequiredFields?: string[];
+  autosaveState?: "idle" | "saving" | "saved";
 }
 
 const allMarketplaces: Marketplace[] = [
@@ -103,6 +105,8 @@ export default function ListingSummaryDynamic({
   onBackToEdit,
   marketplaceCustomizations = {},
   onPreviewMarketplace,
+  missingRequiredFields = [],
+  autosaveState = "idle",
 }: ListingSummaryDynamicProps) {
   const selectedMarketplaces = allMarketplaces.filter((m) =>
     selectedMarketplaceIds.includes(m.id),
@@ -264,6 +268,7 @@ export default function ListingSummaryDynamic({
       ? `${marketplacesReadyCount} of ${selectedMarketplaces.length} marketplace${selectedMarketplaces.length === 1 ? '' : 's'} ready with the current listing.`
       : "Finish the shared listing first, then each selected marketplace can inherit that setup.";
   const publishButtonLabel = allSectionsComplete ? 'Review before publishing' : 'Finish required steps';
+  const autosaveLabel = autosaveState === "saving" ? "Saving draft…" : autosaveState === "saved" ? "Draft autosaved" : "Draft not started";
   const publishButtonSupport = allSectionsComplete
     ? 'Opens final review with your latest listing details and marketplace setup.'
     : nextSectionToResolve
@@ -451,6 +456,30 @@ export default function ListingSummaryDynamic({
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-[24px] w-full max-w-[1000px] px-[24px]">
+          <div className="rounded-[20px] border border-border bg-card p-6 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="font-['Lexend',sans-serif] text-[12px] uppercase tracking-[0.5px] text-muted-foreground">Before you publish</p>
+                <h3 className="mt-2 font-['Lexend',sans-serif] text-[20px] text-foreground">Review every buyer-facing detail one more time.</h3>
+                <p className="mt-2 max-w-[620px] text-sm text-muted-foreground">We keep your latest edits and marketplace choices in this draft, even if AI fails or you need to step away.</p>
+              </div>
+              <div className="rounded-full border border-border bg-background px-3 py-2 text-[12px] text-muted-foreground">{autosaveLabel}</div>
+            </div>
+            {missingRequiredFields.length > 0 ? (
+              <div className="mt-4 rounded-[16px] border border-amber-200 bg-amber-50 p-4 text-amber-950">
+                <p className="text-sm font-medium">Missing required fields</p>
+                <p className="mt-1 text-sm">Add {missingRequiredFields.join(", ")} before you publish. Your current input stays in place while you fix these items.</p>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-[16px] border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+                <p className="text-sm font-medium">Ready for publish</p>
+                <p className="mt-1 text-sm">Photos, details, marketplaces, pricing, and shipping are all ready. Double-check the preview, then publish when you’re confident.</p>
+              </div>
+            )}
           </div>
         </div>
 
