@@ -192,7 +192,7 @@ export default function ListingSummaryDynamic({
       started: photos.length > 0,
       hint: isPhotosComplete
         ? `${photos.length} photo${photos.length === 1 ? "" : "s"} ready to lead the listing.`
-        : "Add at least one photo so buyers immediately recognize the item.",
+        : "Add at least one clear photo so buyers can instantly recognize the item.",
     },
     {
       id: "details",
@@ -200,10 +200,10 @@ export default function ListingSummaryDynamic({
       complete: isItemDetailsComplete,
       started: !!itemDetails,
       hint: isItemDetailsComplete
-        ? "Shared details are ready across marketplaces."
+        ? "Shared listing details are ready to reuse across marketplaces."
         : itemDetails
-          ? "Finish the required shared details to strengthen buyer confidence."
-          : "Add the shared title, description, condition, and specifics.",
+          ? "Finish the required shared details so buyers know exactly what they are getting."
+          : "Add the shared title, description, condition, and core specifics.",
     },
     {
       id: "marketplaces",
@@ -212,7 +212,7 @@ export default function ListingSummaryDynamic({
       started: selectedMarketplaceIds.length > 0,
       hint: isMarketplacesComplete
         ? `${selectedMarketplaceIds.length} marketplace${selectedMarketplaceIds.length === 1 ? "" : "s"} selected.`
-        : "Choose where this listing should be published.",
+        : "Choose the marketplaces where this listing should go live.",
     },
     {
       id: "pricing",
@@ -221,7 +221,7 @@ export default function ListingSummaryDynamic({
       started: price.trim() !== "",
       hint: isPricingComplete
         ? `Base price set at $${price}.`
-        : "Set the listing price buyers will see first.",
+        : "Set the starting price buyers will see first.",
     },
     {
       id: "shipping",
@@ -229,8 +229,8 @@ export default function ListingSummaryDynamic({
       complete: isShippingComplete,
       started: shippingCompleted,
       hint: isShippingComplete
-        ? "Shipping is selected and ready for review."
-        : "Choose the shipping setup before publishing.",
+        ? "Shipping is selected and ready for final review."
+        : "Choose how this item will ship before publishing.",
     },
   ];
 
@@ -259,22 +259,22 @@ export default function ListingSummaryDynamic({
     return !hasBlockingOverride;
   }).length;
   const marketplaceReadinessLabel = !hasSelectedMarketplaces
-    ? "Choose marketplaces to review channel readiness."
+    ? "Choose marketplaces to see where this listing is ready to go live."
     : baseListingReady
       ? `${marketplacesReadyCount} of ${selectedMarketplaces.length} marketplace${selectedMarketplaces.length === 1 ? '' : 's'} ready with the current listing.`
-      : "Finish the base listing first, then each selected marketplace will inherit that readiness.";
-  const publishButtonLabel = allSectionsComplete ? 'Review & Publish' : 'Finish required sections';
+      : "Finish the shared listing first, then each selected marketplace can inherit that setup.";
+  const publishButtonLabel = allSectionsComplete ? 'Review before publishing' : 'Finish required steps';
   const publishButtonSupport = allSectionsComplete
-    ? 'Opens the final review with your latest listing details and marketplace setup.'
+    ? 'Opens final review with your latest listing details and marketplace setup.'
     : nextSectionToResolve
       ? `Complete ${nextSectionToResolve.label.toLowerCase()} to unlock review & publish.`
       : 'Complete the remaining required sections to unlock review & publish.';
   const previewChecklist = [
-    isPhotosComplete ? "Cover photo ready" : "Add a cover photo",
+    isPhotosComplete ? "Cover photo ready" : "Add photos",
     itemDetails?.title?.trim()
       ? "Title is showing"
       : "Add a descriptive title",
-    isPricingComplete ? `Price set at $${price}` : "Set the listing price",
+    isPricingComplete ? `Price set at $${price}` : "Set price",
   ];
   const previewStateLabel = isComplete
     ? "Buyer-facing preview"
@@ -865,7 +865,7 @@ export default function ListingSummaryDynamic({
                                           ))
                                         ) : (
                                           <span className="text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground">
-                                            No marketplace-specific changes yet
+                                            No marketplace-specific changes yet — shared listing will be used
                                           </span>
                                         )}
                                       </div>
@@ -967,7 +967,7 @@ export default function ListingSummaryDynamic({
                                 >
                                   <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap">
                                     <p className="leading-[24px]">
-                                      Save Draft
+                                      Save and finish later
                                     </p>
                                   </div>
                                 </div>
@@ -1029,7 +1029,7 @@ export default function ListingSummaryDynamic({
                           <div
                             className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap ${allSectionsComplete ? "text-[#FFFFFF]" : "text-[var(--muted-foreground)]"}`}
                           >
-                            <p className="leading-[24px]">Publish</p>
+                            <p className="leading-[24px]">Publish listing now</p>
                           </div>
                         </div>
                         <div
@@ -1318,7 +1318,7 @@ export default function ListingSummaryDynamic({
                         <p className="mt-[4px] font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-foreground-dim">
                           {hasSelectedMarketplaces
                             ? `${selectedMarketplaces.length} selected • ${customizedMarketplaceCount} customized • ${marketplaceReadinessLabel}`
-                            : 'Choose marketplaces and jump back here anytime to fine-tune each one.'}
+                            : 'Choose marketplaces now, then come back anytime to fine-tune each one.'}
                         </p>
                       </div>
                       {hasSelectedMarketplaces && (
@@ -1336,8 +1336,8 @@ export default function ListingSummaryDynamic({
                               <p className="font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[15px] text-foreground">Base readiness</p>
                               <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
                                 {baseListingReady
-                                  ? 'Shared photos, details, price, and shipping are ready to flow into every selected marketplace.'
-                                  : 'A few shared sections still need attention before every marketplace can be fully ready.'}
+                                  ? 'Shared photos, details, price, and shipping are ready to carry into every selected marketplace.'
+                                  : 'A few shared steps still need attention before every selected marketplace is fully ready.'}
                               </p>
                             </div>
                             <span className={`rounded-full px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${baseListingReady ? 'bg-secondary/20 text-secondary-foreground' : 'bg-background text-muted-foreground'}`}>
@@ -1352,7 +1352,7 @@ export default function ListingSummaryDynamic({
                               </p>
                             </div>
                             <span className={`rounded-full px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${hasSelectedMarketplaces && marketplacesReadyCount === selectedMarketplaces.length && baseListingReady ? 'bg-secondary/20 text-secondary-foreground' : 'bg-background text-muted-foreground'}`}>
-                              {hasSelectedMarketplaces && marketplacesReadyCount === selectedMarketplaces.length && baseListingReady ? 'All ready' : `${marketplacesReadyCount}/${selectedMarketplaces.length}`}
+                              {hasSelectedMarketplaces && marketplacesReadyCount === selectedMarketplaces.length && baseListingReady ? 'Ready to publish' : `${marketplacesReadyCount}/${selectedMarketplaces.length}`}
                             </span>
                           </div>
                         </div>
@@ -1483,7 +1483,7 @@ export default function ListingSummaryDynamic({
                         </button>
                         <div className="rounded-[10px] bg-background px-[12px] py-[10px] w-full">
                           <p className="font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
-                            Select at least one marketplace so you can review channel readiness and add customizations from this rail.
+                            Select at least one marketplace to review readiness and add marketplace-specific changes from this rail.
                           </p>
                         </div>
                       </>
@@ -1523,7 +1523,7 @@ export default function ListingSummaryDynamic({
                               </div>
                               <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0" data-name="Label">
                                 <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap">
-                                  <p className="leading-[24px]">Save Draft</p>
+                                  <p className="leading-[24px]">Save and finish later</p>
                                 </div>
                               </div>
                             </div>
@@ -1539,7 +1539,7 @@ export default function ListingSummaryDynamic({
                   <div className="flex items-start justify-between gap-[12px]">
                     <div>
                       <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
-                        Review & Publish
+                        Review before publishing
                       </p>
                       <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
                         {allSectionsComplete
