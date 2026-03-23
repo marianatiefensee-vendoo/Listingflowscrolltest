@@ -258,7 +258,7 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
                       </div>
                     )}
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
-                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (hasCompleted ? 'text-muted-foreground' : 'text-foreground') } text-[24px]`}>Shipping</p>
+                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (hasCompleted ? 'text-muted-foreground' : 'text-foreground') } text-[24px]`}>Choose shipping with confidence</p>
                     </div>
                   </div>
                 </div>
@@ -362,12 +362,12 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
                 {/* Shipping Options Dropdown */}
                 <div className="w-[327px]">
                   <Dropdown
-                    label="Shipping Options"
+                    label="Shipping setup"
                     value={shippingMethod}
                     richOptions={SHIPPING_TIERS}
                     onChange={handleShippingMethodChange}
-                    placeholder="Shipping Default"
-                    supportingText="Set shipping from your preset policy, or use the AI suggestion based on your item."
+                    placeholder="Use my saved shipping policy"
+                    supportingText="Use your saved shipping policy or review the AI suggestion based on your photos. You can change this anytime."
                     showAddPreset={true}
                     onAddPreset={handleAddPreset}
                     tagState={getTagState()}
@@ -378,7 +378,7 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
                     <div className="flex items-center gap-[6px] mt-[8px] px-[16px]">
                       <div className="size-[12px] rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
                       <p className="font-['Lexend',sans-serif] font-[350] text-[var(--muted-foreground)] text-[11px] leading-[14px] tracking-[0.2px]">
-                        Analyzing photos for shipping size...
+                        Reviewing your photos to suggest a shipping size...
                       </p>
                     </div>
                   )}
@@ -395,7 +395,7 @@ export default function ShippingContent({ shouldExpand, onExpandChange, onContin
                     <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative rounded-[var(--radius)] shrink-0">
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                         <div className="flex flex-col font-['Lexend',sans-serif] font-medium justify-center leading-[0] relative shrink-0 text-[var(--text-sm)] text-center text-[var(--primary-foreground)] tracking-[0.1px] whitespace-nowrap">
-                          <p className="leading-[20px] text-primary-foreground">Continue to Publish</p>
+                          <p className="leading-[20px] text-primary-foreground">Review before publishing</p>
                         </div>
                       </div>
                       <div className="overflow-clip relative shrink-0 size-[20px]">

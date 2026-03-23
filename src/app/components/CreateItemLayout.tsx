@@ -41,7 +41,7 @@ interface CreateItemLayoutProps {
 
 const statusLabelMap: Record<ListingSectionStatus, string> = {
   "not-started": "Not started",
-  "in-progress": "Needs attention",
+  "in-progress": "In progress",
   completed: "Completed",
 };
 
@@ -64,11 +64,11 @@ const chipToneMap: Record<ListingSectionStatus, string> = {
 };
 
 const sectionActionMap: Record<string, string> = {
-  photos: "Add or reorder photos",
-  itemDetails: "Finish the shared listing fields",
-  marketplaces: "Choose destinations and customize later",
-  pricing: "Set the listing price",
-  shipping: "Confirm the shipping method",
+  photos: "Add photos buyers can trust",
+  itemDetails: "Finish the shared listing details",
+  marketplaces: "Choose marketplaces and customize only if needed",
+  pricing: "Set a strong starting price",
+  shipping: "Confirm how this item will ship",
 };
 
 function StatusGlyph({ status }: { status: ListingSectionStatus }) {
@@ -95,18 +95,18 @@ function StatusGlyph({ status }: { status: ListingSectionStatus }) {
 
 function getNextInfo(section: ListingSectionMeta) {
   if (section.isLocked) {
-    return section.nextStepLabel ?? "Complete the active step to unlock this section.";
+    return section.nextStepLabel ?? "Finish the current step to unlock this section.";
   }
 
   if (section.isCurrent) {
-    return section.nextStepLabel ?? "Editing is open below.";
+    return section.nextStepLabel ?? "You can make changes in this section below.";
   }
 
   if (section.status === "completed") {
-    return section.nextStepLabel ?? "Ready to reopen if you want to update anything.";
+    return section.nextStepLabel ?? "Ready to review again if you want to make changes.";
   }
 
-  return section.nextStepLabel ?? sectionActionMap[section.id] ?? "Open this section to continue.";
+  return section.nextStepLabel ?? sectionActionMap[section.id] ?? "Open this section to keep building your listing.";
 }
 
 function SectionWrapper({
@@ -122,18 +122,18 @@ function SectionWrapper({
 }) {
   const isItemDetailsSection = section.id === "itemDetails";
   const summaryTitle = section.shortTitle ?? section.title;
-  const summaryDescription = section.description ?? "Continue editing this section below.";
+  const summaryDescription = section.description ?? "Review or update this part of the listing below.";
   const summaryFootnote = section.sourceOfTruthNote ?? section.connectedLabel;
   const nextInfo = getNextInfo(section);
   const stateLabel =
     section.stateLabel ??
     (section.isLocked
-      ? "Locked"
+      ? "Locked until earlier steps are ready"
       : section.status === "completed"
         ? "Completed"
         : section.isCurrent
-          ? "Continue"
-          : "Start");
+          ? "Continue building"
+          : "Start this step");
 
   return (
     <section className="relative scroll-mt-[230px]">
@@ -165,17 +165,17 @@ function SectionWrapper({
                 </span>
                 {isItemDetailsSection && (
                   <span className="inline-flex rounded-full bg-primary/10 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary">
-                    Base listing
+                    Shared listing
                   </span>
                 )}
                 {section.isCurrent && (
                   <span className="inline-flex rounded-full bg-primary px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary-foreground shadow-sm">
-                    Editing now
+                    Currently editing
                   </span>
                 )}
                 {section.isLocked && (
                   <span className="inline-flex rounded-full border border-border/70 bg-background px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-muted-foreground">
-                    Locked
+                    Locked until earlier steps are ready
                   </span>
                 )}
               </div>
@@ -202,7 +202,7 @@ function SectionWrapper({
 
                 <div className={`rounded-[16px] border px-[14px] py-[12px] ${section.isCurrent ? "border-primary/20 bg-primary/6" : section.status === "completed" ? "border-secondary/25 bg-secondary/10" : "border-border/70 bg-background/90"}`}>
                   <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                    {section.isCurrent ? "Now editing" : "Guidance"}
+                    {section.isCurrent ? "Now editing" : "What happens next"}
                   </p>
                   <p className="mt-[4px] font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
                     {stateLabel}
@@ -229,7 +229,7 @@ function SectionWrapper({
           <div className="ml-[14px]">
             <div className="mb-[10px] flex items-center gap-[10px] pl-[10px]">
               <span className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                Edit section
+                Section editor
               </span>
               <div className="h-px flex-1 bg-border/70" />
             </div>
@@ -396,7 +396,7 @@ export default function CreateItemLayout({
                     )}
                   </div>
                   <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
-                    {section.isLocked ? "Locked until previous step is complete" : section.stateLabel ?? statusLabelMap[section.status]}
+                    {section.isLocked ? "Locked until earlier steps are ready" : section.stateLabel ?? statusLabelMap[section.status]}
                   </p>
                   <div className="mt-[8px] flex flex-wrap items-center gap-[6px]">
                     {section.id === "itemDetails" && (

@@ -154,7 +154,7 @@ export default function MarketplacesContent({
                     )}
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
                       <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${isExpanded ? "text-foreground" : hasCompleted ? "text-muted-foreground" : "text-foreground"} text-[24px]`}>
-                        Marketplaces
+                        Choose where to publish
                       </p>
                     </div>
                   </div>
@@ -239,22 +239,22 @@ export default function MarketplacesContent({
             <div className="grid gap-[12px] lg:grid-cols-[minmax(0,1.3fr)_minmax(240px,0.9fr)]">
               <div className="bg-muted rounded-[12px] px-[16px] py-[14px]">
                 <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                  Choose where to publish, then customize only the marketplaces that need changes.
+                  Pick the marketplaces where you want this item live. Shared details carry over automatically, and you can fine-tune each marketplace later.
                 </p>
               </div>
               <div className="rounded-[12px] border border-border bg-background px-[16px] py-[14px]">
                 <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                  Selected
+                  Ready
                 </p>
                 <div className="mt-[8px] flex flex-wrap gap-[8px]">
                   <span className="rounded-full bg-primary/10 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
-                    {selectedMarketplaces.length} selected
+                    {selectedMarketplaces.length} ready
                   </span>
                   <span className="rounded-full bg-background px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground border border-border/70">
-                    {customizedMarketplaceCount} customized
+                    {customizedMarketplaceCount} with custom changes
                   </span>
                   <span className="rounded-full bg-background px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground border border-border/70">
-                    {usingBaseOnlyCount > 0 ? `${usingBaseOnlyCount} using base` : "All customized"}
+                    {usingBaseOnlyCount > 0 ? `${usingBaseOnlyCount} using shared details` : "All customized"}
                   </span>
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function MarketplacesContent({
                                       <p className="leading-[24px]">{marketplace.name}</p>
                                     </div>
                                     <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[14px] text-muted-foreground">
-                                      {isSelected ? "Selected" : "Select marketplace"}
+                                      {isSelected ? "Ready to publish" : "Add this marketplace"}
                                     </p>
                                   </div>
                                 </div>
@@ -333,10 +333,10 @@ export default function MarketplacesContent({
                 <div className="flex flex-wrap items-start justify-between gap-[12px]">
                   <div>
                     <p className="font-['Lexend',sans-serif] font-medium text-[14px] leading-[20px] tracking-[0.1px] text-foreground">
-                      Marketplace overrides
+                      Marketplace-specific changes
                     </p>
                     <p className="font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-muted-foreground">
-                      Open controls only for marketplace-specific changes.
+                      Keep the shared listing as-is, or open a marketplace only when you need different details, pricing, or shipping.
                     </p>
                   </div>
                 </div>
@@ -364,13 +364,13 @@ export default function MarketplacesContent({
                               {marketplace.name}
                             </p>
                             <span className={`text-[11px] leading-[14px] tracking-[0.1px] font-[350] ${hasCustomizations ? "text-primary" : "text-muted-foreground"}`}>
-                              {hasCustomizations ? "Customized" : "Base listing"}
+                              {hasCustomizations ? "Custom setup" : "Using shared listing"}
                             </span>
                           </div>
                           <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
-                            {hasCustomizations
-                              ? "Open to edit marketplace-specific fields."
-                              : "Uses your shared listing."}
+                              {hasCustomizations
+                              ? "Open to review or change this marketplace only."
+                              : "This marketplace will use your shared listing unless you customize it."}
                           </p>
                           <div className="flex flex-wrap gap-[6px] mt-[6px]">
                             {hasCustomizations ? (
@@ -381,13 +381,13 @@ export default function MarketplacesContent({
                               ))
                             ) : (
                               <span className="bg-muted text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground px-[8px] py-[2px] rounded-[999px]">
-                                Shared details apply
+                                Shared listing applies
                               </span>
                             )}
                           </div>
                         </div>
                         <span className="font-['Lexend',sans-serif] font-medium text-[12px] leading-[16px] tracking-[0.2px] text-primary">
-                          {hasCustomizations ? "Open controls" : "Customize"}
+                          {hasCustomizations ? "Review changes" : "Customize this marketplace"}
                         </span>
                       </button>
                     );
@@ -408,7 +408,7 @@ export default function MarketplacesContent({
                     <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                         <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary-dim text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                          <p className="leading-[20px]">Continue to pricing</p>
+                          <p className="leading-[20px]">Set pricing</p>
                         </div>
                       </div>
                       <div className="overflow-clip relative shrink-0 size-[20px]">

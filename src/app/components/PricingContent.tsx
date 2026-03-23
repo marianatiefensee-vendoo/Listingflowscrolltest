@@ -156,7 +156,7 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                       </div>
                     )}
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
-                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (hasCompleted ? 'text-muted-foreground' : 'text-foreground') } text-[24px]`}>Pricing</p>
+                      <p className={`font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[var(--text-h3)] whitespace-nowrap ${ isExpanded ? 'text-foreground' : (hasCompleted ? 'text-muted-foreground' : 'text-foreground') } text-[24px]`}>Set the price buyers will see</p>
                     </div>
                   </div>
                 </div>
@@ -249,14 +249,14 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
             <div className="content-stretch flex flex-col gap-[32px] items-center p-[24px] relative w-full">
               {/* Wrapper */}
               <div className="content-stretch flex flex-col gap-[32px] items-start relative shrink-0 w-full">
-                {/* Input Listing Price */}
+                {/* Input Base listing price */}
                 <div className="content-stretch flex flex-col items-start overflow-clip relative shrink-0 w-full">
                   <div className="content-stretch flex flex-col items-start relative rounded-[4px] shrink-0">
                     <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-[327px]">
                       {/* Title */}
                       <div className="content-stretch flex gap-[4px] items-center relative shrink-0 w-full">
                         <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-base)] tracking-[0.15px] whitespace-nowrap">
-                          <p className="leading-[24px]">Listing Price</p>
+                          <p className="leading-[24px]">Base listing price</p>
                         </div>
                         {/* Tag - Only show if AI has generated and not manually edited */}
                         {showAIInsightCard ? (
@@ -276,7 +276,7 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                                   </div>
                                 </div>
                                 <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-ai-tag-foreground text-[11px] text-center whitespace-nowrap">
-                                  <p className="leading-[14px]">AI suggested</p>
+                                  <p className="leading-[14px]">AI suggestion</p>
                                 </div>
                               </div>
                               <div className="h-[20px] relative shrink-0 w-0">
@@ -359,10 +359,10 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                       {/* Content */}
                       <div className="content-stretch flex flex-col items-start overflow-clip px-[12px] relative rounded-[8px] shrink-0 w-[527px]">
                         <div className="content-stretch flex flex-col gap-[16px] items-start overflow-clip relative shrink-0 w-full">
-                          {/* Recommended Range */}
+                          {/* Suggested price range */}
                           <div className="content-stretch flex flex-col gap-[8px] items-start overflow-clip relative shrink-0 w-full">
                             <div className="content-stretch flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] items-start overflow-clip relative shrink-0 w-full whitespace-nowrap">
-                              <p className="leading-[16px] relative shrink-0 text-muted-foreground text-[var(--text-xs)] tracking-[0.4px] text-[14px] mx-[0px] my-[4px]">Recommended Range</p>
+                              <p className="leading-[16px] relative shrink-0 text-muted-foreground text-[var(--text-xs)] tracking-[0.4px] text-[14px] mx-[0px] my-[4px]">Suggested price range</p>
                               <p className="leading-[28px] relative shrink-0 text-foreground text-[var(--text-h4)] text-[24px] mx-[0px] my-[4px]">${rangeLow} – ${rangeHigh}</p>
                             </div>
                             {/* Progress Bar */}
@@ -370,7 +370,7 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                               <div className="h-[8px] rounded-[9999px] shrink-0" style={{ width: `${Math.round(progressPercent * 2.79)}px`, backgroundImage: "linear-gradient(89.865deg, rgb(255, 255, 255) 18.514%, rgb(101, 60, 201) 55.024%)" }} />
                             </div>
                             <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] min-w-full opacity-38 relative shrink-0 text-foreground text-[11px] w-[min-content]">
-                              <p className="leading-[14px]">Based on item attributes and market data.</p>
+                              <p className="leading-[14px]">Based on your item details and current market signals. Edit anytime before publishing.</p>
                             </div>
                           </div>
 
@@ -393,7 +393,7 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                                 </div>
                               </div>
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-foreground text-[var(--text-sm)] tracking-[0.1px] whitespace-nowrap">
-                                <p className="leading-[20px] text-[14px] px-[0px] py-[4px]">Generate AI price suggestion</p>
+                                <p className="leading-[20px] text-[14px] px-[0px] py-[4px]">Suggest a starting price</p>
                               </div>
                             </button>
                           ) : (
@@ -417,12 +417,12 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                       <div className="content-stretch flex items-center gap-[8px] relative shrink-0">
                         <div className="h-[8px] w-[8px] animate-pulse rounded-full bg-primary" />
                         <p className="font-['Lexend',sans-serif] font-[350] leading-[20px] text-[14px] tracking-[0.1px] text-muted-foreground">
-                          Getting a price suggestion…
+                          Reviewing the market for a price suggestion…
                         </p>
                       </div>
                     ) : wasPriceAIGenerated ? (
                       <p className="font-['Lexend',sans-serif] font-[350] leading-[20px] text-[14px] tracking-[0.1px] text-muted-foreground">
-                        Suggested price added • Edit anytime
+                        Suggested price added. You can adjust it anytime.
                       </p>
                     ) : (
                       <p className="font-['Lexend',sans-serif] font-[350] leading-[20px] text-[14px] tracking-[0.1px] text-muted-foreground">
@@ -433,7 +433,7 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                           className="inline-flex items-center gap-[4px] text-primary hover:text-primary/90 transition-colors cursor-pointer"
                         >
                           <span aria-hidden="true">✨</span>
-                          <span className="underline underline-offset-[3px]">Get a price suggestion</span>
+                          <span className="underline underline-offset-[3px]">See suggested price</span>
                         </button>
                       </p>
                     )}
@@ -451,7 +451,7 @@ export default function PricingContent({ shouldExpand, onExpandChange, onContinu
                     <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                         <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary-dim text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                          <p className="leading-[20px]">Continue to shipping</p>
+                          <p className="leading-[20px]">Set shipping details</p>
                         </div>
                       </div>
                       <div className="overflow-clip relative shrink-0 size-[20px]">

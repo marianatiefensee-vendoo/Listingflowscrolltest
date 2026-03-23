@@ -73,13 +73,13 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
 
     const availableSlots = MAX_PHOTOS - photos.length;
     if (validFiles.length > availableSlots) {
-      alert(`You can only add ${availableSlots} more photo${availableSlots === 1 ? '' : 's'}. Maximum ${MAX_PHOTOS} photos allowed.`);
+      alert(`You can add ${availableSlots} more photo${availableSlots === 1 ? '' : 's'}. This listing supports up to ${MAX_PHOTOS} photos.`);
       validFiles.splice(availableSlots);
     }
 
     validFiles.forEach((file) => {
       if (file.size > 10 * 1024 * 1024) {
-        alert(`${file.name} exceeds 10MB limit`);
+        alert(`${file.name} is over the 10MB limit. Choose a smaller file to keep uploading.`);
         return;
       }
 
@@ -149,7 +149,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
         }
       } catch (error) {
         console.error("Error generating listing:", error);
-        alert("Failed to generate listing. Please try again.");
+        alert("We couldn't create a draft from these photos just yet. Please try again, or continue manually.");
         setIsGenerating(false);
       }
     }
@@ -230,7 +230,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                           </div>
                         </div>
                         <div className="content-stretch flex items-center justify-center relative shrink-0">
-                          <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-muted-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos</p>
+                          <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-muted-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos that sell the item</p>
                         </div>
                       </div>
                     </div>
@@ -464,7 +464,7 @@ function PhotosStepContent({
                 Choose how to build the rest of this listing
               </DialogTitle>
               <DialogDescription className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-muted-foreground">
-                Your photos are ready. Pick the path that feels best for this item — AI is recommended when you want a faster first draft, and manual entry stays fully flexible.
+                Your photos are ready. Choose a faster AI draft or keep full manual control. Either way, you can edit everything before anything goes live.
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4">
@@ -475,16 +475,16 @@ function PhotosStepContent({
                       Recommended
                     </p>
                     <h3 className="mt-1 font-['Lexend',sans-serif] text-[22px] leading-[30px] text-foreground">
-                      Generate with AI
+                      Build first draft with AI
                     </h3>
                   </div>
                   <div className="rounded-full bg-primary/10 px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-primary">
-                    Faster start
+                    Save time
                   </div>
                 </div>
                 <div className="space-y-3">
                   <p className="font-['Lexend',sans-serif] text-[15px] leading-[22px] text-foreground">
-                    Turn your photos into a polished first draft so you can review and edit instead of starting from a blank form.
+                    Use your photos to create a strong starting draft so you can review, refine, and publish faster.
                   </p>
                   <div className="rounded-[16px] border border-border/80 bg-background/80 p-4">
                     <p className="font-['Lexend',sans-serif] text-[13px] font-medium uppercase tracking-[0.3px] text-muted-foreground">
@@ -495,7 +495,7 @@ function PhotosStepContent({
                     </p>
                   </div>
                   <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
-                    You stay in control — nothing is final, and you can revise every generated field before publishing.
+                    AI suggests the first draft only. Your photos are used to create suggestions, and you can rewrite, remove, or keep any field.
                   </p>
                 </div>
                 <Button
@@ -504,7 +504,7 @@ function PhotosStepContent({
                   disabled={isGenerating}
                   className="mt-5 h-12 w-full rounded-[12px] bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  {isGenerating ? 'Generating draft…' : 'Generate draft with AI'}
+                  {isGenerating ? 'Creating your draft…' : 'Create draft from photos'}
                 </Button>
               </div>
 
@@ -512,14 +512,14 @@ function PhotosStepContent({
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-['Lexend',sans-serif] text-[22px] leading-[30px] text-foreground">
-                      Enter manually
+                      Write listing myself
                     </h3>
                     <p className="mt-1 font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
                       Best when you already know the exact details or want full control from the first field.
                     </p>
                   </div>
                   <div className="rounded-full bg-background px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-foreground-dim">
-                    Flexible path
+                    Full control
                   </div>
                 </div>
                 <p className="font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
@@ -530,7 +530,7 @@ function PhotosStepContent({
                   onClick={handleNext}
                   className="mt-5 h-12 w-full rounded-[12px] border-border bg-background text-foreground hover:bg-accent"
                 >
-                  Continue manually
+                  Go to item details
                 </Button>
               </div>
             </div>
@@ -542,7 +542,7 @@ function PhotosStepContent({
                   onClick={onContinueEditingPhotos}
                   className="self-center font-['Lexend',sans-serif] text-[14px] leading-[20px] font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-[8px] px-2 py-1"
                 >
-                  Not ready yet — keep editing photos
+                  Keep editing photos
                 </button>
               </DialogClose>
             </DialogFooter>
@@ -570,7 +570,7 @@ function PhotosStepContent({
                     </div>
                   </div>
                   <div className="content-stretch flex items-center justify-center relative shrink-0">
-                    <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos</p>
+                    <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos that sell the item</p>
                   </div>
                 </div>
               </div>
@@ -634,10 +634,10 @@ function PhotosStepContent({
                       {/* Text */}
                       <div className="content-stretch flex flex-col gap-[4px] items-center pb-[12px] relative shrink-0 text-center tracking-[0.5px] w-full whitespace-nowrap">
                         <p className="font-['Lexend',sans-serif] leading-[24px] relative shrink-0 text-foreground text-[var(--text-base)] font-bold">
-                          Drop images here or click to upload
+                          Add photos to start your listing
                         </p>
                         <p className="font-['Lexend',sans-serif] leading-[16px] relative shrink-0 text-on-surface-dim text-[var(--text-xs)] font-[Lexend] text-[14px]">
-                          Support for JPG, PNG, SVG (max 10MB each)
+                          Drag and drop or browse files. JPG, PNG, and SVG supported, up to 10MB each.
                         </p>
                       </div>
 
@@ -665,7 +665,7 @@ function PhotosStepContent({
                             </div>
                             <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                                <p className="leading-[20px]">Upload</p>
+                                <p className="leading-[20px]">Choose photos</p>
                               </div>
                             </div>
                           </div>
@@ -762,7 +762,7 @@ function PhotosStepContent({
                   </div>
                 </div>
                 <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[16px] relative shrink-0 text-foreground-dim text-[var(--text-xs)] tracking-[0.4px] mx-[-6px] my-[0px] text-[12px]">
-                  The more photos you add the better chance your listing has to sell
+                  Add clear front, back, label, and detail shots. Better photos help AI draft more accurately and help buyers trust the listing.
                 </p>
               </div>
 
@@ -773,10 +773,10 @@ function PhotosStepContent({
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                       <div className="flex flex-col gap-[4px]">
                         <p className="font-['Lexend',sans-serif] text-[12px] font-medium uppercase tracking-[0.4px] text-primary">
-                          Next step checkpoint
+                          Ready for the next step
                         </p>
                         <p className="font-['Lexend',sans-serif] text-[20px] leading-[28px] text-foreground">
-                          Decide how you want to create the rest of this listing.
+                          Choose how you want to build the rest of this listing.
                         </p>
                         <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
                           Review the recommended AI path or choose manual entry — either way, you&apos;ll make this choice intentionally before moving on.
@@ -790,7 +790,7 @@ function PhotosStepContent({
                           className="content-stretch flex h-[48px] items-center justify-center rounded-[12px] border border-border bg-background px-[16px] transition-colors hover:bg-accent"
                         >
                           <span className="font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] text-foreground">
-                            Review options
+                            Compare options
                           </span>
                         </button>
                         <button
@@ -800,7 +800,7 @@ function PhotosStepContent({
                           className={`content-stretch flex h-[48px] items-center justify-center rounded-[12px] px-[16px] ${!hasPhotos || isGenerating ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'} transition-colors`}
                         >
                           <span className={`font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] ${!hasPhotos || isGenerating ? 'text-foreground/60' : 'text-primary-foreground'}`}>
-                            {isGenerating ? 'Generating draft…' : 'Use recommended AI path'}
+                            {isGenerating ? 'Creating your draft…' : 'Create draft with AI'}
                           </span>
                         </button>
                       </div>

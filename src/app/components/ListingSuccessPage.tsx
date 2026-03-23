@@ -63,11 +63,11 @@ export default function ListingSuccessPage({
                 <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-center p-[12px] relative w-full">
                   <div className="content-stretch flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] gap-[8px] items-center justify-center relative shrink-0 text-center w-full whitespace-nowrap">
                     <div className="flex flex-col justify-center leading-[0] relative shrink-0 text-foreground text-[var(--text-h2)]">
-                      <p className="leading-[40px]">Item Listed Successfully!</p>
+                      <p className="leading-[40px]">Your listing is live</p>
                     </div>
                     <div className="flex flex-col justify-center leading-[24px] relative shrink-0 text-foreground-dim text-[var(--text-base)] tracking-[0.5px]">
-                      <p className="mb-0">Your item has been listed on {marketplaceCount} {marketplaceCount === 1 ? 'marketplace' : 'marketplaces'} and</p>
-                      <p>is now live for buyers.</p>
+                      <p className="mb-0">Your item is now live on {marketplaceCount} {marketplaceCount === 1 ? 'marketplace' : 'marketplaces'}</p>
+                      <p>and ready for shoppers to discover.</p>
                     </div>
                   </div>
                 </div>
@@ -90,7 +90,7 @@ export default function ListingSuccessPage({
                             </div>
                             <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[14px] text-center text-primary-foreground tracking-[0.1px] whitespace-nowrap">
-                                <p className="leading-[20px]">List Another Item</p>
+                                <p className="leading-[20px]">Create another listing</p>
                               </div>
                             </div>
                           </div>
@@ -106,7 +106,7 @@ export default function ListingSuccessPage({
                           <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
                             <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[14px] text-center tracking-[0.1px] whitespace-nowrap">
-                                <p className="leading-[20px]">Go to Inventory</p>
+                                <p className="leading-[20px]">View inventory</p>
                               </div>
                             </div>
                           </div>
@@ -177,7 +177,7 @@ export default function ListingSuccessPage({
           </div>
         </div>
 
-        {/* Marketplace Status List */}
+        {/* Live marketplace status List */}
         <div className="bg-card col-1 justify-self-stretch relative rounded-[24px] row-2 self-start shrink-0">
           <div className="content-stretch flex flex-col items-start overflow-clip p-px relative rounded-[inherit] w-full">
             {/* Title */}
@@ -186,7 +186,7 @@ export default function ListingSuccessPage({
                 <div className="content-stretch flex items-center justify-between relative shrink-0 w-full p-[24px] pb-[24px]">
                   <div className="content-stretch flex flex-col items-start relative shrink-0">
                     <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-foreground text-[var(--text-base)] tracking-[0.15px] whitespace-nowrap">
-                      <p className="leading-[24px]">Marketplace Status</p>
+                      <p className="leading-[24px]">Live marketplace status</p>
                     </div>
                   </div>
                   <div className="content-stretch flex gap-[4px] items-center relative shrink-0">
@@ -234,7 +234,7 @@ export default function ListingSuccessPage({
                                     <p className="leading-[20px]">{marketplaceDisplayNames[marketplace.id] || marketplace.name}</p>
                                   </div>
                                   <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-foreground-dim text-[var(--text-xs)] tracking-[0.4px] whitespace-nowrap">
-                                    <p className="leading-[16px]">View on Marketplace</p>
+                                    <p className="leading-[16px]">Open marketplace listing</p>
                                   </div>
                                 </div>
                               </div>
@@ -257,7 +257,7 @@ export default function ListingSuccessPage({
                                         </div>
                                         <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[12px] text-center tracking-[0.5px] whitespace-nowrap">
-                                            <p className="leading-[16px]">Copy Link</p>
+                                            <p className="leading-[16px]">Copy listing link</p>
                                           </div>
                                         </div>
                                       </div>
