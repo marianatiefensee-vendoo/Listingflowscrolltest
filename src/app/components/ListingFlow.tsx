@@ -438,6 +438,13 @@ export default function ListingFlow() {
   const isMarketplacesComplete = selectedMarketplaces.length > 0;
   const isPricingComplete = listingPrice.trim() !== "";
   const isShippingComplete = shippingCompleted;
+  const completionBySection: Record<ListingSectionMeta["id"], boolean> = {
+    photos: isPhotosComplete,
+    itemDetails: isItemDetailsComplete,
+    marketplaces: isMarketplacesComplete,
+    pricing: isPricingComplete,
+    shipping: isShippingComplete,
+  };
 
   const customizedMarketplaceCount = selectedMarketplaces.filter(
     (marketplaceId) =>
@@ -454,6 +461,30 @@ export default function ListingFlow() {
   const [currentSection, setCurrentSection] =
     useState<ListingSectionMeta["id"]>("photos");
 
+  const sectionOrder: ListingSectionMeta["id"][] = [
+    "photos",
+    "itemDetails",
+    "marketplaces",
+    "pricing",
+    "shipping",
+  ];
+  const firstIncompleteSection =
+    sectionOrder.find((sectionId) => !completionBySection[sectionId]) ?? "shipping";
+  const getStepStateLabel = (
+    sectionId: ListingSectionMeta["id"],
+    isComplete: boolean,
+    hasStarted: boolean,
+  ) => {
+    if (isComplete) return "Completed";
+    if (sectionId === firstIncompleteSection) {
+      return hasStarted ? "Continue" : "Start";
+    }
+    if (hasStarted) return "Continue";
+    return "Upcoming";
+  };
+  const isSectionLocked = (sectionId: ListingSectionMeta["id"]) =>
+    !completionBySection[sectionId] && sectionId !== firstIncompleteSection;
+
   const getSectionStatus = useCallback(
     (isComplete: boolean, hasStarted: boolean): ListingSectionStatus => {
       if (isComplete) return "completed";
@@ -466,20 +497,26 @@ export default function ListingFlow() {
   const progressSections: ListingSectionMeta[] = [
     {
       id: "photos",
+      stepNumber: 1,
       title: "Photos",
       description: isPhotosComplete
         ? `${uploadedPhotos.length} photo${uploadedPhotos.length === 1 ? "" : "s"} added and ready to lead the listing.`
         : "Add the photos buyers will see first.",
-      shortDescription: isPhotosComplete
-        ? "Completed"
-        : "Not started",
-      actionLabel: undefined,
+      shortDescription: isPhotosComplete ? "Completed" : "Not started",
+      ctaLabel: isPhotosComplete ? "Edit photos" : "Start with photos",
+      nextStepLabel: isPhotosComplete
+        ? "Next step: finish item details."
+        : "Start here so AI or manual details have the right inputs.",
+      stateLabel: getStepStateLabel("photos", isPhotosComplete, uploadedPhotos.length > 0),
       connectedLabel: undefined,
       status: getSectionStatus(isPhotosComplete, uploadedPhotos.length > 0),
       isCurrent: currentSection === "photos",
+      isLocked: false,
+      isAccessible: true,
     },
     {
       id: "itemDetails",
+      stepNumber: 2,
       title: "Item Details",
       description: isItemDetailsComplete
         ? "Details complete"
@@ -491,13 +528,20 @@ export default function ListingFlow() {
         : itemDetails
           ? "In progress"
           : "Not started",
-      actionLabel: undefined,
+      ctaLabel: isItemDetailsComplete ? "Edit details" : "Continue to details",
+      nextStepLabel: isItemDetailsComplete
+        ? "Next step: choose marketplaces."
+        : "Use AI suggestions or finish the shared listing fields manually.",
+      stateLabel: getStepStateLabel("itemDetails", isItemDetailsComplete, !!itemDetails),
       sourceOfTruthNote: undefined,
       status: getSectionStatus(isItemDetailsComplete, !!itemDetails),
       isCurrent: currentSection === "itemDetails",
+      isLocked: isSectionLocked("itemDetails"),
+      isAccessible: !isSectionLocked("itemDetails"),
     },
     {
       id: "marketplaces",
+      stepNumber: 3,
       title: "Marketplaces",
       description: isMarketplacesComplete
         ? `${selectedMarketplaces.length} selected`
@@ -505,16 +549,29 @@ export default function ListingFlow() {
       shortDescription: isMarketplacesComplete
         ? "In progress"
         : "Not started",
-      actionLabel: undefined,
+      ctaLabel: isMarketplacesComplete
+        ? "Edit marketplaces"
+        : "Continue to marketplaces",
+      nextStepLabel: isMarketplacesComplete
+        ? "Next step: set pricing."
+        : "Pick destinations now; you can still customize each marketplace later.",
+      stateLabel: getStepStateLabel(
+        "marketplaces",
+        isMarketplacesComplete,
+        selectedMarketplaces.length > 0,
+      ),
       connectedLabel: undefined,
       status: getSectionStatus(
         isMarketplacesComplete,
         selectedMarketplaces.length > 0,
       ),
       isCurrent: currentSection === "marketplaces",
+      isLocked: isSectionLocked("marketplaces"),
+      isAccessible: !isSectionLocked("marketplaces"),
     },
     {
       id: "pricing",
+      stepNumber: 4,
       title: "Pricing",
       description: isPricingComplete
         ? `$${listingPrice}`
@@ -522,13 +579,20 @@ export default function ListingFlow() {
       shortDescription: isPricingComplete
         ? "Completed"
         : "Not started",
-      actionLabel: undefined,
+      ctaLabel: isPricingComplete ? "Edit pricing" : "Continue to pricing",
+      nextStepLabel: isPricingComplete
+        ? "Next step: confirm shipping."
+        : "Set the base price before you move to shipping.",
+      stateLabel: getStepStateLabel("pricing", isPricingComplete, listingPrice.trim() !== ""),
       connectedLabel: undefined,
       status: getSectionStatus(isPricingComplete, listingPrice.trim() !== ""),
       isCurrent: currentSection === "pricing",
+      isLocked: isSectionLocked("pricing"),
+      isAccessible: !isSectionLocked("pricing"),
     },
     {
       id: "shipping",
+      stepNumber: 5,
       title: "Shipping",
       description: isShippingComplete
         ? "Shipping selected"
@@ -536,13 +600,23 @@ export default function ListingFlow() {
       shortDescription: isShippingComplete
         ? "Completed"
         : "Not started",
-      actionLabel: undefined,
+      ctaLabel: isShippingComplete ? "Edit shipping" : "Continue to shipping",
+      nextStepLabel: isShippingComplete
+        ? "Next step: review and publish."
+        : "Choose the shipping setup that best matches this item.",
+      stateLabel: getStepStateLabel(
+        "shipping",
+        isShippingComplete,
+        selectedShippingMethod.trim() !== "",
+      ),
       connectedLabel: undefined,
       status: getSectionStatus(
         isShippingComplete,
         selectedShippingMethod.trim() !== "",
       ),
       isCurrent: currentSection === "shipping",
+      isLocked: isSectionLocked("shipping"),
+      isAccessible: !isSectionLocked("shipping"),
       isPublishReady: isShippingComplete,
     },
   ];
@@ -581,6 +655,9 @@ export default function ListingFlow() {
       routeStep?: "photos" | "details" | "marketplaces" | "price-shipping";
     },
   ) {
+    if (isSectionLocked(section)) {
+      return;
+    }
     setIsReviewMode(false);
     collapseAllExcept(section);
     setActiveEditSection(section);
@@ -619,7 +696,7 @@ export default function ListingFlow() {
     const container = editScrollContainerRef.current;
     if (!container || isReviewMode) return;
 
-    const sectionOrder: Array<{
+    const sectionScrollOrder: Array<{
       id: ListingSectionMeta["id"];
       elementId: string;
     }> = [
@@ -634,7 +711,7 @@ export default function ListingFlow() {
       const scrollPosition = container.scrollTop + 260;
       let nextSection: ListingSectionMeta["id"] = "photos";
 
-      for (const section of sectionOrder) {
+      for (const section of sectionScrollOrder) {
         const element = container.querySelector(
           `#${section.elementId}`,
         ) as HTMLElement | null;
@@ -659,6 +736,16 @@ export default function ListingFlow() {
     });
     return () => container.removeEventListener("scroll", updateCurrentSection);
   }, [isReviewMode, isShippingComplete]);
+
+  useEffect(() => {
+    if (isReviewMode || isPublished) {
+      return;
+    }
+
+    if (currentSection !== firstIncompleteSection && isSectionLocked(currentSection)) {
+      setCurrentSection(firstIncompleteSection);
+    }
+  }, [currentSection, firstIncompleteSection, isPublished, isReviewMode]);
 
   const selectedMarketplacesData = allMarketplaces.filter((m) =>
     selectedMarketplaces.includes(m.id),
@@ -766,7 +853,7 @@ export default function ListingFlow() {
                 <CreateItemLayout
                   progressSections={progressSections}
                   completionCount={completedSectionCount}
-                  onJumpToSection={scrollToSection}
+                  onJumpToSection={(sectionId) => openSection(sectionId as ListingSectionMeta["id"])}
                   reviewStatus={reviewStatus}
                   activeSectionId={activeEditSection}
                   activeSectionContext={activeEditContext}

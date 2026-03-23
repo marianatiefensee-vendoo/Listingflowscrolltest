@@ -13,6 +13,12 @@ export interface ListingSectionMeta {
   connectedLabel?: string;
   sourceOfTruthNote?: string;
   status: ListingSectionStatus;
+  stepNumber?: number;
+  ctaLabel?: string;
+  nextStepLabel?: string;
+  stateLabel?: string;
+  isLocked?: boolean;
+  isAccessible?: boolean;
   isCurrent?: boolean;
   isPublishReady?: boolean;
 }
@@ -88,15 +94,19 @@ function StatusGlyph({ status }: { status: ListingSectionStatus }) {
 }
 
 function getNextInfo(section: ListingSectionMeta) {
+  if (section.isLocked) {
+    return section.nextStepLabel ?? "Complete the active step to unlock this section.";
+  }
+
   if (section.isCurrent) {
-    return "Editing is open below.";
+    return section.nextStepLabel ?? "Editing is open below.";
   }
 
   if (section.status === "completed") {
-    return "Ready to reopen if you want to update anything.";
+    return section.nextStepLabel ?? "Ready to reopen if you want to update anything.";
   }
 
-  return sectionActionMap[section.id] ?? "Open this section to continue.";
+  return section.nextStepLabel ?? sectionActionMap[section.id] ?? "Open this section to continue.";
 }
 
 function SectionWrapper({
@@ -115,11 +125,20 @@ function SectionWrapper({
   const summaryDescription = section.description ?? "Continue editing this section below.";
   const summaryFootnote = section.sourceOfTruthNote ?? section.connectedLabel;
   const nextInfo = getNextInfo(section);
+  const stateLabel =
+    section.stateLabel ??
+    (section.isLocked
+      ? "Locked"
+      : section.status === "completed"
+        ? "Completed"
+        : section.isCurrent
+          ? "Continue"
+          : "Start");
 
   return (
     <section className="relative scroll-mt-[230px]">
       <div
-        className={`overflow-hidden rounded-[20px] border transition-all duration-200 ${section.isCurrent ? "shadow-[0_14px_38px_rgba(83,77,95,0.14)] ring-2 ring-primary/20" : isItemDetailsSection ? "shadow-[0_8px_24px_rgba(83,77,95,0.07)]" : "shadow-[0_2px_10px_rgba(31,27,36,0.03)]"} ${section.isCurrent ? "border-primary/40 bg-primary/5" : isItemDetailsSection ? "border-primary/20 bg-primary/4" : sectionFrameMap[section.status]}`}
+        className={`overflow-hidden rounded-[20px] border transition-all duration-200 ${section.isCurrent ? "shadow-[0_14px_38px_rgba(83,77,95,0.14)] ring-2 ring-primary/20" : isItemDetailsSection ? "shadow-[0_8px_24px_rgba(83,77,95,0.07)]" : "shadow-[0_2px_10px_rgba(31,27,36,0.03)]"} ${section.isLocked ? "border-dashed border-border/80 bg-background/70 opacity-80" : section.isCurrent ? "border-primary/40 bg-primary/5" : isItemDetailsSection ? "border-primary/20 bg-primary/4" : sectionFrameMap[section.status]}`}
       >
         <div className="relative border-b border-border/60 bg-background/72 px-[20px] py-[18px]">
           <div
@@ -129,11 +148,11 @@ function SectionWrapper({
           <div className="flex items-start justify-between gap-[16px]">
             <div className="min-w-0 flex-1">
               <div className="mb-[12px] flex flex-wrap items-center gap-[10px]">
-                <span className="inline-flex items-center gap-[8px] rounded-full bg-background/90 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] uppercase tracking-[0.5px] text-muted-foreground">
-                  <span className="inline-flex size-[18px] items-center justify-center rounded-full border border-border/80 bg-muted/60 text-[11px] text-foreground">
-                    {index + 1}
-                  </span>
-                  Overview
+                  <span className="inline-flex items-center gap-[8px] rounded-full bg-background/90 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] uppercase tracking-[0.5px] text-muted-foreground">
+                    <span className="inline-flex size-[18px] items-center justify-center rounded-full border border-border/80 bg-muted/60 text-[11px] text-foreground">
+                    {section.stepNumber ?? index + 1}
+                    </span>
+                  Step
                 </span>
                 <span className="inline-flex items-center gap-[6px] rounded-full bg-background/90 px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] uppercase tracking-[0.5px] text-foreground">
                   {summaryTitle}
@@ -152,6 +171,11 @@ function SectionWrapper({
                 {section.isCurrent && (
                   <span className="inline-flex rounded-full bg-primary px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-primary-foreground shadow-sm">
                     Editing now
+                  </span>
+                )}
+                {section.isLocked && (
+                  <span className="inline-flex rounded-full border border-border/70 bg-background px-[10px] py-[6px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] tracking-[0.35px] text-muted-foreground">
+                    Locked
                   </span>
                 )}
               </div>
@@ -178,16 +202,17 @@ function SectionWrapper({
 
                 <div className={`rounded-[16px] border px-[14px] py-[12px] ${section.isCurrent ? "border-primary/20 bg-primary/6" : section.status === "completed" ? "border-secondary/25 bg-secondary/10" : "border-border/70 bg-background/90"}`}>
                   <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                    {section.isCurrent ? "Now editing" : "Next"}
+                    {section.isCurrent ? "Now editing" : "Guidance"}
                   </p>
                   <p className="mt-[4px] font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
-                    {section.isCurrent
-                      ? "In progress"
-                      : nextInfo}
+                    {stateLabel}
                   </p>
-                  {section.actionLabel && (
+                  <p className="mt-[6px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
+                    {nextInfo}
+                  </p>
+                  {(section.actionLabel || section.ctaLabel) && (
                     <p className="mt-[6px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
-                      {section.actionLabel}
+                      {section.ctaLabel ?? section.actionLabel}
                     </p>
                   )}
                 </div>
@@ -196,7 +221,7 @@ function SectionWrapper({
           </div>
         </div>
 
-        <div className="relative bg-surface-container/50 px-[14px] pb-[14px] pt-[10px]">
+        <div className={`relative bg-surface-container/50 px-[14px] pb-[14px] pt-[10px] ${section.isLocked ? "pointer-events-none opacity-60" : ""}`}>
           <div
             aria-hidden="true"
             className={`absolute inset-y-[10px] left-[20px] w-[2px] rounded-full ${section.isCurrent ? "bg-primary" : section.status === "completed" ? "bg-secondary/25" : "bg-border/80"}`}
@@ -235,6 +260,10 @@ export default function CreateItemLayout({
   const activeSection =
     progressSections.find((section) => section.id === activeSectionId) ??
     progressSections.find((section) => section.isCurrent);
+  const nextSection =
+    progressSections.find((section) => section.isCurrent)?.nextStepLabel ??
+    progressSections.find((section) => !section.isLocked && section.status !== "completed")?.title ??
+    "Review";
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -301,15 +330,15 @@ export default function CreateItemLayout({
               <p className="font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
                 {nearReview
                   ? "Almost ready for review."
-                  : "Open any section to keep going."}
+                  : `Next up: ${nextSection}.`}
               </p>
             </div>
             <div className="text-right">
               <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
-                {completionCount} of {progressSections.length} ready
+                Step {(activeSection?.stepNumber ?? 1)} of {progressSections.length}
               </p>
               <p className="font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
-                {completionPercent}% complete
+                {completionCount} completed · {completionPercent}% complete
               </p>
             </div>
           </div>
@@ -317,14 +346,14 @@ export default function CreateItemLayout({
             <div className="mb-[16px] flex flex-wrap items-center justify-between gap-[12px] rounded-[16px] border border-primary/15 bg-primary/6 px-[14px] py-[12px]">
               <div>
                 <p className="font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
-                  Active section
+                  Active step
                 </p>
                 <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
-                  {activeSection.title}
+                  {activeSection.stepNumber ? `Step ${activeSection.stepNumber}: ` : ""}{activeSection.title}
                 </p>
               </div>
               <p className="max-w-[440px] font-['Lexend',sans-serif] text-[11px] leading-[16px] text-muted-foreground">
-                {activeSectionContext ?? "Open below"}
+                {activeSectionContext ?? activeSection.nextStepLabel ?? "Open below"}
               </p>
             </div>
           )}
@@ -336,17 +365,18 @@ export default function CreateItemLayout({
               <button
                 key={section.id}
                 onClick={() => onJumpToSection(section.id)}
-                className={`group relative flex min-w-[148px] flex-1 items-start gap-[12px] rounded-[14px] border px-[14px] py-[12px] text-left transition-all duration-200 ${section.isCurrent ? "border-primary/35 bg-primary/8 shadow-[0_4px_18px_rgba(83,77,95,0.10)]" : section.id === "itemDetails" ? "border-primary/20 bg-primary/5 hover:bg-primary/8" : chipToneMap[section.status] + " hover:bg-muted/80"}`}
+                disabled={section.isLocked}
+                className={`group relative flex min-w-[148px] flex-1 items-start gap-[12px] rounded-[14px] border px-[14px] py-[12px] text-left transition-all duration-200 ${section.isLocked ? "cursor-not-allowed border-dashed border-border/80 bg-background/70 opacity-70" : section.isCurrent ? "border-primary/35 bg-primary/8 shadow-[0_4px_18px_rgba(83,77,95,0.10)]" : section.id === "itemDetails" ? "border-primary/20 bg-primary/5 hover:bg-primary/8" : chipToneMap[section.status] + " hover:bg-muted/80"}`}
                 type="button"
                 aria-current={section.isCurrent ? "step" : undefined}
               >
                 <div className={`mt-[1px] flex size-[26px] shrink-0 items-center justify-center rounded-full border text-[11px] font-medium ${section.isCurrent ? "border-primary/40 bg-primary/12 text-primary" : section.status === "completed" ? "border-secondary/40 bg-secondary text-secondary-foreground" : section.status === "in-progress" ? "border-amber-200 bg-amber-100 text-amber-800" : "border-border bg-muted text-muted-foreground"}`}>
-                  {section.status === "completed" ? (
-                    <svg className="size-[12px]" fill="none" viewBox="0 0 12 12">
-                      <path d="M2.5 6.1L4.8 8.4L9.5 3.7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-                    </svg>
-                  ) : (
-                    index + 1
+                    {section.status === "completed" ? (
+                      <svg className="size-[12px]" fill="none" viewBox="0 0 12 12">
+                        <path d="M2.5 6.1L4.8 8.4L9.5 3.7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+                      </svg>
+                    ) : (
+                    section.stepNumber ?? index + 1
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -366,7 +396,7 @@ export default function CreateItemLayout({
                     )}
                   </div>
                   <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">
-                    {statusLabelMap[section.status]}
+                    {section.isLocked ? "Locked until previous step is complete" : section.stateLabel ?? statusLabelMap[section.status]}
                   </p>
                   <div className="mt-[8px] flex flex-wrap items-center gap-[6px]">
                     {section.id === "itemDetails" && (
