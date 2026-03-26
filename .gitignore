@@ -1,6 +1,9 @@
 node_modules/
 dist/
+<<<<<<< HEAD
 
 .DS_Store
 
+=======
+>>>>>>> 781e6fa (Resolve conflicts)
 .DS_Store
