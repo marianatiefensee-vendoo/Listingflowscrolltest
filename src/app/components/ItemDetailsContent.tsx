@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect } from "react";
 import svgPaths from "../../imports/svg-nl9hp3fmvu";
 import conditionSvgPaths from "../../imports/svg-eidwq1eo1i";
 import completedSvgPaths from "../../imports/svg-qt0lwj09d3";
@@ -14,69 +14,26 @@ interface ItemDetailsContentProps {
   shouldExpand?: boolean;
   onExpandChange?: () => void;
   onContinue?: () => void;
-  onDetailsChange?: (details: ItemDetails) => void;
+  onDetailsChange?: (details: Partial<ItemDetails>) => void;
   shouldCollapse?: boolean;
   onCollapseChange?: () => void;
   onManualExpand?: () => void;
+  hideTitleDescription?: boolean;
+  stepNumber?: number;
 }
 
-type AIConfidenceLevel = "High" | "Medium" | "Low";
-
-function AIInsightCard({
-  confidence,
-  basedOn,
-  reason,
-  actions,
-}: {
-  confidence: AIConfidenceLevel;
-  basedOn: string;
-  reason: string;
-  actions?: ReactNode;
-}) {
-  const confidenceStyles: Record<AIConfidenceLevel, string> = {
-    High: "bg-emerald-100 text-emerald-800",
-    Medium: "bg-amber-100 text-amber-800",
-    Low: "bg-rose-100 text-rose-800",
-  };
-
-  return (
-    <div className="w-full rounded-[16px] border border-primary/15 bg-[linear-gradient(180deg,rgba(104,58,223,0.08)_0%,rgba(104,58,223,0.02)_100%)] p-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.35px] text-primary">
-              Generated based on your photos
-            </span>
-            <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium ${confidenceStyles[confidence]}`}>
-              Confidence: {confidence}
-            </span>
-          </div>
-          <p className="font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
-            {reason}
-          </p>
-          <p className="font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
-            {basedOn} · You can edit everything. AI suggests a starting point, but you stay in control.
-          </p>
-        </div>
-        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-      </div>
-    </div>
-  );
-}
-
-function AIActionButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-[36px] items-center justify-center rounded-[10px] border border-border bg-background px-3 text-[12px] font-medium text-foreground transition-colors hover:bg-accent"
-    >
-      {children}
-    </button>
-  );
-}
-
-export default function ItemDetailsContent({ initialData, shouldExpand, onExpandChange, onContinue, onDetailsChange, shouldCollapse, onCollapseChange, onManualExpand }: ItemDetailsContentProps) {
+export default function ItemDetailsContent({
+  initialData,
+  shouldExpand,
+  onExpandChange,
+  onContinue,
+  onDetailsChange,
+  shouldCollapse,
+  onCollapseChange,
+  onManualExpand,
+  hideTitleDescription = false,
+  stepNumber = 2,
+}: ItemDetailsContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [itemSpecificsExpanded, setItemSpecificsExpanded] = useState(true);
   const [hasReceivedAIData, setHasReceivedAIData] = useState(false);
@@ -120,11 +77,13 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
   const [tags, setTags] = useState("");
   const [sku, setSku] = useState("");
 
-  const aiConfidence: AIConfidenceLevel = hasReceivedAIData ? "High" : title || description ? "Medium" : "Low";
-
   const requiredFields = [
-    { label: "Title", value: title },
-    { label: "Description", value: description },
+    ...(hideTitleDescription
+      ? []
+      : [
+          { label: "Title", value: title },
+          { label: "Description", value: description },
+        ]),
     { label: "Brand", value: brand },
     { label: "Category", value: category },
     { label: "Size", value: size },
@@ -139,11 +98,11 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
   // Derive completion from required fields (Title, Description, Brand, Category, Size, Condition)
   const isCompleted = missingRequiredFields.length === 0;
   const completionLabel = isCompleted
-    ? "Ready to reuse"
-    : `${completedRequiredCount}/${requiredFields.length} required fields ready`;
+    ? "Completed"
+    : `${completedRequiredCount}/${requiredFields.length} complete`;
   const missingFieldsLabel = missingRequiredFields.length
-    ? `Add before continuing: ${missingRequiredFields.join(", ")}`
-    : "Your shared listing details are ready to reuse across marketplaces.";
+    ? `Still needed: ${missingRequiredFields.join(", ")}`
+    : "All required fields complete.";
 
   // Track AI-added brands and categories — hydrated from sessionStorage to survive page navigations
   const [customBrands, setCustomBrands] = useState<string[]>(() => {
@@ -214,10 +173,6 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     setWasTitleAIGenerated(true);
   };
 
-  const regenerateTitle = () => {
-    generateTitle();
-  };
-
   const generateDescription = () => {
     const descriptions = [
       "Beautiful vintage-style item in excellent condition. Features classic design elements and timeless appeal. Perfect for any season. Shows minimal signs of wear, maintaining its original quality and character. A must-have addition to any collection.",
@@ -226,18 +181,6 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     ];
     const randomDesc = descriptions[Math.floor(Math.random() * descriptions.length)];
     setDescription(randomDesc);
-    setIsDescriptionAIGenerated(true);
-    setWasDescriptionAIGenerated(true);
-  };
-
-  const improveDescription = () => {
-    if (!description.trim()) {
-      generateDescription();
-      return;
-    }
-
-    const improvedDescription = `${description.trim()} ${description.trim().endswith(".") ? "" : "."} Includes the key details spotted in your photos so buyers know what to expect.`.trim();
-    setDescription(improvedDescription);
     setIsDescriptionAIGenerated(true);
     setWasDescriptionAIGenerated(true);
   };
@@ -330,6 +273,12 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     }
   }, [initialData, hasReceivedAIData]);
 
+  useEffect(() => {
+    if (!hideTitleDescription) return;
+    setTitle(initialData?.title ?? "");
+    setDescription(initialData?.description ?? "");
+  }, [hideTitleDescription, initialData?.description, initialData?.title]);
+
   // Notify parent of details changes (includes size & tags for summary validation)
   useEffect(() => {
     if (title || description || category || brand || condition || size) {
@@ -396,7 +345,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                         <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
                         <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-primary-container-foreground tracking-[0.5px] whitespace-nowrap">
-                            <p className="leading-[24px]">2</p>
+                            <p className="leading-[24px]">{stepNumber}</p>
                           </div>
                         </div>
                       </div>
@@ -418,7 +367,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                         <div aria-hidden="true" className="absolute border-primary-container border-[1.5px] border-solid inset-0 pointer-events-none rounded-[16px]" />
                         <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-primary-container-foreground tracking-[0.5px] whitespace-nowrap">
-                            <p className="leading-[24px]">2</p>
+                            <p className="leading-[24px]">{stepNumber}</p>
                           </div>
                         </div>
                       </div>
@@ -435,16 +384,18 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                       Shared details
                     </span>
                     <span className={`inline-flex items-center rounded-full px-[10px] py-[6px] font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] tracking-[0.4px] ${isCompleted ? 'bg-secondary text-secondary-foreground' : 'bg-amber-100 text-amber-800'}`}>
-                      {isCompleted ? 'Ready to reuse' : 'In progress'}
+                      {isCompleted ? 'Completed' : 'In progress'}
                     </span>
                   </div>
                   <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] text-foreground text-[var(--text-sm)] tracking-[0.2px]">
-                    Add the core details for this listing.
+                    {hideTitleDescription
+                      ? "Add the item specifics for this listing."
+                      : "Add the core details for this listing."}
                   </p>
                   <p className="font-['Lexend',sans-serif] leading-[18px] text-muted-foreground text-[12px] tracking-[0.2px]">
                     {isExpanded ? missingFieldsLabel : completionLabel}
                   </p>
-                  {!isExpanded && title && (
+                  {!isExpanded && !hideTitleDescription && title && (
                     <p className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-['Lexend',sans-serif] leading-[20px] text-foreground-dim text-[var(--text-sm)] tracking-[0.25px]">
                       {title}
                     </p>
@@ -539,20 +490,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
             <div className="content-stretch flex flex-col gap-[16px] items-start justify-center px-[24px] relative w-full">
               {/* Input Fields */}
               <div className="content-stretch flex flex-col gap-[22px] items-start py-[12px] relative shrink-0 w-full">
-                {(hasReceivedAIData || isTitleAIGenerated || isDescriptionAIGenerated) && (
-                  <AIInsightCard
-                    confidence={aiConfidence}
-                    basedOn="Reasoning: visible style, category clues, and item details detected in the uploaded photos"
-                    reason="This draft is generated based on your photos so you can start faster, then adjust wording, attributes, or structure inline."
-                    actions={
-                      <>
-                        <AIActionButton onClick={regenerateTitle}>Not accurate? Regenerate title</AIActionButton>
-                        <AIActionButton onClick={improveDescription}>Improve description</AIActionButton>
-                      </>
-                    }
-                  />
-                )}
-                {/* Title and Description */}
+                {!hideTitleDescription && (
                 <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
                   {/* Title */}
                   <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
@@ -577,7 +515,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                                 </div>
                               </div>
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-ai-tag-foreground text-[11px] text-center whitespace-nowrap">
-                                <p className="leading-[14px]">AI draft</p>
+                                <p className="leading-[14px]">AI generated</p>
                               </div>
                             </div>
                           </div>
@@ -606,7 +544,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                             </div>
                           </div>
                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary text-[11px] text-center tracking-[0.5px] whitespace-nowrap">
-                            <p className="leading-[16px]">{isTitleAIGenerated ? "Not accurate? Regenerate" : "Draft with AI"}</p>
+                            <p className="leading-[16px]">{isTitleAIGenerated ? "Rewrite" : "Generate with AI"}</p>
                           </div>
                         </button>
                       </div>
@@ -659,7 +597,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                                 </div>
                               </div>
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-ai-tag-foreground text-[11px] text-center whitespace-nowrap">
-                                <p className="leading-[14px]">AI draft</p>
+                                <p className="leading-[14px]">AI generated</p>
                               </div>
                             </div>
                           </div>
@@ -688,7 +626,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                             </div>
                           </div>
                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary text-[11px] text-center tracking-[0.5px] whitespace-nowrap">
-                            <p className="leading-[16px]">{isDescriptionAIGenerated ? "Improve description" : "Draft with AI"}</p>
+                            <p className="leading-[16px]">{isDescriptionAIGenerated ? "Improve" : "Generate with AI"}</p>
                           </div>
                         </button>
                       </div>
@@ -705,7 +643,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                                   setDescription(e.target.value);
                                   setIsDescriptionAIGenerated(false);
                                 }}
-                                placeholder="Describe what buyers should know: fit, color, material, flaws, and what is included."
+                                placeholder="Describe your item..."
                                 className="w-full h-full font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[24px] text-foreground text-[var(--text-base)] tracking-[0.5px] bg-transparent border-none outline-none resize-none py-[8px] placeholder:text-[var(--muted-foreground)]"
                               />
                             </div>
@@ -715,14 +653,15 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                     </div>
                   </div>
                 </div>
+                )}
 
-                {/* Core details buyers expect */}
+                {/* Item Specifics */}
                 <div className="content-stretch flex flex-col gap-[4px] items-start py-[4px] px-[16px] relative rounded-[12px] shrink-0 w-full border border-primary/15 bg-primary/5">
                   <div className="content-stretch flex gap-[10px] items-start relative shrink-0 w-full">
                     <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative">
                       <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-full">
                         <div className="content-stretch flex items-center relative shrink-0">
-                          <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[24px] relative shrink-0 text-foreground text-[var(--text-base)] tracking-[0.15px] whitespace-nowrap">Core details buyers expect</p>
+                          <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[24px] relative shrink-0 text-foreground text-[var(--text-base)] tracking-[0.15px] whitespace-nowrap">Item Specifics</p>
                         </div>
                         <span className="inline-flex items-center rounded-full bg-background/90 px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
 Required
@@ -749,7 +688,7 @@ Brand, category, size, and condition.
                                   </div>
                                 </div>
                                 <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-ai-tag-foreground text-[11px] text-center whitespace-nowrap">
-                                  <p className="leading-[14px]">AI draft</p>
+                                  <p className="leading-[14px]">AI generated</p>
                                 </div>
                               </div>
                             </div>
@@ -770,7 +709,7 @@ Brand, category, size, and condition.
                           setItemSpecificsExpanded(!itemSpecificsExpanded);
                         }}
                         className="block cursor-pointer relative shrink-0 size-[48px]"
-                        aria-label={itemSpecificsExpanded ? "Hide Core details buyers expect" : "Show Core details buyers expect"}
+                        aria-label={itemSpecificsExpanded ? "Hide Item Specifics" : "Show Item Specifics"}
                       >
                         <div className="-translate-x-1/2 -translate-y-1/2 absolute content-stretch flex flex-col items-center justify-center left-[calc(50%-0.5px)] overflow-clip rounded-[100px] top-1/2 w-[40px]">
                           <div className="content-stretch flex h-[40px] items-center justify-center relative shrink-0 w-full">
@@ -788,7 +727,7 @@ Brand, category, size, and condition.
                   </div>
                   {!itemSpecificsExpanded && (
                     <p className="px-[4px] pt-[4px] font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
-                      Reopen Core details buyers expect to finish brand, category, size, and condition for the shared listing.
+                      Reopen Item Specifics to finish brand, category, size, and condition for the shared listing.
                     </p>
                   )}
                   <div className="h-[2px] relative shrink-0 w-full">
@@ -802,7 +741,7 @@ Brand, category, size, and condition.
                   </div>
                 </div>
 
-                {/* Core details buyers expect Container */}
+                {/* Item Specifics Container */}
                 {itemSpecificsExpanded && (
                   <div 
                     className="content-stretch flex flex-col gap-[22px] items-start relative shrink-0 w-full"
@@ -822,11 +761,11 @@ Brand, category, size, and condition.
                               setBrand(value);
                               setIsBrandAIGenerated(false);
                             }}
-                            placeholder="Search brands or add the best match"
+                            placeholder="Search or select brand..."
                             tagState={getTagState(isBrandAIGenerated, wasBrandAIGenerated)}
                             searchable
                             searchPlaceholder="Search brands..."
-                            noResultsText="No brand match found. Try a broader brand name or add the closest match."
+                            noResultsText="No matching brands found. Try a broader brand name or check your spelling."
                           />
                         </div>
                         {/* Size */}
@@ -853,7 +792,7 @@ Brand, category, size, and condition.
                                         </div>
                                       </div>
                                       <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-ai-tag-foreground text-[11px] text-center whitespace-nowrap">
-                                        <p className="leading-[14px]">AI suggestion</p>
+                                        <p className="leading-[14px]">AI Suggested</p>
                                       </div>
                                     </div>
                                   </div>
@@ -905,11 +844,11 @@ Brand, category, size, and condition.
                               setCategory(value);
                               setIsCategoryAIGenerated(false);
                             }}
-                            placeholder="Search categories to place this item correctly"
+                            placeholder="Search or select category..."
                             tagState={getTagState(isCategoryAIGenerated, wasCategoryAIGenerated)}
                             searchable
                             searchPlaceholder="Search categories..."
-                            noResultsText="No category match found. Try a broader category path or the closest fit."
+                            noResultsText="No matching category found. Try a broader category, subcategory, or leaf term."
                           />
                         </div>
                         {/* Quantity */}
@@ -1009,7 +948,7 @@ Brand, category, size, and condition.
                                   </div>
                                 </div>
                                 <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-ai-tag-foreground text-[11px] text-center whitespace-nowrap">
-                                  <p className="leading-[14px]">AI suggestion</p>
+                                  <p className="leading-[14px]">AI Suggested</p>
                                 </div>
                               </div>
                             </div>
@@ -1244,7 +1183,7 @@ Brand, category, size, and condition.
                       <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
                         <div className="content-stretch flex gap-[4px] items-center relative shrink-0 w-full">
                           <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-base)] tracking-[0.15px] whitespace-nowrap">
-                            <p className="leading-[24px]">Search tags (optional)</p>
+                            <p className="leading-[24px]">Tags (optional)</p>
                           </div>
                           {isTagsAIGenerated ? (
                             <div className="content-stretch flex items-start relative shrink-0">
@@ -1263,7 +1202,7 @@ Brand, category, size, and condition.
                                     </div>
                                   </div>
                                   <div className="flex flex-col font-['Lexend',sans-serif] font-[350] justify-center leading-[0] relative shrink-0 text-ai-tag-foreground text-[11px] text-center whitespace-nowrap">
-                                    <p className="leading-[14px]">AI draft</p>
+                                    <p className="leading-[14px]">AI generated</p>
                                   </div>
                                 </div>
                               </div>
@@ -1293,7 +1232,7 @@ Brand, category, size, and condition.
                                 </div>
                               </div>
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary text-[11px] text-center tracking-[0.5px] whitespace-nowrap">
-                                <p className="leading-[16px]">{isTagsAIGenerated ? "Refine with AI" : "Draft with AI"}</p>
+                                <p className="leading-[16px]">{isTagsAIGenerated ? "Improve" : "Generate with AI"}</p>
                               </div>
                             </button>
                           </div>
@@ -1318,7 +1257,7 @@ Brand, category, size, and condition.
                         </div>
                       </div>
                       <div className="content-stretch flex items-start pt-[4px] px-[16px] relative shrink-0">
-                        <p className="font-['Lexend',sans-serif] font-[350] leading-[14px] relative shrink-0 text-muted-foreground text-[11px] whitespace-nowrap">Add a few search-friendly tags. AI can suggest them, and you can edit or delete any tag.</p>
+                        <p className="font-['Lexend',sans-serif] font-[350] leading-[14px] relative shrink-0 text-muted-foreground text-[11px] whitespace-nowrap">Add tags to improve search visibility.</p>
                       </div>
                     </div>
 
@@ -1357,7 +1296,7 @@ Brand, category, size, and condition.
               <div className="content-stretch flex flex-wrap gap-[12px] items-center justify-between pb-[24px] relative shrink-0 w-full">
                 <p className="font-['Lexend',sans-serif] text-[12px] leading-[18px] text-muted-foreground">
                   {isCompleted
-                    ? 'Ready to reuse'
+                    ? 'Completed'
                     : 'Finish the required fields.'}
                 </p>
                 <div className="bg-secondary content-stretch flex h-[48px] items-center justify-center relative rounded-[var(--radius)] shrink-0">
@@ -1368,7 +1307,7 @@ Brand, category, size, and condition.
                     >
                       <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                         <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-primary-dim text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                          <p className="leading-[20px]">Choose marketplaces</p>
+                          <p className="leading-[20px]">Continue to Marketplaces</p>
                         </div>
                       </div>
                       <div className="overflow-clip relative shrink-0 size-[20px]">

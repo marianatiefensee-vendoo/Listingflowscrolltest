@@ -37,8 +37,7 @@ interface ListingSummaryDynamicProps {
   onBackToEdit?: () => void; // New prop for navigating back to editing
   marketplaceCustomizations?: Record<string, import("../App").MarketplaceCustomization>; // NEW: marketplace-specific overrides
   onPreviewMarketplace?: (marketplace: Marketplace) => void; // Lifted dialog trigger to App level
-  missingRequiredFields?: string[];
-  autosaveState?: "idle" | "saving" | "saved";
+  showShellHeader?: boolean;
 }
 
 const allMarketplaces: Marketplace[] = [
@@ -105,8 +104,7 @@ export default function ListingSummaryDynamic({
   onBackToEdit,
   marketplaceCustomizations = {},
   onPreviewMarketplace,
-  missingRequiredFields = [],
-  autosaveState = "idle",
+  showShellHeader = true,
 }: ListingSummaryDynamicProps) {
   const selectedMarketplaces = allMarketplaces.filter((m) =>
     selectedMarketplaceIds.includes(m.id),
@@ -196,7 +194,7 @@ export default function ListingSummaryDynamic({
       started: photos.length > 0,
       hint: isPhotosComplete
         ? `${photos.length} photo${photos.length === 1 ? "" : "s"} ready to lead the listing.`
-        : "Add at least one clear photo so buyers can instantly recognize the item.",
+        : "Add at least one photo so buyers immediately recognize the item.",
     },
     {
       id: "details",
@@ -204,10 +202,10 @@ export default function ListingSummaryDynamic({
       complete: isItemDetailsComplete,
       started: !!itemDetails,
       hint: isItemDetailsComplete
-        ? "Shared listing details are ready to reuse across marketplaces."
+        ? "Shared details are ready across marketplaces."
         : itemDetails
-          ? "Finish the required shared details so buyers know exactly what they are getting."
-          : "Add the shared title, description, condition, and core specifics.",
+          ? "Finish the required shared details to strengthen buyer confidence."
+          : "Add the shared title, description, condition, and specifics.",
     },
     {
       id: "marketplaces",
@@ -216,7 +214,7 @@ export default function ListingSummaryDynamic({
       started: selectedMarketplaceIds.length > 0,
       hint: isMarketplacesComplete
         ? `${selectedMarketplaceIds.length} marketplace${selectedMarketplaceIds.length === 1 ? "" : "s"} selected.`
-        : "Choose the marketplaces where this listing should go live.",
+        : "Choose where this listing should be published.",
     },
     {
       id: "pricing",
@@ -225,7 +223,7 @@ export default function ListingSummaryDynamic({
       started: price.trim() !== "",
       hint: isPricingComplete
         ? `Base price set at $${price}.`
-        : "Set the starting price buyers will see first.",
+        : "Set the listing price buyers will see first.",
     },
     {
       id: "shipping",
@@ -233,8 +231,8 @@ export default function ListingSummaryDynamic({
       complete: isShippingComplete,
       started: shippingCompleted,
       hint: isShippingComplete
-        ? "Shipping is selected and ready for final review."
-        : "Choose how this item will ship before publishing.",
+        ? "Shipping is selected and ready for review."
+        : "Choose the shipping setup before publishing.",
     },
   ];
 
@@ -263,23 +261,22 @@ export default function ListingSummaryDynamic({
     return !hasBlockingOverride;
   }).length;
   const marketplaceReadinessLabel = !hasSelectedMarketplaces
-    ? "Choose marketplaces to see where this listing is ready to go live."
+    ? "Choose marketplaces to review channel readiness."
     : baseListingReady
       ? `${marketplacesReadyCount} of ${selectedMarketplaces.length} marketplace${selectedMarketplaces.length === 1 ? '' : 's'} ready with the current listing.`
-      : "Finish the shared listing first, then each selected marketplace can inherit that setup.";
-  const publishButtonLabel = allSectionsComplete ? 'Review before publishing' : 'Finish required steps';
-  const autosaveLabel = autosaveState === "saving" ? "Saving draft…" : autosaveState === "saved" ? "Draft autosaved" : "Draft not started";
+      : "Finish the base listing first, then each selected marketplace will inherit that readiness.";
+  const publishButtonLabel = allSectionsComplete ? 'Review & Publish' : 'Finish required sections';
   const publishButtonSupport = allSectionsComplete
-    ? 'Opens final review with your latest listing details and marketplace setup.'
+    ? 'Opens the final review with your latest listing details and marketplace setup.'
     : nextSectionToResolve
       ? `Complete ${nextSectionToResolve.label.toLowerCase()} to unlock review & publish.`
       : 'Complete the remaining required sections to unlock review & publish.';
   const previewChecklist = [
-    isPhotosComplete ? "Cover photo ready" : "Add photos",
+    isPhotosComplete ? "Cover photo ready" : "Add a cover photo",
     itemDetails?.title?.trim()
       ? "Title is showing"
       : "Add a descriptive title",
-    isPricingComplete ? `Price set at $${price}` : "Set price",
+    isPricingComplete ? `Price set at $${price}` : "Set the listing price",
   ];
   const previewStateLabel = isComplete
     ? "Buyer-facing preview"
@@ -456,30 +453,6 @@ export default function ListingSummaryDynamic({
                 )}
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-[24px] w-full max-w-[1000px] px-[24px]">
-          <div className="rounded-[20px] border border-border bg-card p-6 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="font-['Lexend',sans-serif] text-[12px] uppercase tracking-[0.5px] text-muted-foreground">Before you publish</p>
-                <h3 className="mt-2 font-['Lexend',sans-serif] text-[20px] text-foreground">Review every buyer-facing detail one more time.</h3>
-                <p className="mt-2 max-w-[620px] text-sm text-muted-foreground">We keep your latest edits and marketplace choices in this draft, even if AI fails or you need to step away.</p>
-              </div>
-              <div className="rounded-full border border-border bg-background px-3 py-2 text-[12px] text-muted-foreground">{autosaveLabel}</div>
-            </div>
-            {missingRequiredFields.length > 0 ? (
-              <div className="mt-4 rounded-[16px] border border-amber-200 bg-amber-50 p-4 text-amber-950">
-                <p className="text-sm font-medium">Missing required fields</p>
-                <p className="mt-1 text-sm">Add {missingRequiredFields.join(", ")} before you publish. Your current input stays in place while you fix these items.</p>
-              </div>
-            ) : (
-              <div className="mt-4 rounded-[16px] border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
-                <p className="text-sm font-medium">Ready for publish</p>
-                <p className="mt-1 text-sm">Photos, details, marketplaces, pricing, and shipping are all ready. Double-check the preview, then publish when you’re confident.</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -894,7 +867,7 @@ export default function ListingSummaryDynamic({
                                           ))
                                         ) : (
                                           <span className="text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground">
-                                            No marketplace-specific changes yet — shared listing will be used
+                                            No marketplace-specific changes yet
                                           </span>
                                         )}
                                       </div>
@@ -996,7 +969,7 @@ export default function ListingSummaryDynamic({
                                 >
                                   <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap">
                                     <p className="leading-[24px]">
-                                      Save and finish later
+                                      Save Draft
                                     </p>
                                   </div>
                                 </div>
@@ -1058,7 +1031,7 @@ export default function ListingSummaryDynamic({
                           <div
                             className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap ${allSectionsComplete ? "text-[#FFFFFF]" : "text-[var(--muted-foreground)]"}`}
                           >
-                            <p className="leading-[24px]">Publish listing now</p>
+                            <p className="leading-[24px]">Publish</p>
                           </div>
                         </div>
                         <div
@@ -1116,11 +1089,12 @@ export default function ListingSummaryDynamic({
       className="content-stretch flex flex-col items-start relative size-full m-[0px] z-[2]"
       data-name="Listing Summary"
     >
-      <div
-        className="sticky top-0 z-10 bg-surface-container relative shrink-0 w-full border-b border-border m-[0px] pl-[3px] pr-[0px] pt-[32px] pb-[20px] rounded-tr-[12px]"
-        data-name="Completeness"
-      >
-        <div className="overflow-clip rounded-[inherit] size-full">
+      {showShellHeader && (
+        <div
+          className="sticky top-0 z-10 bg-surface-container relative shrink-0 w-full border-b border-border m-[0px] pl-[3px] pr-[0px] pt-[32px] pb-[20px] rounded-tr-[12px]"
+          data-name="Completeness"
+        >
+          <div className="overflow-clip rounded-[inherit] size-full">
           <div className="content-stretch flex flex-col gap-[12px] items-start px-[24px] relative w-full">
             <div className="flex w-full items-start justify-between gap-[12px]">
               <div>
@@ -1220,305 +1194,229 @@ export default function ListingSummaryDynamic({
               })}
             </div>
           </div>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex-[1_0_0] h-full min-w-px relative mx-[0px] mt-[20px] mb-[0px] p-[0px]">
-        <div className="border-0 border-transparent border-solid content-stretch flex flex-col gap-[20px] items-start relative w-full pb-[20px]">
-          <div className="relative shrink-0 w-full">
-            <div className="content-stretch flex flex-col items-start px-[24px] relative w-full">
-              <div className="bg-surface-review relative rounded-[16px] shrink-0 w-full h-full">
-                <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[16px]" />
-                <div className="content-stretch flex flex-col gap-[12px] items-start p-[17px] relative w-full">
-                  <div className="flex w-full items-start justify-between gap-[12px]">
-                    <div>
-                      <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] text-foreground text-[var(--text-sm)] tracking-[0.1px]">
-                        Listing Preview
-                      </p>
-                      <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
-                        {previewStateLabel}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-background px-[10px] py-[6px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                      {coverPhoto ? `${photos.length} photo${photos.length === 1 ? '' : 's'}` : 'No photo yet'}
-                    </span>
-                  </div>
+        <div className="content-stretch flex flex-col gap-[24px] items-start relative w-full pb-[20px]">
+          <div className="relative shrink-0 w-full px-[12px]">
+            <div className="flex items-center justify-between px-[12px]">
+              <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[24px] text-muted-foreground text-[var(--text-base)] tracking-[0.15px]">
+                Listing Preview
+              </p>
+              <span className="rounded-[4px] bg-[#AEAAAE] px-[8px] py-[3px] font-['Lexend',sans-serif] text-[11px] leading-[14px] text-white">
+                {allSectionsComplete ? "Ready" : "In progress"}
+              </span>
+            </div>
 
-                  <div className="relative shrink-0 w-full" data-name="Container">
-                    <div className="bg-clip-padding border-0 border-transparent border-solid content-stretch flex gap-[12px] items-start relative w-full">
-                      <div className="bg-neutral-container relative rounded-[8px] shrink-0 size-[80px] overflow-hidden" data-name="Image+Background+Border">
-                        <div aria-hidden="true" className="absolute border border-neutral-container border-solid inset-0 pointer-events-none rounded-[8px]" />
-                        {coverPhoto ? (
-                          <img src={coverPhoto} alt="Cover photo" className="absolute inset-0 size-full object-cover rounded-[8px]" />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="h-[24.66px] mix-blend-multiply relative shrink-0 w-[31.57px]">
-                              <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 52.6196 41.0825">
-                                <g style={{ mixBlendMode: 'multiply' }}>
-                                  <path d={placeholderSvgPaths.p6b49300} fill="var(--fill-0, var(--neutral-dim))" />
-                                  <path d={placeholderSvgPaths.p146f7b80} fill="var(--fill-0, var(--neutral-dim))" />
-                                </g>
-                              </svg>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex min-w-0 flex-1 flex-col gap-[8px] self-stretch">
-                        <Tooltip delayDuration={300}>
-                          <TooltipTrigger asChild>
-                            <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] text-foreground text-[var(--text-sm)] tracking-[0.1px] w-full">
-                              <p className="leading-[20px] line-clamp-2 overflow-hidden text-ellipsis">
-                                {itemDetails?.title?.trim() || 'Your listing title will appear here'}
-                              </p>
-                            </div>
-                          </TooltipTrigger>
-                          {itemDetails?.title && itemDetails.title.length > 60 && (
-                            <TooltipContent side="top" className="max-w-[240px]">
-                              {itemDetails.title}
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                        <div className="grid grid-cols-2 gap-[8px]">
-                          <div className="rounded-[10px] bg-background px-[10px] py-[8px]">
-                            <p className="font-['Lexend',sans-serif] text-[10px] leading-[14px] uppercase tracking-[0.45px] text-muted-foreground">Brand</p>
-                            <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] leading-[16px] text-foreground">{itemDetails?.brand?.trim() || 'Add brand'}</p>
-                          </div>
-                          <div className="rounded-[10px] bg-background px-[10px] py-[8px]">
-                            <p className="font-['Lexend',sans-serif] text-[10px] leading-[14px] uppercase tracking-[0.45px] text-muted-foreground">Condition</p>
-                            <p className="mt-[2px] font-['Lexend',sans-serif] text-[var(--text-xs)] font-[var(--font-weight-medium)] leading-[16px] text-foreground">{itemDetails?.condition?.trim() || 'Add condition'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid w-full gap-[8px]">
-                    {previewChecklist.map((item) => (
-                      <div key={item} className="flex items-center gap-[8px] rounded-[10px] bg-background px-[10px] py-[8px]">
-                        <span className={`inline-flex size-[18px] items-center justify-center rounded-full ${item.startsWith('Add') || item.startsWith('Set') ? 'bg-muted text-muted-foreground' : 'bg-secondary/20 text-secondary-foreground'}`}>
-                          {item.startsWith('Add') || item.startsWith('Set') ? '•' : '✓'}
-                        </span>
-                        <p className="font-['Lexend',sans-serif] text-[11px] leading-[15px] text-foreground">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="rounded-[12px] bg-background px-[12px] py-[12px] w-full">
-                    <div className="flex items-center justify-between gap-[8px]">
-                      <div className="flex items-center gap-[4px]">
-                        <Tooltip delayDuration={300}>
-                          <TooltipTrigger asChild>
-                            <div className="overflow-clip relative shrink-0 size-[16px] cursor-help">
-                              <div className="absolute inset-[4.17%]" data-name="Icon">
-                                <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6667 14.6667">
-                                  <g id="Icon">
-                                    <path d={svgPaths.p1db78340} fill="var(--fill-0, var(--border))" />
-                                    <path d={svgPaths.p35534c30} fill="var(--fill-0, var(--border))" />
-                                    <path clipRule="evenodd" d={svgPaths.p1f296780} fill="var(--fill-0, var(--border))" fillRule="evenodd" />
-                                  </g>
-                                </svg>
-                              </div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">Base listing price. Marketplace overrides still apply.</TooltipContent>
-                        </Tooltip>
-                        <p className="font-['Lexend',sans-serif] text-[var(--text-xs)] leading-[16px] text-muted-foreground">Listing price</p>
-                      </div>
-                      <p className="font-['Lexend',sans-serif] text-[var(--text-h4)] leading-[28px] text-foreground">{price ? `$${price}` : '$--.--'}</p>
-                    </div>
-                    <p className="mt-[6px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
-                      {previewDescription}
+            <div className="mt-[12px] rounded-[20px] bg-surface-review px-[16px] py-[16px]">
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <div className="w-full">
+                    <p className="font-['Lexend',sans-serif] text-[22px] leading-[28px] text-muted-foreground line-clamp-2 overflow-hidden text-ellipsis">
+                      {itemDetails?.title?.trim() || "Your listing title"}
                     </p>
                   </div>
+                </TooltipTrigger>
+                {itemDetails?.title && itemDetails.title.length > 60 && (
+                  <TooltipContent side="top" className="max-w-[240px]">
+                    {itemDetails.title}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              <div className="mt-[12px] flex gap-[12px]">
+                <div className="bg-neutral-container relative rounded-[12px] shrink-0 size-[100px] overflow-hidden">
+                  {coverPhoto ? (
+                    <img src={coverPhoto} alt="Cover photo" className="absolute inset-0 size-full object-cover rounded-[12px]" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="h-[32px] relative shrink-0 w-[40px]">
+                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 52.6196 41.0825">
+                          <g style={{ mixBlendMode: "multiply" }}>
+                            <path d={placeholderSvgPaths.p6b49300} fill="var(--fill-0, var(--neutral-dim))" />
+                            <path d={placeholderSvgPaths.p146f7b80} fill="var(--fill-0, var(--neutral-dim))" />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex min-w-0 flex-1 gap-[8px]">
+                  <div className="flex-1">
+                    <p className="font-['Lexend',sans-serif] text-[10px] leading-[14px] uppercase tracking-[0.45px] text-foreground">
+                      Brand
+                    </p>
+                    <div className="mt-[8px] flex min-h-[80px] items-center rounded-[8px] bg-background px-[10px] py-[12px]">
+                      <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-muted-foreground">
+                        {itemDetails?.brand?.trim() || "Add brand"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-['Lexend',sans-serif] text-[10px] leading-[14px] uppercase tracking-[0.45px] text-foreground">
+                      Condition
+                    </p>
+                    <div className="mt-[8px] flex min-h-[80px] items-center rounded-[8px] bg-background px-[10px] py-[12px]">
+                      <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-muted-foreground">
+                        {itemDetails?.condition?.trim() || "Add condition"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-[14px] overflow-hidden rounded-[14px] bg-background/75">
+                <div className="divide-y divide-border/70">
+                  {sectionStates.map((section) => (
+                    <div key={section.id} className="flex items-center gap-[10px] px-[14px] py-[14px]">
+                      <span className={`inline-flex size-[22px] items-center justify-center rounded-full border-[1.5px] ${section.complete ? "border-primary-container bg-primary-container/12" : section.started ? "border-primary-container/50 bg-background" : "border-border bg-background"}`}>
+                        {section.complete && (
+                          <span className="block size-[8px] rounded-full bg-primary-container" />
+                        )}
+                      </span>
+                      <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-muted-foreground">
+                        {section.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-[12px] h-px w-full bg-border/70" />
+
+              <div className="mt-[12px] rounded-[10px] bg-background px-[12px] py-[12px] w-full">
+                <div className="flex items-center justify-between gap-[8px]">
+                  <div className="flex items-center gap-[4px]">
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <div className="overflow-clip relative shrink-0 size-[16px] cursor-help">
+                          <div className="absolute inset-[4.17%]" data-name="Icon">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6667 14.6667">
+                              <g id="Icon">
+                                <path d={svgPaths.p1db78340} fill="var(--fill-0, var(--border))" />
+                                <path d={svgPaths.p35534c30} fill="var(--fill-0, var(--border))" />
+                                <path clipRule="evenodd" d={svgPaths.p1f296780} fill="var(--fill-0, var(--border))" fillRule="evenodd" />
+                              </g>
+                            </svg>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">Base listing price. Marketplace overrides still apply.</TooltipContent>
+                    </Tooltip>
+                    <p className="font-['Lexend',sans-serif] text-[12px] leading-[16px] uppercase tracking-[0.2px] text-muted-foreground">
+                      Listing price
+                    </p>
+                  </div>
+                  <p className="font-['Lexend',sans-serif] text-[22px] leading-[28px] text-foreground">
+                    {price ? `$${price}` : "$--.--"}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="relative shrink-0 w-full">
-            <div className="content-stretch flex flex-col items-start px-[24px] relative w-full">
-              <div className={`bg-muted relative rounded-[12px] shrink-0 w-full${shouldPulse ? ' marketplace-attention-pulse' : ''}`} data-name="Container" onClick={() => handleMarketplaceInteraction()}>
-                <div aria-hidden="true" className="absolute border border-border border-solid inset-[-1px] pointer-events-none rounded-[13px]" />
-                <div className="flex flex-col items-center size-full">
-                  <div className="content-stretch flex flex-col gap-[12px] items-start p-[24px] relative w-full">
-                    <div className="flex w-full items-start justify-between gap-[12px]">
-                      <div>
-                        <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[20px] text-foreground text-[var(--text-sm)] tracking-[0.1px]">Marketplaces</p>
-                        <p className="mt-[4px] font-['Lexend',sans-serif] font-[350] text-[12px] leading-[16px] tracking-[0.2px] text-foreground-dim">
-                          {hasSelectedMarketplaces
-                            ? `${selectedMarketplaces.length} selected • ${customizedMarketplaceCount} customized • ${marketplaceReadinessLabel}`
-                            : 'Choose marketplaces now, then come back anytime to fine-tune each one.'}
-                        </p>
+          <div className="relative shrink-0 w-full px-[12px]">
+            <div className="px-[12px]">
+              <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[24px] text-muted-foreground text-[var(--text-base)] tracking-[0.15px]">
+                Marketplaces
+              </p>
+            </div>
+
+            <div className={`mt-[12px] rounded-[12px] bg-muted px-[12px] py-[12px]${shouldPulse ? " marketplace-attention-pulse" : ""}`}>
+              <div className="flex flex-col gap-[8px]">
+                {hasSelectedMarketplaces ? (
+                  <>
+                    {selectedMarketplaces.map((marketplace) => {
+                      const customization = marketplaceCustomizations[marketplace.id];
+                      const customizationSummary = getCustomizationSummary(customization, itemDetails, price);
+                      const isCustomized = customizationSummary.length > 0;
+
+                      return (
+                        <button
+                          key={marketplace.id}
+                          onClick={() => handleMarketplaceInteraction(marketplace.id)}
+                          className="flex w-full items-center gap-[12px] rounded-[8px] border border-border bg-background px-[12px] py-[10px] text-left transition-colors hover:bg-surface-variant"
+                          type="button"
+                        >
+                          <div className="relative shrink-0 size-[28px] overflow-hidden rounded-[4px] bg-card">
+                            <img src={marketplace.image} alt={marketplace.name} className="absolute inset-0 size-full object-cover" />
+                            <div aria-hidden="true" className="absolute inset-0 rounded-[4px] border border-border" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-[8px]">
+                              <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-muted-foreground">
+                                {marketplace.name}
+                              </p>
+                              {isCustomized && (
+                                <span className="rounded-full bg-primary/10 px-[8px] py-[3px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-primary">
+                                  Customized
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="relative shrink-0 size-[20px] text-muted-foreground">
+                            <svg className="absolute block size-full" fill="none" viewBox="0 0 20 20">
+                              <path d="M7 4.5L12.5 10L7 15.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+                            </svg>
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      onClick={onSelectMarketplaces}
+                      className="flex h-[48px] w-full items-center justify-center gap-[10px] rounded-[8px] border border-dashed border-border bg-background/50 px-[16px] py-[10px] text-muted-foreground transition-colors hover:bg-background"
+                      type="button"
+                    >
+                      <div className="overflow-clip relative shrink-0 size-[20px]">
+                        <div className="absolute inset-[4.17%]">
+                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18.3333 18.3333">
+                            <g>
+                              <path d={svgPaths.p3af8180} fill="currentColor" />
+                              <path clipRule="evenodd" d={svgPaths.p389ffd00} fill="currentColor" fillRule="evenodd" />
+                            </g>
+                          </svg>
+                        </div>
                       </div>
-                      {hasSelectedMarketplaces && (
-                        <span className="rounded-full bg-background px-[10px] py-[6px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] text-muted-foreground">
-                          {customizedMarketplaceCount > 0 ? 'Overrides added' : 'Using base listing'}
-                        </span>
-                      )}
-                    </div>
+                      <span className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px]">
+                        Add Marketplace
+                      </span>
+                    </button>
 
-                    {hasSelectedMarketplaces ? (
-                      <>
-                        <div className="grid w-full gap-[8px] rounded-[10px] bg-background px-[12px] py-[12px]">
-                          <div className="flex items-start justify-between gap-[8px]">
-                            <div>
-                              <p className="font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[15px] text-foreground">Base readiness</p>
-                              <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
-                                {baseListingReady
-                                  ? 'Shared photos, details, price, and shipping are ready to carry into every selected marketplace.'
-                                  : 'A few shared steps still need attention before every selected marketplace is fully ready.'}
-                              </p>
-                            </div>
-                            <span className={`rounded-full px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${baseListingReady ? 'bg-secondary/20 text-secondary-foreground' : 'bg-background text-muted-foreground'}`}>
-                              {baseListingReady ? 'Base ready' : 'Base in progress'}
-                            </span>
-                          </div>
-                          <div className="flex items-start justify-between gap-[8px]">
-                            <div>
-                              <p className="font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[15px] text-foreground">Marketplace readiness</p>
-                              <p className="mt-[2px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
-                                {marketplaceReadinessLabel}
-                              </p>
-                            </div>
-                            <span className={`rounded-full px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${hasSelectedMarketplaces && marketplacesReadyCount === selectedMarketplaces.length && baseListingReady ? 'bg-secondary/20 text-secondary-foreground' : 'bg-background text-muted-foreground'}`}>
-                              {hasSelectedMarketplaces && marketplacesReadyCount === selectedMarketplaces.length && baseListingReady ? 'Ready to publish' : `${marketplacesReadyCount}/${selectedMarketplaces.length}`}
-                            </span>
-                          </div>
+                    <p className="font-['Lexend',sans-serif] text-[12px] leading-[16px] uppercase tracking-[0.2px] text-foreground-dim">
+                      Select a marketplace to enable customize listing
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={onSelectMarketplaces}
+                      className="flex h-[48px] w-full items-center justify-center gap-[10px] rounded-[8px] border border-dashed border-border bg-background/50 px-[16px] py-[10px] text-muted-foreground transition-colors hover:bg-background"
+                      type="button"
+                    >
+                      <div className="overflow-clip relative shrink-0 size-[20px]">
+                        <div className="absolute inset-[4.17%]">
+                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18.3333 18.3333">
+                            <g>
+                              <path d={svgPaths.p3af8180} fill="currentColor" />
+                              <path clipRule="evenodd" d={svgPaths.p389ffd00} fill="currentColor" fillRule="evenodd" />
+                            </g>
+                          </svg>
                         </div>
-                        <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
-                          {selectedMarketplaces.map((marketplace) => {
-                            const customization = marketplaceCustomizations[marketplace.id];
-                            const customizationSummary = getCustomizationSummary(customization, itemDetails, price);
-                            const isCustomized = customizationSummary.length > 0;
+                      </div>
+                      <span className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px]">
+                        Select Marketplaces
+                      </span>
+                    </button>
 
-                            return (
-                              <button
-                                key={marketplace.id}
-                                onClick={() => handleMarketplaceInteraction(marketplace.id)}
-                                className="bg-card content-stretch flex items-center relative rounded-[8px] shrink-0 w-full cursor-pointer hover:bg-background transition-colors text-left"
-                                type="button"
-                              >
-                                <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[8px]" />
-                                <div className="content-stretch flex gap-[12px] items-center p-[12px] relative w-full">
-                                  <div className="bg-card overflow-clip relative rounded-[4px] shrink-0 size-[40px]">
-                                    <img src={marketplace.image} alt={marketplace.name} className="absolute inset-0 object-cover size-full" />
-                                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[4px]" />
-                                  </div>
-                                  <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-h-px min-w-px relative">
-                                    <div className="flex w-full items-center justify-between gap-[8px]">
-                                      <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] leading-[20px] text-foreground">{marketplace.name}</p>
-                                      <span className={`rounded-full px-[8px] py-[4px] font-['Lexend',sans-serif] text-[10px] font-[var(--font-weight-medium)] uppercase tracking-[0.45px] ${isCustomized ? 'bg-primary/10 text-primary' : 'bg-background text-muted-foreground'}`}>
-                                        {isCustomized ? 'Customized' : 'Base listing'}
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-[4px]">
-                                      {isCustomized ? (
-                                        <>
-                                          <div className="overflow-clip relative shrink-0 size-[12px]" data-name="Icon leading">
-                                            <div className="absolute inset-[4.17%]" data-name="Icon">
-                                              <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 11 11">
-                                                <g id="Icon">
-                                                  <path d={customizedTagSvgPaths.p17642500} fill="var(--fill-0, var(--primary))" />
-                                                  <path d={customizedTagSvgPaths.p1beee5c0} fill="var(--fill-0, var(--primary))" />
-                                                  <path clipRule="evenodd" d={customizedTagSvgPaths.p2a586c80} fill="var(--fill-0, var(--primary))" fillRule="evenodd" />
-                                                </g>
-                                              </svg>
-                                            </div>
-                                          </div>
-                                          {customizationSummary.map((summary) => (
-                                            <span key={summary} className="bg-background text-[11px] leading-[14px] tracking-[0.1px] text-foreground-dim px-[8px] py-[2px] rounded-[999px]">
-                                              {summary}
-                                            </span>
-                                          ))}
-                                        </>
-                                      ) : (
-                                        <span className="text-[11px] leading-[14px] tracking-[0.1px] text-muted-foreground">
-                                          {baseListingReady
-                                            ? 'Ready to publish with shared listing details.'
-                                            : 'Will be ready once the shared listing details are complete.'}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-[4px] shrink-0">
-                                    <span className="font-['Lexend',sans-serif] text-[11px] font-[var(--font-weight-medium)] leading-[14px] text-primary">Edit</span>
-                                    <div className="overflow-clip relative shrink-0 size-[20px]">
-                                      <div className="absolute inset-[16.67%]">
-                                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 16">
-                                          <g>
-                                            <path clipRule="evenodd" d="M11.3333 2.00003C11.5101 1.82322 11.7513 1.72394 12.0027 1.72394C12.254 1.72394 12.4952 1.82322 12.672 2.00003L14 3.32803C14.1768 3.50484 14.2761 3.74604 14.2761 3.99737C14.2761 4.2487 14.1768 4.4899 14 4.66671L5.33333 13.3334H2V10L10.6667 1.33336L11.3333 2.00003Z" fill="var(--fill-0, var(--muted-foreground))" fillRule="evenodd" />
-                                            <path d="M10 2.66669L13.3333 6.00003" stroke="var(--stroke-0, var(--surface-variant))" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                                          </g>
-                                        </svg>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <button onClick={onSelectMarketplaces} className="content-stretch flex items-start relative shrink-0 w-full" type="button">
-                          <div className="bg-background content-stretch flex h-[48px] items-center justify-center relative rounded-[var(--radius)] shrink-0 w-full cursor-pointer hover:bg-surface-variant transition-colors">
-                            <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[var(--radius)]" />
-                            <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
-                              <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
-                                <div className="overflow-clip relative shrink-0 size-[20px]" data-name="plus-circle">
-                                  <div className="absolute inset-[4.17%]" data-name="Icon">
-                                    <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18.3333 18.3333">
-                                      <g id="Icon">
-                                        <path d={svgPaths.p3af8180} fill="var(--fill-0, var(--muted-foreground))" />
-                                        <path clipRule="evenodd" d={svgPaths.p389ffd00} fill="var(--fill-0, var(--muted-foreground))" fillRule="evenodd" />
-                                      </g>
-                                    </svg>
-                                  </div>
-                                </div>
-                                <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                                  <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                                    <p className="leading-[20px]">Manage Marketplaces</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button onClick={onSelectMarketplaces} className="content-stretch flex items-start relative shrink-0 w-full" type="button">
-                          <div className="bg-background content-stretch flex h-[48px] items-center justify-center relative rounded-[var(--radius)] shrink-0 w-full cursor-pointer hover:bg-surface-variant transition-colors">
-                            <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[var(--radius)]" />
-                            <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
-                              <div className="content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0">
-                                <div className="overflow-clip relative shrink-0 size-[20px]" data-name="plus-circle">
-                                  <div className="absolute inset-[4.17%]" data-name="Icon">
-                                    <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18.3333 18.3333">
-                                      <g id="Icon">
-                                        <path d={svgPaths.p3af8180} fill="var(--fill-0, var(--muted-foreground))" />
-                                        <path clipRule="evenodd" d={svgPaths.p389ffd00} fill="var(--fill-0, var(--muted-foreground))" fillRule="evenodd" />
-                                      </g>
-                                    </svg>
-                                  </div>
-                                </div>
-                                <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
-                                  <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                                    <p className="leading-[20px] text-[14px]">Select Marketplaces</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                        <div className="rounded-[10px] bg-background px-[12px] py-[10px] w-full">
-                          <p className="font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
-                            Select at least one marketplace to review readiness and add marketplace-specific changes from this rail.
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
+                    <p className="font-['Lexend',sans-serif] text-[12px] leading-[16px] uppercase tracking-[0.2px] text-foreground-dim">
+                      Select a marketplace to enable customize listing
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -1552,7 +1450,7 @@ export default function ListingSummaryDynamic({
                               </div>
                               <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0" data-name="Label">
                                 <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-base)] text-center tracking-[0.15px] whitespace-nowrap">
-                                  <p className="leading-[24px]">Save and finish later</p>
+                                  <p className="leading-[24px]">Save Draft</p>
                                 </div>
                               </div>
                             </div>
@@ -1568,7 +1466,7 @@ export default function ListingSummaryDynamic({
                   <div className="flex items-start justify-between gap-[12px]">
                     <div>
                       <p className="font-['Lexend',sans-serif] text-[var(--text-sm)] font-[var(--font-weight-medium)] leading-[20px] text-foreground">
-                        Review before publishing
+                        Review & Publish
                       </p>
                       <p className="mt-[4px] font-['Lexend',sans-serif] text-[11px] leading-[15px] text-muted-foreground">
                         {allSectionsComplete
