@@ -175,25 +175,28 @@ export default function TitleDescriptionContent({
   };
 
   return (
-    <div className="bg-surface-container overflow-hidden rounded-[12px] border border-primary">
+    <div className="bg-[#F2EBF9] overflow-hidden rounded-[12px] border border-[#CBC3D7]">
       <div
-        className={`bg-surface-variant ${!isExpanded ? "cursor-pointer" : ""}`}
+        className={`relative bg-[#F5EEFC] ${isExpanded ? "rounded-tl-[12px] rounded-tr-[12px]" : "rounded-[12px]"} ${!isExpanded ? "cursor-pointer" : ""}`}
         onClick={handleHeaderClick}
       >
+        {isExpanded ? (
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[#CBC3D7]" />
+        ) : null}
         <div className="flex items-center justify-between px-[24px] py-[16px]">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-[8px]">
-              <div className="relative flex size-[32px] items-center justify-center rounded-[16px] bg-primary-container">
-                <div aria-hidden="true" className="absolute inset-0 rounded-[16px] border-[1.5px] border-primary-container" />
-                <p className="font-['Lexend',sans-serif] text-[16px] leading-[24px] tracking-[0.5px] text-primary-container-foreground">
+              <div className="relative flex size-[32px] items-center justify-center rounded-[16px] bg-secondary">
+                <div aria-hidden="true" className="absolute inset-0 rounded-[16px] border-[1.5px] border-secondary" />
+                <p className="font-['Lexend',sans-serif] text-[16px] leading-[24px] tracking-[0.5px] text-white">
                   2
                 </p>
               </div>
-              <p className="font-['Lexend',sans-serif] text-[24px] leading-[32px] text-foreground">
+              <p className="font-['Lexend',sans-serif] text-[24px] font-[var(--font-weight-normal)] leading-[32px] text-foreground">
                 Title &amp; Description
               </p>
             </div>
-            <p className="mt-[8px] font-['Lexend',sans-serif] text-[14px] leading-[20px] tracking-[0.25px] text-muted-foreground">
+            <p className="mt-[8px] font-['Lexend',sans-serif] text-[14px] leading-[20px] tracking-[0.25px] text-[#494455]">
               Applies to all marketplaces
             </p>
           </div>
@@ -223,7 +226,7 @@ export default function TitleDescriptionContent({
       </div>
 
       {isExpanded && (
-        <div className="border-t border-border bg-card px-[24px] py-[12px]">
+        <div className="bg-card px-[24px] py-[12px]">
           <div className="flex flex-col gap-[22px]">
             <div className="flex flex-col gap-[8px]">
               <div className="flex items-center gap-[4px]">
