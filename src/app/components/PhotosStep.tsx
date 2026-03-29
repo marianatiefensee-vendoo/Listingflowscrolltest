@@ -25,16 +25,260 @@ interface PhotosStepProps {
   onContinue: (photos: string[], generatedDetails?: ItemDetails) => void;
   isCollapsed?: boolean;
   onToggleExpand?: () => void;
-  autosaveState?: "idle" | "saving" | "saved";
-  initialPhotos?: string[];
 }
 
-export default function PhotosStep({ onContinue, isCollapsed = false, onToggleExpand, autosaveState = "idle", initialPhotos = [] }: PhotosStepProps) {
-  const [photos, setPhotos] = useState<string[]>(initialPhotos);
+function PhotosStepFigmaContent({
+  photos,
+  isDragging,
+  hasPhotos,
+  fileInputRef,
+  tiles,
+  handleDragOver,
+  handleDragLeave,
+  handleDrop,
+  handleUploadClick,
+  handleFileInput,
+  handleFiles,
+  handleRemovePhoto,
+  movePhoto,
+  handleNext,
+  handleGenerateListing,
+  hasReachedMinimumPhotos,
+  hasShownDecisionModal,
+  triggerButtonRef,
+  isGenerating,
+}: PhotosStepContentProps) {
+  const showDecisionBanner = hasShownDecisionModal && hasReachedMinimumPhotos;
+
+  return (
+    <div className="relative w-full overflow-hidden rounded-[12px] border border-primary bg-background shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_1px_3px_0px_rgba(0,0,0,0.15)]">
+      <div
+        className="flex w-full flex-col gap-[8px] rounded-t-[12px] pt-[12px]"
+        style={{ backgroundImage: "linear-gradient(90deg, rgba(104, 58, 223, 0.08) 0%, rgba(104, 58, 223, 0.08) 100%), linear-gradient(90deg, rgb(253, 247, 255) 0%, rgb(253, 247, 255) 100%)" }}
+      >
+        <div className="flex items-center px-[24px] py-[8px]">
+          <div className="flex items-center gap-[8px]">
+            <div className="relative flex size-[32px] items-center justify-center rounded-[16px] bg-primary-container">
+              <div aria-hidden="true" className="absolute inset-0 rounded-[16px] border-[1.5px] border-primary-container" />
+              <p className="font-['Lexend',sans-serif] text-[16px] leading-[24px] tracking-[0.5px] text-primary-container-foreground">1</p>
+            </div>
+            <p className="font-['Lexend',sans-serif] text-[24px] leading-[32px] text-foreground">Photos</p>
+          </div>
+        </div>
+        <div className="h-px w-full bg-border" />
+      </div>
+
+      <div className="flex flex-col gap-[16px] px-[24px] pb-[24px] pt-[12px]">
+        {photos.length === 0 ? (
+          <div
+            className={`flex h-[323px] w-full flex-col items-center justify-center rounded-[12px] border border-border bg-surface-review px-[12px] py-[12px] ${
+              isDragging ? "border-2 border-primary-container border-dashed" : ""
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="relative size-[160px]">
+              <div className="absolute left-0 top-[26px] h-[108px] w-[160px]">
+                <IllustrationSvg1 />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-[4px] pb-[12px] text-center">
+              <p className="font-['Lexend',sans-serif] text-[16px] leading-[24px] tracking-[0.5px] text-foreground">
+                Add photos to start your listing
+              </p>
+              <p className="font-['Lexend',sans-serif] text-[12px] font-[var(--font-weight-medium)] leading-[16px] text-muted-foreground">
+                Support for JPG, PNG, SVG (max 10MB each)
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleUploadClick}
+              className="h-[48px] rounded-[5px] border-border bg-background px-[16px] py-[10px] text-[14px] font-[var(--font-weight-medium)] leading-[20px] tracking-[0.1px] text-muted-foreground hover:bg-background"
+            >
+              <svg className="size-[20px]" fill="none" preserveAspectRatio="none" viewBox="0 0 24 22.1362">
+                <g id="Icon">
+                  <path clipRule="evenodd" d={svgPaths.p1b10da80} fill="currentColor" fillRule="evenodd" />
+                  <path clipRule="evenodd" d={svgPaths.p1eb17e80} fill="currentColor" fillRule="evenodd" />
+                  <path clipRule="evenodd" d={svgPaths.p3e128500} fill="currentColor" fillRule="evenodd" />
+                  <path clipRule="evenodd" d={svgPaths.p1bda1f00} fill="currentColor" fillRule="evenodd" />
+                  <path d={svgPaths.p90c6800} fill="currentColor" />
+                  <path d={svgPaths.p3b45c80} fill="currentColor" />
+                </g>
+              </svg>
+              Choose photos
+            </Button>
+          </div>
+        ) : (
+          <div className="mx-auto w-full max-w-[528px]">
+            <div className="grid grid-cols-4 gap-[16px]">
+              {tiles.map((tile) => {
+                if (tile.type === "photo") {
+                  return (
+                    <DraggablePhotoTile
+                      key={`photo-${tile.index}`}
+                      photo={tile.photo!}
+                      index={tile.index}
+                      onRemove={handleRemovePhoto}
+                      movePhoto={movePhoto}
+                    />
+                  );
+                }
+
+                return (
+                  <label
+                    key={`add-${tile.index}`}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.add("!ring-2", "!ring-primary-container");
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove("!ring-2", "!ring-primary-container");
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove("!ring-2", "!ring-primary-container");
+
+                      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+                        handleFiles(Array.from(e.dataTransfer.files));
+                      }
+                    }}
+                    className="flex h-[120px] w-full cursor-pointer items-center justify-center rounded-[10px] bg-primary-container/8 transition-all hover:bg-primary-container/12 focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2"
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,image/svg+xml"
+                      onChange={handleFileInput}
+                      className="hidden"
+                    />
+                    <svg className="size-[20px] text-primary-container/35" fill="none" preserveAspectRatio="none" viewBox="0 0 18.3333 18.3333">
+                      <g id="Icon">
+                        <path d={svgPaths.p3af8180} fill="currentColor" />
+                        <path clipRule="evenodd" d={svgPaths.p389ffd00} fill="currentColor" fillRule="evenodd" />
+                      </g>
+                    </svg>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="flex w-full items-start gap-[8px]">
+          <div className="relative size-[24px] shrink-0 overflow-hidden">
+            <div className="absolute inset-[4.17%]">
+              <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
+                <path d={lightbulbSvgPaths.p3ab2b500} fill="var(--fill-0, #7A7486)" />
+                <path d={lightbulbSvgPaths.p2160fa00} fill="var(--fill-0, #7A7486)" />
+                <path d={lightbulbSvgPaths.pceb4180} fill="var(--fill-0, #7A7486)" />
+                <path d={lightbulbSvgPaths.p2d25fa80} fill="var(--fill-0, #7A7486)" />
+              </svg>
+            </div>
+          </div>
+          <p className="font-['Lexend',sans-serif] text-[12px] leading-[16px] tracking-[0.4px] text-foreground-dim">
+            Add clear front, back, label, and detail shots. Better photos help AI draft more accurately and help buyers trust the listing.
+          </p>
+        </div>
+
+        {showDecisionBanner && (
+          <div className="flex w-full flex-col gap-[12px] overflow-hidden rounded-[12px] border border-border bg-gradient-to-r from-[rgba(253,247,255,0.25)] to-[var(--surface-bright,#fdf7ff)] px-[24px] py-[16px]">
+            <div className="flex flex-wrap items-center gap-[10px]">
+              <span className="inline-flex items-center gap-[4px] rounded-[4px] bg-primary/15 px-[4px] text-[11px] leading-[20px] text-primary">
+                <svg className="size-[12px]" fill="none" preserveAspectRatio="none" viewBox="0 0 24 22.1362">
+                  <g id="Icon">
+                    <path clipRule="evenodd" d={svgPaths.p1b10da80} fill="currentColor" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={svgPaths.p1eb17e80} fill="currentColor" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={svgPaths.p3e128500} fill="currentColor" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={svgPaths.p1bda1f00} fill="currentColor" fillRule="evenodd" />
+                    <path d={svgPaths.p90c6800} fill="currentColor" />
+                    <path d={svgPaths.p3b45c80} fill="currentColor" />
+                  </g>
+                </svg>
+                Generated from your photos
+              </span>
+              <span className="inline-flex items-center gap-[4px] rounded-[4px] bg-[#ffacec] px-[4px] text-[11px] leading-[20px] text-[#390034]">
+                <svg className="size-[12px]" fill="none" preserveAspectRatio="none" viewBox="0 0 16.2384 16.2401">
+                  <g id="Icon">
+                    <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill="currentColor" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill="currentColor" fillRule="evenodd" />
+                    <path d={sparkleSvgPaths.p39ab3c00} fill="currentColor" />
+                    <path d={sparkleSvgPaths.p76d5230} fill="currentColor" />
+                  </g>
+                </svg>
+                Based on top-performing listings to help you sell faster
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-[10px]">
+              <p className="font-['Lexend',sans-serif] text-[12px] font-bold uppercase leading-[16px] tracking-[0.2px] text-primary">
+                Ready for the next step
+              </p>
+              <p className="font-['Lexend',sans-serif] text-[16px] font-[var(--font-weight-medium)] leading-[24px] tracking-[0.15px] text-foreground">
+                Choose how you to build your listing
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-[12px] sm:flex-row sm:items-center sm:justify-end">
+              <Button
+                ref={triggerButtonRef}
+                type="button"
+                variant="outline"
+                onClick={handleNext}
+                disabled={!hasPhotos}
+                className="h-[48px] rounded-[8px] border-border px-[20px] py-[16px] text-[16px] font-[var(--font-weight-medium)] leading-[24px] tracking-[0.15px] text-muted-foreground hover:bg-background sm:min-w-[152px]"
+              >
+                Continue
+              </Button>
+
+              <Button
+                type="button"
+                onClick={handleGenerateListing}
+                disabled={!hasPhotos || isGenerating}
+                className="h-[48px] rounded-[8px] bg-primary px-[20px] py-[16px] text-[14px] font-[var(--font-weight-medium)] leading-[20px] tracking-[0.1px] text-primary-foreground hover:bg-primary/90 sm:min-w-[172px]"
+              >
+                <svg className="size-[20px]" fill="none" preserveAspectRatio="none" viewBox="0 0 16.2384 16.2401">
+                  <g id="Icon">
+                    <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill="currentColor" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill="currentColor" fillRule="evenodd" />
+                    <path d={sparkleSvgPaths.p39ab3c00} fill="currentColor" />
+                    <path d={sparkleSvgPaths.p76d5230} fill="currentColor" />
+                  </g>
+                </svg>
+                {isGenerating ? "Generating…" : "Create with AI"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/svg+xml"
+          onChange={handleFileInput}
+          className="hidden"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function PhotosStep({ onContinue, isCollapsed = false, onToggleExpand }: PhotosStepProps) {
+  const [photos, setPhotos] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_PHOTOS = 8;
@@ -71,27 +315,19 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   };
 
   const handleFiles = (files: File[]) => {
-    setUploadError(null);
-    setAiError(null);
-
     const validFiles = files.filter((file) =>
       ["image/jpeg", "image/png", "image/svg+xml"].includes(file.type)
     );
 
-    if (validFiles.length === 0) {
-      setUploadError("Upload JPG, PNG, or SVG files so AI can understand the item and buyers can preview it clearly.");
-      return;
-    }
-
     const availableSlots = MAX_PHOTOS - photos.length;
     if (validFiles.length > availableSlots) {
-      setUploadError(`Only ${availableSlots} more photo${availableSlots === 1 ? "" : "s"} fit in this listing. We kept the first ${availableSlots}.`);
+      alert(`You can only add ${availableSlots} more photo${availableSlots === 1 ? '' : 's'}. Maximum ${MAX_PHOTOS} photos allowed.`);
       validFiles.splice(availableSlots);
     }
 
     validFiles.forEach((file) => {
       if (file.size > 10 * 1024 * 1024) {
-        setUploadError(`${file.name} is over the 10MB limit. Choose a smaller image and try again.`);
+        alert(`${file.name} exceeds 10MB limit`);
         return;
       }
 
@@ -136,7 +372,6 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   const handleGenerateListing = async () => {
     if (hasPhotos) {
       setIsGenerating(true);
-      setAiError(null);
       try {
         const analysis = await analyzeProductImages(photos);
         
@@ -162,7 +397,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
         }
       } catch (error) {
         console.error("Error generating listing:", error);
-        setAiError("AI couldn’t finish the draft right now. Your photos are still saved, so you can retry or continue entering details manually.");
+        alert("Failed to generate listing. Please try again.");
         setIsGenerating(false);
       }
     }
@@ -173,10 +408,6 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
       onToggleExpand?.();
     }
   };
-
-  useEffect(() => {
-    setPhotos(initialPhotos);
-  }, [initialPhotos]);
 
   useEffect(() => {
     if (!hasReachedMinimumPhotos) {
@@ -206,12 +437,6 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   };
 
 
-  const autosaveMessage = autosaveState === "saving"
-    ? "Saving your draft…"
-    : autosaveState === "saved"
-      ? "Draft autosaved on this device."
-      : "Start by adding at least one photo.";
-
   // Create array of 8 tiles
   const tiles = Array.from({ length: MAX_PHOTOS }, (_, index) => {
     if (index < photos.length) {
@@ -219,26 +444,6 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
     }
     return { type: 'add' as const, index };
   });
-
-  const statusCard = (
-    <div className="flex w-full flex-col gap-3">
-      <div className="rounded-[16px] border border-dashed border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-        {hasPhotos
-          ? `${photos.length} photo${photos.length === 1 ? " is" : "s are"} ready. ${autosaveMessage}`
-          : `No photos uploaded yet. Add at least one clear cover photo to unlock AI suggestions and the next step. ${autosaveMessage}`}
-      </div>
-      {uploadError ? (
-        <div className="rounded-[16px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {uploadError}
-        </div>
-      ) : null}
-      {aiError ? (
-        <div className="rounded-[16px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
-          {aiError}
-        </div>
-      ) : null}
-    </div>
-  );
 
   // Collapsed view when photos are uploaded and user is in item details
   if (isCollapsed && hasPhotos) {
@@ -273,7 +478,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
                           </div>
                         </div>
                         <div className="content-stretch flex items-center justify-center relative shrink-0">
-                          <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-muted-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos that sell the item</p>
+                          <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-muted-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos</p>
                         </div>
                       </div>
                     </div>
@@ -338,7 +543,7 @@ export default function PhotosStep({ onContinue, isCollapsed = false, onToggleEx
   // Expanded view - with wrapper and header
   return (
     <DndProvider backend={HTML5Backend}>
-      <PhotosStepContent
+      <PhotosStepFigmaContent
         photos={photos}
         isDragging={isDragging}
         hasPhotos={hasPhotos}
@@ -402,9 +607,9 @@ function DraggablePhotoTile({ photo, index, onRemove, movePhoto }: DraggablePhot
   return (
     <div
       ref={(node) => drag(drop(node))}
-      className={`group relative aspect-square overflow-hidden border bg-surface-variant rounded-[16px] cursor-move transition-all ${
+      className={`group relative h-[120px] w-full cursor-move overflow-hidden rounded-[14px] bg-surface-review transition-all ${
         isDragging ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
-      } ${isOver ? 'border-primary-container border-2' : 'border-border'}`}
+      } ${isOver ? 'ring-2 ring-primary-container' : ''}`}
     >
       <img
         src={photo}
@@ -430,11 +635,6 @@ function DraggablePhotoTile({ photo, index, onRemove, movePhoto }: DraggablePhot
           />
         </svg>
       </button>
-      {index === 0 && (
-        <div className="absolute bottom-2 left-2 rounded bg-primary-container px-2 py-0.5 font-['Lexend',sans-serif] font-[var(--font-weight-medium)] text-[var(--text-xs)] text-primary-container-foreground z-10">
-          Cover
-        </div>
-      )}
     </div>
   );
 }
@@ -495,8 +695,6 @@ function PhotosStepContent({
   modalPrimaryActionRef,
   isGenerating,
 }: PhotosStepContentProps) {
-  const shouldShowDecisionCheckpoint = hasShownDecisionModal && hasReachedMinimumPhotos;
-
   return (
     <>
       <Dialog open={isDecisionModalOpen} onOpenChange={onDecisionModalChange}>
@@ -504,106 +702,35 @@ function PhotosStepContent({
           <div className="flex flex-col gap-6 p-8">
             <DialogHeader className="gap-3 text-left">
               <DialogTitle className="font-['Lexend',sans-serif] text-[28px] leading-[36px] font-normal text-foreground">
-                Choose how to build the rest of this listing
+                How would you like to create this listing?
               </DialogTitle>
               <DialogDescription className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-muted-foreground">
-                Your photos are ready. Choose a faster AI draft or keep full manual control. Either way, you can edit everything before anything goes live.
+Choose how to start.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex flex-col gap-4">
-              <div className="rounded-[20px] border border-primary/20 bg-[linear-gradient(180deg,rgba(104,58,223,0.12)_0%,rgba(104,58,223,0.04)_100%)] p-5">
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-['Lexend',sans-serif] text-[13px] font-medium uppercase tracking-[0.4px] text-primary">
-                      Recommended
-                    </p>
-                    <h3 className="mt-1 font-['Lexend',sans-serif] text-[22px] leading-[30px] text-foreground">
-                      Build first draft with AI
-                    </h3>
-                  </div>
-                  <div className="rounded-full bg-primary/10 px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-primary">
-                    Save time
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <p className="font-['Lexend',sans-serif] text-[15px] leading-[22px] text-foreground">
-                    Use your photos to create a strong starting draft so you can review, refine, and publish faster.
-                  </p>
-                  <div className="rounded-[16px] border border-border/80 bg-background/80 p-4">
-                    <p className="font-['Lexend',sans-serif] text-[13px] font-medium uppercase tracking-[0.3px] text-muted-foreground">
-                      Example output
-                    </p>
-                    <p className="mt-2 font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
-                      Title, description, category, brand, size, condition, tags, and a suggested price based on what&apos;s visible in your photos.
-                    </p>
-                  </div>
-                  <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
-                    AI suggests the first draft only. Your photos are used to create suggestions, and you can rewrite, remove, or keep any field.
-                  </p>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded-[14px] border border-border/80 bg-background/80 p-4">
-                      <p className="font-['Lexend',sans-serif] text-[12px] font-medium uppercase tracking-[0.3px] text-muted-foreground">
-                        Why AI is confident
-                      </p>
-                      <p className="mt-2 font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
-                        Best when your photos clearly show the silhouette, labels, and item condition.
-                      </p>
-                    </div>
-                    <div className="rounded-[14px] border border-border/80 bg-background/80 p-4">
-                      <p className="font-['Lexend',sans-serif] text-[12px] font-medium uppercase tracking-[0.3px] text-muted-foreground">
-                        Control stays with you
-                      </p>
-                      <p className="mt-2 font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
-                        Generated based on your photos, then fully editable field-by-field in the next step.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  ref={modalPrimaryActionRef}
-                  onClick={handleGenerateListing}
-                  disabled={isGenerating}
-                  className="mt-5 h-12 w-full rounded-[12px] bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  {isGenerating ? 'Creating your draft…' : 'Create draft from photos'}
-                </Button>
-              </div>
-
-              <div className="rounded-[20px] border border-border bg-surface p-5">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-['Lexend',sans-serif] text-[22px] leading-[30px] text-foreground">
-                      Write listing myself
-                    </h3>
-                    <p className="mt-1 font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
-                      Best when you already know the exact details or want full control from the first field.
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-background px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-foreground-dim">
-                    Full control
-                  </div>
-                </div>
-                <p className="font-['Lexend',sans-serif] text-[14px] leading-[21px] text-foreground">
-                  You&apos;ll move to the item details form with your photos saved and can complete the listing at your own pace.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={handleNext}
-                  className="mt-5 h-12 w-full rounded-[12px] border-border bg-background text-foreground hover:bg-accent"
-                >
-                  Go to item details
-                </Button>
-              </div>
-            </div>
-
             <DialogFooter className="flex-col gap-3 sm:flex-col sm:justify-start">
+              <Button
+                ref={modalPrimaryActionRef}
+                onClick={handleGenerateListing}
+                disabled={isGenerating}
+                className="h-12 w-full rounded-[12px] bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {isGenerating ? 'Generating…' : 'Generate with AI'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleNext}
+                className="h-12 w-full rounded-[12px] border-border bg-background text-foreground hover:bg-accent"
+              >
+                Enter details manually
+              </Button>
               <DialogClose asChild>
                 <button
                   type="button"
                   onClick={onContinueEditingPhotos}
                   className="self-center font-['Lexend',sans-serif] text-[14px] leading-[20px] font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-[8px] px-2 py-1"
                 >
-                  Keep editing photos
+                  Continue editing photos
                 </button>
               </DialogClose>
             </DialogFooter>
@@ -631,7 +758,7 @@ function PhotosStepContent({
                     </div>
                   </div>
                   <div className="content-stretch flex items-center justify-center relative shrink-0">
-                    <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos that sell the item</p>
+                    <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-foreground text-[var(--text-h3)] whitespace-nowrap text-[24px]">Photos</p>
                   </div>
                 </div>
               </div>
@@ -695,10 +822,10 @@ function PhotosStepContent({
                       {/* Text */}
                       <div className="content-stretch flex flex-col gap-[4px] items-center pb-[12px] relative shrink-0 text-center tracking-[0.5px] w-full whitespace-nowrap">
                         <p className="font-['Lexend',sans-serif] leading-[24px] relative shrink-0 text-foreground text-[var(--text-base)] font-bold">
-                          Add photos to start your listing
+                          Drop images here or click to upload
                         </p>
                         <p className="font-['Lexend',sans-serif] leading-[16px] relative shrink-0 text-on-surface-dim text-[var(--text-xs)] font-[Lexend] text-[14px]">
-                          Drag and drop or browse files. JPG, PNG, and SVG supported, up to 10MB each.
+                          Support for JPG, PNG, SVG (max 10MB each)
                         </p>
                       </div>
 
@@ -726,7 +853,7 @@ function PhotosStepContent({
                             </div>
                             <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
                               <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
-                                <p className="leading-[20px]">Choose photos</p>
+                                <p className="leading-[20px]">Upload</p>
                               </div>
                             </div>
                           </div>
@@ -823,70 +950,65 @@ function PhotosStepContent({
                   </div>
                 </div>
                 <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[16px] relative shrink-0 text-foreground-dim text-[var(--text-xs)] tracking-[0.4px] mx-[-6px] my-[0px] text-[12px]">
-                  Add clear front, back, label, and detail shots. Better photos help AI draft more accurately and help buyers trust the listing.
+                  The more photos you add the better chance your listing has to sell
                 </p>
               </div>
 
-              {/* Decision Checkpoint */}
-              <div className={`w-full mt-[8px] ${shouldShowDecisionCheckpoint ? 'sticky bottom-4 z-20' : ''}`}>
-                <div className={`${shouldShowDecisionCheckpoint ? 'rounded-[24px] border border-primary/15 bg-background/95 p-[20px] shadow-[0px_16px_40px_rgba(29,26,36,0.14)] backdrop-blur-sm' : ''}`}>
-                  {shouldShowDecisionCheckpoint ? (
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="flex flex-col gap-[4px]">
-                        <p className="font-['Lexend',sans-serif] text-[12px] font-medium uppercase tracking-[0.4px] text-primary">
-                          Ready for the next step
-                        </p>
-                        <p className="font-['Lexend',sans-serif] text-[20px] leading-[28px] text-foreground">
-                          Choose how you want to build the rest of this listing.
-                        </p>
-                        <p className="font-['Lexend',sans-serif] text-[14px] leading-[20px] text-muted-foreground">
-                          Review the recommended AI path or choose manual entry — either way, you&apos;ll make this choice intentionally before moving on.
-                        </p>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-primary">
-                            Generated based on your photos
-                          </span>
-                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 font-['Lexend',sans-serif] text-[12px] font-medium text-emerald-800">
-                            Confidence improves with clear labels + detail shots
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-3 sm:flex-row">
-                        <button
-                          ref={triggerButtonRef}
-                          type="button"
-                          onClick={() => onDecisionModalChange(true)}
-                          className="content-stretch flex h-[48px] items-center justify-center rounded-[12px] border border-border bg-background px-[16px] transition-colors hover:bg-accent"
-                        >
-                          <span className="font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] text-foreground">
-                            Compare options
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleGenerateListing}
-                          disabled={!hasPhotos || isGenerating}
-                          className={`content-stretch flex h-[48px] items-center justify-center rounded-[12px] px-[16px] ${!hasPhotos || isGenerating ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'} transition-colors`}
-                        >
-                          <span className={`font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] ${!hasPhotos || isGenerating ? 'text-foreground/60' : 'text-primary-foreground'}`}>
-                            {isGenerating ? 'Creating your draft…' : 'Create draft with AI'}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex w-full items-center justify-end">
-                      <button
-                        ref={triggerButtonRef}
-                        onClick={handleUploadClick}
-                        className="content-stretch flex h-[48px] items-center justify-center rounded-[12px] border border-border bg-background px-[16px] transition-colors hover:bg-accent"
-                      >
-                        <span className="font-['Lexend',sans-serif] text-[14px] font-medium leading-[20px] text-foreground">
-                          Add more photos
-                        </span>
-                      </button>
+              {/* Action Buttons */}
+              <div className={`w-full mt-[8px] ${hasShownDecisionModal && hasReachedMinimumPhotos ? 'sticky bottom-4 z-20' : ''}`}>
+                <div className={`flex w-full items-center justify-end gap-[12px] ${hasShownDecisionModal && hasReachedMinimumPhotos ? 'rounded-[20px] border border-border bg-background/95 px-[20px] py-[16px] shadow-[0px_12px_32px_rgba(29,26,36,0.12)] backdrop-blur-sm' : ''}`}>
+                  {hasShownDecisionModal && hasReachedMinimumPhotos && (
+                    <div className="mr-auto flex flex-col gap-[2px]">
+                      <p className="font-['Lexend',sans-serif] text-[16px] leading-[24px] text-foreground">Choose how to continue</p>
+                      <p className="font-['Lexend',sans-serif] text-[13px] leading-[18px] text-muted-foreground">Generate details from your photos or keep entering information yourself.</p>
                     </div>
                   )}
+
+                  <button
+                    ref={triggerButtonRef}
+                    onClick={handleNext}
+                    disabled={!hasPhotos}
+                    className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${!hasPhotos ? 'bg-foreground/10' : ''} ${hasPhotos ? 'hover:bg-foreground/8 transition-colors' : 'cursor-not-allowed'}`}
+                  >
+                    <div aria-hidden="true" className="absolute border border-border border-solid inset-0 pointer-events-none rounded-[var(--radius)]" />
+                    <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
+                      <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos ? 'opacity-38' : ''}`}>
+                        <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
+                          <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-muted-foreground text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap">
+                            <p className="leading-[20px]">Enter details manually</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleGenerateListing}
+                    disabled={!hasPhotos || isGenerating}
+                    className={`content-stretch flex items-center justify-center relative rounded-[var(--radius)] h-[48px] ${!hasPhotos || isGenerating ? 'bg-foreground/10 cursor-not-allowed' : 'bg-primary'}`}
+                  >
+                    <div className="content-stretch flex flex-col items-center justify-center relative rounded-[var(--radius)] shrink-0">
+                      <div className={`content-stretch flex gap-[10px] items-center px-[16px] py-[10px] relative shrink-0 ${!hasPhotos || isGenerating ? 'opacity-38' : ''}`}>
+                        <div className="overflow-clip relative shrink-0 size-[20px]">
+                          <div className="absolute inset-[9.3%_9.51%_9.5%_9.3%]">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16.2384 16.2401">
+                              <g id="Icon">
+                                <path clipRule="evenodd" d={sparkleSvgPaths.pf313a80} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
+                                <path clipRule="evenodd" d={sparkleSvgPaths.p198a1100} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} fillRule="evenodd" />
+                                <path d={sparkleSvgPaths.p39ab3c00} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} />
+                                <path d={sparkleSvgPaths.p76d5230} fill={!hasPhotos || isGenerating ? "var(--foreground)" : "var(--primary-foreground)"} />
+                              </g>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="content-stretch flex items-center justify-center px-[4px] relative shrink-0">
+                          <div className={`flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-[var(--text-sm)] text-center tracking-[0.1px] whitespace-nowrap ${!hasPhotos || isGenerating ? 'text-foreground' : 'text-primary-foreground'}`}>
+                            <p className="leading-[20px]">{isGenerating ? 'Generating…' : 'Generate with AI'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
                 </div>
               </div>
 

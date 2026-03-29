@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router";
-import Header from "../../imports/Header";
 import NavigationRail from "./NavigationRail";
 import CreateItemLayout, {
+  CreateItemShellHeader,
   type ListingSectionMeta,
   type ListingSectionStatus,
 } from "./CreateItemLayout";
 import PhotosStep from "./PhotosStep";
+import TitleDescriptionContent from "./TitleDescriptionContent";
 import ItemDetailsContent from "./ItemDetailsContent";
 import MarketplacesContent from "./MarketplacesContent";
 import PricingContent from "./PricingContent";
@@ -22,20 +23,6 @@ import imgDepop from "figma:asset/9fc19e9b972ada34a5069710f93ea92cd4258fea.png";
 import imgFacebook from "figma:asset/55ad25062cf42038188e8437b6d83a149a822f83.png";
 
 // Vendoo Listing Creation Flow
-const LISTING_FLOW_STORAGE_KEY = "vendoo-listing-flow-draft";
-const AUTOSAVE_DEBOUNCE_MS = 800;
-
-interface ListingFlowDraft {
-  uploadedPhotos: string[];
-  itemDetails: ItemDetails | null;
-  aiGeneratedDetails: ItemDetails | null;
-  selectedMarketplaces: string[];
-  listingPrice: string;
-  selectedShippingMethod: string;
-  marketplaceCustomizations: Record<string, MarketplaceCustomization>;
-  wasAIGeneratedFromPhotos: boolean;
-}
-
 export interface ItemDetails {
   title: string;
   description: string;
@@ -74,7 +61,7 @@ const allMarketplaces: Marketplace[] = [
 // Maps step names to the section to expand
 const STEP_TO_EXPAND_MAP: Record<string, string> = {
   photos: "photos",
-  details: "itemDetails",
+  details: "titleDescription",
   marketplaces: "marketplaces",
   "price-shipping": "pricing",
 };
@@ -85,18 +72,19 @@ export default function ListingFlow() {
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [isRailExpanded, setIsRailExpanded] = useState(false);
   const [itemDetails, setItemDetails] = useState<ItemDetails | null>(null);
-  // Separate state for AI-generated details from Photos step — set once, never updated by manual edits
-  const [aiGeneratedDetails, setAiGeneratedDetails] =
-    useState<ItemDetails | null>(null);
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<string[]>(
     [],
   );
+  const [shouldExpandTitleDescription, setShouldExpandTitleDescription] =
+    useState(false);
   const [shouldExpandItemDetails, setShouldExpandItemDetails] = useState(false);
   const [shouldExpandMarketplaces, setShouldExpandMarketplaces] =
     useState(false);
   const [shouldExpandPricing, setShouldExpandPricing] = useState(false);
   const [shouldExpandShipping, setShouldExpandShipping] = useState(false);
   const [isPhotosCollapsed, setIsPhotosCollapsed] = useState(false);
+  const [shouldCollapseTitleDescription, setShouldCollapseTitleDescription] =
+    useState(false);
   const [shouldCollapseItemDetails, setShouldCollapseItemDetails] =
     useState(false);
   const [shouldCollapseMarketplaces, setShouldCollapseMarketplaces] =
@@ -125,79 +113,9 @@ export default function ListingFlow() {
   const [activeEditSection, setActiveEditSection] =
     useState<ListingSectionMeta["id"]>("photos");
   const [activeEditContext, setActiveEditContext] = useState<string | null>(null);
-  const [autosaveState, setAutosaveState] = useState<"idle" | "saving" | "saved">("idle");
-  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
 
   // Ref for the edit mode scroll container
   const editScrollContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      const savedDraft = window.localStorage.getItem(LISTING_FLOW_STORAGE_KEY);
-      if (!savedDraft) {
-        setHasRestoredDraft(true);
-        return;
-      }
-
-      const parsedDraft = JSON.parse(savedDraft) as Partial<ListingFlowDraft>;
-      setUploadedPhotos(Array.isArray(parsedDraft.uploadedPhotos) ? parsedDraft.uploadedPhotos : []);
-      setItemDetails(parsedDraft.itemDetails ?? null);
-      setAiGeneratedDetails(parsedDraft.aiGeneratedDetails ?? null);
-      setSelectedMarketplaces(Array.isArray(parsedDraft.selectedMarketplaces) ? parsedDraft.selectedMarketplaces : []);
-      setListingPrice(parsedDraft.listingPrice ?? "");
-      setSelectedShippingMethod(parsedDraft.selectedShippingMethod ?? "");
-      setMarketplaceCustomizations(parsedDraft.marketplaceCustomizations ?? {});
-      setWasAIGeneratedFromPhotos(Boolean(parsedDraft.wasAIGeneratedFromPhotos));
-      setAutosaveState("saved");
-    } catch (error) {
-      console.error("Failed to restore listing draft", error);
-      window.localStorage.removeItem(LISTING_FLOW_STORAGE_KEY);
-    } finally {
-      setHasRestoredDraft(true);
-    }
-  }, []);
-
-  const autosaveDraft = useMemo<ListingFlowDraft>(() => ({
-    uploadedPhotos,
-    itemDetails,
-    aiGeneratedDetails,
-    selectedMarketplaces,
-    listingPrice,
-    selectedShippingMethod,
-    marketplaceCustomizations,
-    wasAIGeneratedFromPhotos,
-  }), [
-    uploadedPhotos,
-    itemDetails,
-    aiGeneratedDetails,
-    selectedMarketplaces,
-    listingPrice,
-    selectedShippingMethod,
-    marketplaceCustomizations,
-    wasAIGeneratedFromPhotos,
-  ]);
-
-  useEffect(() => {
-    if (!hasRestoredDraft || isPublished) {
-      return;
-    }
-
-    setAutosaveState("saving");
-    const timeoutId = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(
-          LISTING_FLOW_STORAGE_KEY,
-          JSON.stringify(autosaveDraft),
-        );
-        setAutosaveState("saved");
-      } catch (error) {
-        console.error("Failed to autosave listing draft", error);
-        setAutosaveState("idle");
-      }
-    }, AUTOSAVE_DEBOUNCE_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [autosaveDraft, hasRestoredDraft, isPublished]);
 
   // Derive shipping completion from selected method (input-driven, not button-driven)
   const shippingCompleted = selectedShippingMethod !== "";
@@ -308,9 +226,16 @@ export default function ListingFlow() {
 
   // Collapse all sections except the one being expanded
   const collapseAllExcept = (
-    except: "photos" | "itemDetails" | "marketplaces" | "pricing" | "shipping",
+    except:
+      | "photos"
+      | "titleDescription"
+      | "itemDetails"
+      | "marketplaces"
+      | "pricing"
+      | "shipping",
   ) => {
     if (except !== "photos") setIsPhotosCollapsed(true);
+    if (except !== "titleDescription") setShouldCollapseTitleDescription(true);
     if (except !== "itemDetails") setShouldCollapseItemDetails(true);
     if (except !== "marketplaces") setShouldCollapseMarketplaces(true);
     if (except !== "pricing") setShouldCollapsePricing(true);
@@ -319,6 +244,7 @@ export default function ListingFlow() {
 
   const sectionContextMap: Record<ListingSectionMeta["id"], string> = {
     photos: "In progress",
+    titleDescription: "In progress",
     itemDetails:
       "In progress",
     marketplaces:
@@ -329,6 +255,20 @@ export default function ListingFlow() {
       "In progress",
   };
 
+  const handleItemDetailsPatch = useCallback((patch: Partial<ItemDetails>) => {
+    setItemDetails((prev) => ({
+      title: prev?.title ?? "",
+      description: prev?.description ?? "",
+      category: prev?.category ?? "",
+      brand: prev?.brand ?? "",
+      condition: prev?.condition ?? "",
+      size: prev?.size ?? "",
+      tags: prev?.tags ?? "",
+      suggestedPrice: prev?.suggestedPrice ?? "",
+      ...patch,
+    }));
+  }, []);
+
   const handleContinueFromPhotos = (
     photos: string[],
     generatedDetails?: ItemDetails,
@@ -336,7 +276,6 @@ export default function ListingFlow() {
     setUploadedPhotos(photos);
     if (generatedDetails) {
       setItemDetails(generatedDetails);
-      setAiGeneratedDetails(generatedDetails);
       setWasAIGeneratedFromPhotos(true);
       if (generatedDetails.suggestedPrice) {
         const cleanPrice = generatedDetails.suggestedPrice.replace(
@@ -348,16 +287,23 @@ export default function ListingFlow() {
         }
       }
     }
+    openSection("titleDescription", {
+      context:
+        "Photos are saved. Title and description opened next so you can turn the photos into a market-ready listing.",
+    });
+  };
+
+  const handleContinueFromTitleDescription = () => {
     openSection("itemDetails", {
       context:
-        "Photos are saved. Item details opened automatically so you can keep momentum without hunting for the next section.",
+        "Title and description are in place. Item details opened next so you can finish the structured specifics.",
     });
   };
 
   const handleContinueFromItemDetails = () => {
     openSection("marketplaces", {
       context:
-        "Item details are saved. Marketplaces opened next so you can continue the listing flow smoothly.",
+        "Item specifics are saved. Marketplaces opened next so you can continue the listing flow smoothly.",
     });
   };
 
@@ -389,6 +335,12 @@ export default function ListingFlow() {
   // Handle manual expansion of sections (user clicks chevron to re-expand)
   const handleManualExpandItemDetails = () => {
     openSection("itemDetails", {
+      context:
+        "In progress",
+    });
+  };
+  const handleManualExpandTitleDescription = () => {
+    openSection("titleDescription", {
       context:
         "In progress",
     });
@@ -439,10 +391,8 @@ export default function ListingFlow() {
     // Navigate to publish route briefly, then success
     navigateToPublish();
     setTimeout(() => {
-      window.localStorage.removeItem(LISTING_FLOW_STORAGE_KEY);
       setIsPublished(true);
       setIsReviewMode(false);
-      setAutosaveState("idle");
       navigateToSuccess();
     }, 500);
   };
@@ -477,20 +427,20 @@ export default function ListingFlow() {
   };
 
   const handleListAnother = () => {
-    window.localStorage.removeItem(LISTING_FLOW_STORAGE_KEY);
     setIsPublished(false);
     setIsReviewMode(false);
     setUploadedPhotos([]);
     setItemDetails(null);
-    setAiGeneratedDetails(null);
     setSelectedMarketplaces([]);
     setListingPrice("");
     setSelectedShippingMethod("");
+    setShouldExpandTitleDescription(false);
     setShouldExpandItemDetails(false);
     setShouldExpandMarketplaces(false);
     setShouldExpandPricing(false);
     setShouldExpandShipping(false);
     setIsPhotosCollapsed(false);
+    setShouldCollapseTitleDescription(false);
     setShouldCollapseItemDetails(false);
     setShouldCollapseMarketplaces(false);
     setShouldCollapsePricing(false);
@@ -498,7 +448,6 @@ export default function ListingFlow() {
     setWasAIGeneratedFromPhotos(false);
     setPreviewMarketplace(null);
     setMarketplaceCustomizations({});
-    setAutosaveState("idle");
     navigateToPhotos();
   };
 
@@ -508,32 +457,19 @@ export default function ListingFlow() {
 
   const sectionRefs = {
     photos: "listing-photos",
+    titleDescription: "listing-title-description",
     itemDetails: "listing-details",
     marketplaces: "listing-marketplaces",
     pricing: "listing-price-shipping",
     shipping: "listing-shipping-section",
   } as const;
 
-  const requiredFieldSummary = [
-    { label: "Photos", missing: uploadedPhotos.length === 0 },
-    { label: "Title", missing: !(itemDetails?.title?.trim()) },
-    { label: "Description", missing: !(itemDetails?.description?.trim()) },
-    { label: "Brand", missing: !(itemDetails?.brand?.trim()) },
-    { label: "Category", missing: !(itemDetails?.category?.trim()) },
-    { label: "Size", missing: !((itemDetails?.size ?? "").trim()) },
-    { label: "Condition", missing: !(itemDetails?.condition?.trim()) },
-    { label: "Marketplace", missing: selectedMarketplaces.length === 0 },
-    { label: "Price", missing: listingPrice.trim() === "" },
-    { label: "Shipping", missing: selectedShippingMethod.trim() === "" },
-  ];
-  const missingRequiredFields = requiredFieldSummary
-    .filter((field) => field.missing)
-    .map((field) => field.label);
-
   const isPhotosComplete = uploadedPhotos.length > 0;
-  const isItemDetailsComplete = !!(
+  const isTitleDescriptionComplete = !!(
     itemDetails?.title?.trim() &&
-    itemDetails?.description?.trim() &&
+    itemDetails?.description?.trim()
+  );
+  const isItemDetailsComplete = !!(
     itemDetails?.brand?.trim() &&
     itemDetails?.category?.trim() &&
     itemDetails?.size?.trim() &&
@@ -542,13 +478,6 @@ export default function ListingFlow() {
   const isMarketplacesComplete = selectedMarketplaces.length > 0;
   const isPricingComplete = listingPrice.trim() !== "";
   const isShippingComplete = shippingCompleted;
-  const completionBySection: Record<ListingSectionMeta["id"], boolean> = {
-    photos: isPhotosComplete,
-    itemDetails: isItemDetailsComplete,
-    marketplaces: isMarketplacesComplete,
-    pricing: isPricingComplete,
-    shipping: isShippingComplete,
-  };
 
   const customizedMarketplaceCount = selectedMarketplaces.filter(
     (marketplaceId) =>
@@ -557,6 +486,7 @@ export default function ListingFlow() {
   ).length;
   const baseListingReady =
     isPhotosComplete &&
+    isTitleDescriptionComplete &&
     isItemDetailsComplete &&
     isPricingComplete &&
     isShippingComplete;
@@ -564,30 +494,6 @@ export default function ListingFlow() {
 
   const [currentSection, setCurrentSection] =
     useState<ListingSectionMeta["id"]>("photos");
-
-  const sectionOrder: ListingSectionMeta["id"][] = [
-    "photos",
-    "itemDetails",
-    "marketplaces",
-    "pricing",
-    "shipping",
-  ];
-  const firstIncompleteSection =
-    sectionOrder.find((sectionId) => !completionBySection[sectionId]) ?? "shipping";
-  const getStepStateLabel = (
-    sectionId: ListingSectionMeta["id"],
-    isComplete: boolean,
-    hasStarted: boolean,
-  ) => {
-    if (isComplete) return "Completed";
-    if (sectionId === firstIncompleteSection) {
-      return hasStarted ? "Continue" : "Start";
-    }
-    if (hasStarted) return "Continue";
-    return "Upcoming";
-  };
-  const isSectionLocked = (sectionId: ListingSectionMeta["id"]) =>
-    !completionBySection[sectionId] && sectionId !== firstIncompleteSection;
 
   const getSectionStatus = useCallback(
     (isComplete: boolean, hasStarted: boolean): ListingSectionStatus => {
@@ -601,51 +507,59 @@ export default function ListingFlow() {
   const progressSections: ListingSectionMeta[] = [
     {
       id: "photos",
-      stepNumber: 1,
       title: "Photos",
       description: isPhotosComplete
         ? `${uploadedPhotos.length} photo${uploadedPhotos.length === 1 ? "" : "s"} added and ready to lead the listing.`
         : "Add the photos buyers will see first.",
-      shortDescription: isPhotosComplete ? "Completed" : "Not started",
-      ctaLabel: isPhotosComplete ? "Edit photos" : "Start with photos",
-      nextStepLabel: isPhotosComplete
-        ? "Next step: finish item details."
-        : "Start here so AI or manual details have the right inputs.",
-      stateLabel: getStepStateLabel("photos", isPhotosComplete, uploadedPhotos.length > 0),
+      shortDescription: isPhotosComplete
+        ? "Completed"
+        : "Not started",
+      actionLabel: undefined,
       connectedLabel: undefined,
       status: getSectionStatus(isPhotosComplete, uploadedPhotos.length > 0),
       isCurrent: currentSection === "photos",
-      isLocked: false,
-      isAccessible: true,
+    },
+    {
+      id: "titleDescription",
+      title: "Title & Description",
+      description: isTitleDescriptionComplete
+        ? "Shared copy is ready for every marketplace."
+        : itemDetails?.title?.trim() || itemDetails?.description?.trim()
+          ? "Finish the shared title and description."
+          : "Write the shared listing copy.",
+      shortDescription: isTitleDescriptionComplete
+        ? "Completed"
+        : itemDetails?.title?.trim() || itemDetails?.description?.trim()
+          ? "In progress"
+          : "Not started",
+      actionLabel: undefined,
+      sourceOfTruthNote: "Applies to all marketplaces",
+      status: getSectionStatus(
+        isTitleDescriptionComplete,
+        !!(itemDetails?.title?.trim() || itemDetails?.description?.trim()),
+      ),
+      isCurrent: currentSection === "titleDescription",
     },
     {
       id: "itemDetails",
-      stepNumber: 2,
       title: "Item Details",
       description: isItemDetailsComplete
-        ? "Details complete"
+        ? "Structured specifics complete"
         : itemDetails
-          ? "Finish the required fields"
-          : "Add the main listing details.",
+          ? "Finish brand, category, size, and condition."
+          : "Add the shared item specifics.",
       shortDescription: isItemDetailsComplete
         ? "Completed"
         : itemDetails
           ? "In progress"
           : "Not started",
-      ctaLabel: isItemDetailsComplete ? "Edit details" : "Continue to details",
-      nextStepLabel: isItemDetailsComplete
-        ? "Next step: choose marketplaces."
-        : "Use AI suggestions or finish the shared listing fields manually.",
-      stateLabel: getStepStateLabel("itemDetails", isItemDetailsComplete, !!itemDetails),
+      actionLabel: undefined,
       sourceOfTruthNote: undefined,
       status: getSectionStatus(isItemDetailsComplete, !!itemDetails),
       isCurrent: currentSection === "itemDetails",
-      isLocked: isSectionLocked("itemDetails"),
-      isAccessible: !isSectionLocked("itemDetails"),
     },
     {
       id: "marketplaces",
-      stepNumber: 3,
       title: "Marketplaces",
       description: isMarketplacesComplete
         ? `${selectedMarketplaces.length} selected`
@@ -653,29 +567,16 @@ export default function ListingFlow() {
       shortDescription: isMarketplacesComplete
         ? "In progress"
         : "Not started",
-      ctaLabel: isMarketplacesComplete
-        ? "Edit marketplaces"
-        : "Continue to marketplaces",
-      nextStepLabel: isMarketplacesComplete
-        ? "Next step: set pricing."
-        : "Pick destinations now; you can still customize each marketplace later.",
-      stateLabel: getStepStateLabel(
-        "marketplaces",
-        isMarketplacesComplete,
-        selectedMarketplaces.length > 0,
-      ),
+      actionLabel: undefined,
       connectedLabel: undefined,
       status: getSectionStatus(
         isMarketplacesComplete,
         selectedMarketplaces.length > 0,
       ),
       isCurrent: currentSection === "marketplaces",
-      isLocked: isSectionLocked("marketplaces"),
-      isAccessible: !isSectionLocked("marketplaces"),
     },
     {
       id: "pricing",
-      stepNumber: 4,
       title: "Pricing",
       description: isPricingComplete
         ? `$${listingPrice}`
@@ -683,20 +584,13 @@ export default function ListingFlow() {
       shortDescription: isPricingComplete
         ? "Completed"
         : "Not started",
-      ctaLabel: isPricingComplete ? "Edit pricing" : "Continue to pricing",
-      nextStepLabel: isPricingComplete
-        ? "Next step: confirm shipping."
-        : "Set the base price before you move to shipping.",
-      stateLabel: getStepStateLabel("pricing", isPricingComplete, listingPrice.trim() !== ""),
+      actionLabel: undefined,
       connectedLabel: undefined,
       status: getSectionStatus(isPricingComplete, listingPrice.trim() !== ""),
       isCurrent: currentSection === "pricing",
-      isLocked: isSectionLocked("pricing"),
-      isAccessible: !isSectionLocked("pricing"),
     },
     {
       id: "shipping",
-      stepNumber: 5,
       title: "Shipping",
       description: isShippingComplete
         ? "Shipping selected"
@@ -704,23 +598,13 @@ export default function ListingFlow() {
       shortDescription: isShippingComplete
         ? "Completed"
         : "Not started",
-      ctaLabel: isShippingComplete ? "Edit shipping" : "Continue to shipping",
-      nextStepLabel: isShippingComplete
-        ? "Next step: review and publish."
-        : "Choose the shipping setup that best matches this item.",
-      stateLabel: getStepStateLabel(
-        "shipping",
-        isShippingComplete,
-        selectedShippingMethod.trim() !== "",
-      ),
+      actionLabel: undefined,
       connectedLabel: undefined,
       status: getSectionStatus(
         isShippingComplete,
         selectedShippingMethod.trim() !== "",
       ),
       isCurrent: currentSection === "shipping",
-      isLocked: isSectionLocked("shipping"),
-      isAccessible: !isSectionLocked("shipping"),
       isPublishReady: isShippingComplete,
     },
   ];
@@ -745,7 +629,7 @@ export default function ListingFlow() {
     ) as HTMLElement | null;
     if (!target) return;
 
-    const stickyOffset = 220;
+    const stickyOffset = 32;
     const nextTop = target.offsetTop - stickyOffset;
     container.scrollTo({ top: Math.max(nextTop, 0), behavior: "smooth" });
     setCurrentSection(sectionId);
@@ -759,9 +643,6 @@ export default function ListingFlow() {
       routeStep?: "photos" | "details" | "marketplaces" | "price-shipping";
     },
   ) {
-    if (isSectionLocked(section)) {
-      return;
-    }
     setIsReviewMode(false);
     collapseAllExcept(section);
     setActiveEditSection(section);
@@ -769,6 +650,9 @@ export default function ListingFlow() {
 
     if (section === "photos") {
       setIsPhotosCollapsed(false);
+    }
+    if (section === "titleDescription") {
+      setShouldExpandTitleDescription(true);
     }
     if (section === "itemDetails") {
       setShouldExpandItemDetails(true);
@@ -785,7 +669,7 @@ export default function ListingFlow() {
 
     const step =
       options?.routeStep ??
-      (section === "itemDetails"
+      (section === "titleDescription" || section === "itemDetails"
         ? "details"
         : section === "marketplaces"
           ? "marketplaces"
@@ -800,11 +684,12 @@ export default function ListingFlow() {
     const container = editScrollContainerRef.current;
     if (!container || isReviewMode) return;
 
-    const sectionScrollOrder: Array<{
+    const sectionOrder: Array<{
       id: ListingSectionMeta["id"];
       elementId: string;
     }> = [
       { id: "photos", elementId: "listing-photos" },
+      { id: "titleDescription", elementId: "listing-title-description" },
       { id: "itemDetails", elementId: "listing-details" },
       { id: "marketplaces", elementId: "listing-marketplaces" },
       { id: "pricing", elementId: "listing-price-shipping" },
@@ -812,10 +697,10 @@ export default function ListingFlow() {
     ];
 
     const updateCurrentSection = () => {
-      const scrollPosition = container.scrollTop + 260;
+      const scrollPosition = container.scrollTop + 120;
       let nextSection: ListingSectionMeta["id"] = "photos";
 
-      for (const section of sectionScrollOrder) {
+      for (const section of sectionOrder) {
         const element = container.querySelector(
           `#${section.elementId}`,
         ) as HTMLElement | null;
@@ -841,50 +726,22 @@ export default function ListingFlow() {
     return () => container.removeEventListener("scroll", updateCurrentSection);
   }, [isReviewMode, isShippingComplete]);
 
-  useEffect(() => {
-    if (isReviewMode || isPublished) {
-      return;
-    }
-
-    if (currentSection !== firstIncompleteSection && isSectionLocked(currentSection)) {
-      setCurrentSection(firstIncompleteSection);
-    }
-  }, [currentSection, firstIncompleteSection, isPublished, isReviewMode]);
-
   const selectedMarketplacesData = allMarketplaces.filter((m) =>
     selectedMarketplaces.includes(m.id),
   );
 
   return (
-    <div className="flex h-screen w-screen min-w-[1280px] flex-col">
-      {/* Header */}
-      <div className="h-[80px] shrink-0 px-[48px] py-[0px] mx-[0px] mt-[12px] mb-[0px]">
-        <Header />
+    <div className="flex h-screen w-screen min-w-[1280px] overflow-hidden bg-background">
+      <div
+        className={`shrink-0 transition-all duration-300 ${isRailExpanded ? "w-[256px]" : "w-[96px]"}`}
+      >
+        <NavigationRail
+          isExpanded={isRailExpanded}
+          onToggle={() => setIsRailExpanded(!isRailExpanded)}
+        />
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden m-[0px] px-[36px] py-[24px]">
-        {/* Navigation Rail */}
-        <div
-          className={`shrink-0 transition-all duration-300 ${isRailExpanded ? "w-[256px]" : "w-[96px]"} mx-[16px] my-[0px]`}
-        >
-          <NavigationRail
-            isExpanded={isRailExpanded}
-            onToggle={() => setIsRailExpanded(!isRailExpanded)}
-          />
-        </div>
-
-        {/* Content Area - Success page unmounts everything; Review/Edit kept mounted */}
-        {!isPublished && (
-          <div className="absolute right-[24px] top-[12px] z-[20] rounded-full border border-border bg-background/95 px-3 py-2 text-[12px] text-muted-foreground shadow-sm backdrop-blur">
-            {autosaveState === "saving"
-              ? "Saving draft…"
-              : autosaveState === "saved"
-                ? "Draft autosaved"
-                : "Changes stay on this device until you publish."}
-          </div>
-        )}
-
+      <div className="flex min-w-0 flex-1 flex-col px-[12px] py-[12px]">
         {isPublished ? (
           <ListingSuccessPage
             photos={uploadedPhotos}
@@ -896,14 +753,12 @@ export default function ListingFlow() {
           />
         ) : (
           <>
-            {/* Review Mode - Full-width Listing Summary (hidden when not in review) */}
             <div
               id="listing-review"
               data-step="review"
-              className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-0 border border-border rounded-[12px] relative ml-[-4px] mr-[0px] my-[0px] ${!isReviewMode ? "hidden" : ""}`}
+              className={`flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-[24px] border border-border bg-background ${!isReviewMode ? "hidden" : ""}`}
             >
-              {/* Back Button Header */}
-              <div className="sticky top-0 z-10 bg-background shrink-0 w-full rounded-tl-[12px] rounded-tr-[12px] border-b border-border">
+              <div className="sticky top-0 z-10 bg-background shrink-0 w-full border-b border-border">
                 <div className="content-stretch flex items-center gap-[12px] px-[24px] py-[16px]">
                   <button
                     onClick={handleBackFromReview}
@@ -933,13 +788,11 @@ export default function ListingFlow() {
                     Review Listing
                   </p>
                   <div className="flex-1" />
-                  {/* Spacer for centering */}
                   <div className="w-[140px]" />
                 </div>
               </div>
 
-              {/* Full-width Listing Summary */}
-              <div className="flex-1 bg-background rounded-bl-[12px] rounded-br-[12px]">
+              <div className="flex-1 bg-background">
                 <ListingSummaryDynamic
                   selectedMarketplaceIds={selectedMarketplaces}
                   onSelectMarketplaces={handleGoToMarketplaces}
@@ -950,8 +803,6 @@ export default function ListingFlow() {
                   shippingCompleted={shippingCompleted}
                   onPublish={handlePublish}
                   isReviewMode={true}
-                  missingRequiredFields={missingRequiredFields}
-                  autosaveState={autosaveState}
                   onBackToEdit={handleBackToEditFromReview}
                   marketplaceCustomizations={marketplaceCustomizations}
                   onPreviewMarketplace={setPreviewMarketplace}
@@ -959,120 +810,144 @@ export default function ListingFlow() {
               </div>
             </div>
 
-            {/* Edit Mode - kept mounted but hidden when in review mode */}
             <div
-              ref={editScrollContainerRef}
-              className={`flex-1 overflow-y-auto overflow-x-hidden flex gap-0 border border-border rounded-[12px] relative ml-[-4px] mr-[0px] my-[0px] ${isReviewMode ? "hidden" : ""}`}
+              className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-border bg-background ${isReviewMode ? "hidden" : ""}`}
             >
-              {/* Left Panel - Create Item Sections */}
-              <div className="flex-1 min-w-0">
-                <CreateItemLayout
-                  progressSections={progressSections}
-                  completionCount={completedSectionCount}
-                  onJumpToSection={(sectionId) => openSection(sectionId as ListingSectionMeta["id"])}
-                  reviewStatus={reviewStatus}
-                  activeSectionId={activeEditSection}
-                  activeSectionContext={activeEditContext}
-                  children={{
-                    photos: (
-                      <PhotosStep
-                        onContinue={handleContinueFromPhotos}
-                        isCollapsed={isPhotosCollapsed}
-                        onToggleExpand={handleTogglePhotosExpand}
-                        autosaveState={autosaveState}
-                        initialPhotos={uploadedPhotos}
-                      />
-                    ),
-                    itemDetails: (
-                      <ItemDetailsContent
-                        initialData={aiGeneratedDetails}
-                        shouldExpand={shouldExpandItemDetails}
-                        onExpandChange={() => setShouldExpandItemDetails(false)}
-                        onContinue={handleContinueFromItemDetails}
-                        onDetailsChange={setItemDetails}
-                        shouldCollapse={shouldCollapseItemDetails}
-                        onCollapseChange={() =>
-                          setShouldCollapseItemDetails(false)
-                        }
-                        onManualExpand={handleManualExpandItemDetails}
-                      />
-                    ),
-                    marketplaces: (
-                      <MarketplacesContent
-                        shouldExpand={shouldExpandMarketplaces}
-                        onExpandChange={() =>
-                          setShouldExpandMarketplaces(false)
-                        }
-                        onContinue={handleContinueFromMarketplaces}
-                        selectedMarketplaces={selectedMarketplaces}
-                        onMarketplacesChange={setSelectedMarketplaces}
-                        marketplaceCustomizations={marketplaceCustomizations}
-                        onEditMarketplace={handleEditMarketplace}
-                        shouldCollapse={shouldCollapseMarketplaces}
-                        onCollapseChange={() =>
-                          setShouldCollapseMarketplaces(false)
-                        }
-                        onManualExpand={handleManualExpandMarketplaces}
-                      />
-                    ),
-                    pricing: (
-                      <PricingContent
-                        isAIGenerated={wasAIGeneratedFromPhotos}
-                        hasUsedAI={wasAIGeneratedFromPhotos}
-                        shouldExpand={shouldExpandPricing}
-                        onExpandChange={() => setShouldExpandPricing(false)}
-                        onContinue={handleContinueFromPricing}
-                        onPriceChange={setListingPrice}
-                        initialPrice={
-                          itemDetails?.suggestedPrice
-                            ? itemDetails.suggestedPrice.replace(/[^0-9.]/g, "")
-                            : undefined
-                        }
-                        shouldCollapse={shouldCollapsePricing}
-                        onCollapseChange={() => setShouldCollapsePricing(false)}
-                        onManualExpand={handleManualExpandPricing}
-                      />
-                    ),
-                    shipping: (
-                      <ShippingContent
-                        isAIGenerated={wasAIGeneratedFromPhotos}
-                        shouldExpand={shouldExpandShipping}
-                        onExpandChange={() => setShouldExpandShipping(false)}
-                        shouldCollapse={shouldCollapseShipping}
-                        onCollapseChange={() =>
-                          setShouldCollapseShipping(false)
-                        }
-                        onManualExpand={handleManualExpandShipping}
-                        onContinue={handleContinueFromShipping}
-                        uploadedPhotos={uploadedPhotos}
-                        onShippingMethodChange={setSelectedShippingMethod}
-                      />
-                    ),
-                  }}
-                />
-              </div>
-
-              {/* Vertical Divider */}
-              <div
-                className="sticky top-0 h-screen w-[1px] bg-border z-[10] mx-[-4px] my-[0px]"
-                style={{ left: "calc(100% - 320px)" }}
+              <CreateItemShellHeader
+                progressSections={progressSections}
+                completionCount={completedSectionCount}
+                onJumpToSection={scrollToSection}
+                reviewStatus={reviewStatus}
+                activeSectionId={activeEditSection}
+                activeSectionContext={activeEditContext}
+                sticky={false}
               />
 
-              {/* Right Panel - Listing Summary with background wrapper */}
-              <div className="w-[320px] bg-background shrink-0 rounded-tr-[12px] rounded-br-[12px] h-full flex-col relative z-[1]">
-                <ListingSummaryDynamic
-                  selectedMarketplaceIds={selectedMarketplaces}
-                  onSelectMarketplaces={handleGoToMarketplaces}
-                  onEditMarketplace={handleEditMarketplace}
-                  photos={uploadedPhotos}
-                  itemDetails={itemDetails}
-                  price={listingPrice}
-                  shippingCompleted={shippingCompleted}
-                  onPublish={handleGoToReview}
-                  marketplaceCustomizations={marketplaceCustomizations}
-                  missingRequiredFields={missingRequiredFields}
-                  autosaveState={autosaveState}
-                />
+              <div className="flex min-h-0 flex-1">
+                <aside className="w-[360px] shrink-0 overflow-y-auto border-r border-border bg-background">
+                  <div className="px-[12px] py-[24px]">
+                    <ListingSummaryDynamic
+                      selectedMarketplaceIds={selectedMarketplaces}
+                      onSelectMarketplaces={handleGoToMarketplaces}
+                      onEditMarketplace={handleEditMarketplace}
+                      photos={uploadedPhotos}
+                      itemDetails={itemDetails}
+                      price={listingPrice}
+                      shippingCompleted={shippingCompleted}
+                      onPublish={handleGoToReview}
+                      marketplaceCustomizations={marketplaceCustomizations}
+                      showShellHeader={false}
+                    />
+                  </div>
+                </aside>
+
+                <div
+                  ref={editScrollContainerRef}
+                  className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-background"
+                >
+                  <CreateItemLayout
+                    progressSections={progressSections}
+                    completionCount={completedSectionCount}
+                    onJumpToSection={scrollToSection}
+                    reviewStatus={reviewStatus}
+                    activeSectionId={activeEditSection}
+                    activeSectionContext={activeEditContext}
+                    showShellHeader={false}
+                    children={{
+                      photos: (
+                        <PhotosStep
+                          onContinue={handleContinueFromPhotos}
+                          isCollapsed={isPhotosCollapsed}
+                          onToggleExpand={handleTogglePhotosExpand}
+                        />
+                      ),
+                      titleDescription: (
+                        <TitleDescriptionContent
+                          initialData={itemDetails}
+                          shouldExpand={shouldExpandTitleDescription}
+                          onExpandChange={() =>
+                            setShouldExpandTitleDescription(false)
+                          }
+                          onContinue={handleContinueFromTitleDescription}
+                          onDetailsChange={handleItemDetailsPatch}
+                          shouldCollapse={shouldCollapseTitleDescription}
+                          onCollapseChange={() =>
+                            setShouldCollapseTitleDescription(false)
+                          }
+                          onManualExpand={handleManualExpandTitleDescription}
+                          isGeneratedFromPhotos={wasAIGeneratedFromPhotos}
+                        />
+                      ),
+                      itemDetails: (
+                        <ItemDetailsContent
+                          initialData={itemDetails}
+                          shouldExpand={shouldExpandItemDetails}
+                          onExpandChange={() => setShouldExpandItemDetails(false)}
+                          onContinue={handleContinueFromItemDetails}
+                          onDetailsChange={handleItemDetailsPatch}
+                          shouldCollapse={shouldCollapseItemDetails}
+                          onCollapseChange={() =>
+                            setShouldCollapseItemDetails(false)
+                          }
+                          onManualExpand={handleManualExpandItemDetails}
+                          hideTitleDescription
+                          stepNumber={3}
+                        />
+                      ),
+                      marketplaces: (
+                        <MarketplacesContent
+                          shouldExpand={shouldExpandMarketplaces}
+                          onExpandChange={() =>
+                            setShouldExpandMarketplaces(false)
+                          }
+                          onContinue={handleContinueFromMarketplaces}
+                          selectedMarketplaces={selectedMarketplaces}
+                          onMarketplacesChange={setSelectedMarketplaces}
+                          marketplaceCustomizations={marketplaceCustomizations}
+                          onEditMarketplace={handleEditMarketplace}
+                          shouldCollapse={shouldCollapseMarketplaces}
+                          onCollapseChange={() =>
+                            setShouldCollapseMarketplaces(false)
+                          }
+                          onManualExpand={handleManualExpandMarketplaces}
+                        />
+                      ),
+                      pricing: (
+                        <PricingContent
+                          isAIGenerated={wasAIGeneratedFromPhotos}
+                          hasUsedAI={wasAIGeneratedFromPhotos}
+                          shouldExpand={shouldExpandPricing}
+                          onExpandChange={() => setShouldExpandPricing(false)}
+                          onContinue={handleContinueFromPricing}
+                          onPriceChange={setListingPrice}
+                          initialPrice={
+                            itemDetails?.suggestedPrice
+                              ? itemDetails.suggestedPrice.replace(/[^0-9.]/g, "")
+                              : undefined
+                          }
+                          shouldCollapse={shouldCollapsePricing}
+                          onCollapseChange={() => setShouldCollapsePricing(false)}
+                          onManualExpand={handleManualExpandPricing}
+                        />
+                      ),
+                      shipping: (
+                        <ShippingContent
+                          isAIGenerated={wasAIGeneratedFromPhotos}
+                          shouldExpand={shouldExpandShipping}
+                          onExpandChange={() => setShouldExpandShipping(false)}
+                          shouldCollapse={shouldCollapseShipping}
+                          onCollapseChange={() =>
+                            setShouldCollapseShipping(false)
+                          }
+                          onManualExpand={handleManualExpandShipping}
+                          onContinue={handleContinueFromShipping}
+                          uploadedPhotos={uploadedPhotos}
+                          onShippingMethodChange={setSelectedShippingMethod}
+                        />
+                      ),
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </>

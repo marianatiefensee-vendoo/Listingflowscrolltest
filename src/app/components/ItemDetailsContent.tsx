@@ -14,10 +14,12 @@ interface ItemDetailsContentProps {
   shouldExpand?: boolean;
   onExpandChange?: () => void;
   onContinue?: () => void;
-  onDetailsChange?: (details: ItemDetails) => void;
+  onDetailsChange?: (details: Partial<ItemDetails>) => void;
   shouldCollapse?: boolean;
   onCollapseChange?: () => void;
   onManualExpand?: () => void;
+  hideTitleDescription?: boolean;
+  stepNumber?: number;
 }
 
 type AIConfidenceLevel = "High" | "Medium" | "Low";
@@ -242,7 +244,18 @@ function ConditionSegmentButton({
   );
 }
 
-export default function ItemDetailsContent({ initialData, shouldExpand, onExpandChange, onContinue, onDetailsChange, shouldCollapse, onCollapseChange, onManualExpand }: ItemDetailsContentProps) {
+export default function ItemDetailsContent({
+  initialData,
+  shouldExpand,
+  onExpandChange,
+  onContinue,
+  onDetailsChange,
+  shouldCollapse,
+  onCollapseChange,
+  onManualExpand,
+  hideTitleDescription = false,
+  stepNumber = 2,
+}: ItemDetailsContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasReceivedAIData, setHasReceivedAIData] = useState(false);
 
@@ -288,8 +301,12 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
   const aiConfidence: AIConfidenceLevel = hasReceivedAIData ? "High" : title || description ? "Medium" : "Low";
 
   const requiredFields = [
-    { label: "Title", value: title },
-    { label: "Description", value: description },
+    ...(hideTitleDescription
+      ? []
+      : [
+          { label: "Title", value: title },
+          { label: "Description", value: description },
+        ]),
     { label: "Brand", value: brand },
     { label: "Category", value: category },
     { label: "Size", value: size },
@@ -495,6 +512,12 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
     }
   }, [initialData, hasReceivedAIData]);
 
+  useEffect(() => {
+    if (!hideTitleDescription) return;
+    setTitle(initialData?.title ?? "");
+    setDescription(initialData?.description ?? "");
+  }, [hideTitleDescription, initialData?.description, initialData?.title]);
+
   // Notify parent of details changes (includes size & tags for summary validation)
   useEffect(() => {
     if (title || description || category || brand || condition || size) {
@@ -559,7 +582,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                     <div className="bg-secondary content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
                       <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
                         <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-white tracking-[0.5px] whitespace-nowrap">
-                          <p className="leading-[24px]">3</p>
+                          <p className="leading-[24px]">{stepNumber}</p>
                         </div>
                       </div>
                     </div>
@@ -647,7 +670,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
             <div className="content-stretch flex flex-col gap-[22px] items-start justify-center p-[24px] relative w-full">
               {/* Input Fields */}
               <div className="content-stretch flex flex-col gap-[22px] items-start relative shrink-0 w-full">
-                {(hasReceivedAIData || isTitleAIGenerated || isDescriptionAIGenerated) && (
+                {!hideTitleDescription && (hasReceivedAIData || isTitleAIGenerated || isDescriptionAIGenerated) && (
                   <AIInsightCard
                     confidence={aiConfidence}
                     basedOn="Reasoning: visible style, category clues, and item details detected in the uploaded photos"
@@ -660,7 +683,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                     }
                   />
                 )}
-                {/* Title and Description */}
+                {!hideTitleDescription && (
                 <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
                   {/* Title */}
                   <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
@@ -823,6 +846,7 @@ export default function ItemDetailsContent({ initialData, shouldExpand, onExpand
                     </div>
                   </div>
                 </div>
+                )}
 
                 <div 
                   className="content-stretch flex flex-col gap-[22px] items-start relative shrink-0 w-full"
