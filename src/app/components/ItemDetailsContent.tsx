@@ -1,7 +1,6 @@
 import { useState, useEffect, type ReactNode } from "react";
 import svgPaths from "../../imports/svg-nl9hp3fmvu";
 import conditionSvgPaths from "../../imports/svg-eidwq1eo1i";
-import completedSvgPaths from "../../imports/svg-qt0lwj09d3";
 import Dropdown from "./Dropdown";
 import type { ItemDetails } from "../App";
 import {
@@ -559,7 +558,7 @@ export default function ItemDetailsContent({
 
   return (
     <div className="bg-[#F2EBF9] content-stretch flex flex-col items-start overflow-clip relative rounded-[12px] w-full">
-      <div aria-hidden="true" className="absolute border border-primary border-solid inset-[-1px] pointer-events-none rounded-[13px]" />
+      <div aria-hidden="true" className="absolute inset-[-1px] rounded-[13px] border border-[#CBC3D7] border-solid pointer-events-none" />
       
       {/* Top Content */}
       <div 
@@ -567,7 +566,9 @@ export default function ItemDetailsContent({
           isExpanded ? 'rounded-tl-[12px] rounded-tr-[12px]' : 'rounded-[12px]'
         }`}
       >
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[#CBC3D7]" />
+        {isExpanded ? (
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[#CBC3D7]" />
+        ) : null}
         {/* Unified Header */}
         <div
           className={`relative shrink-0 w-full ${!isExpanded ? 'cursor-pointer' : ''}`}
@@ -579,7 +580,7 @@ export default function ItemDetailsContent({
               <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-center min-h-px min-w-px relative">
                 <div className="content-stretch flex items-start relative shrink-0">
                   <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                    <div className="bg-secondary content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
+                    <div className="bg-secondary border-[1.5px] border-secondary content-stretch flex gap-[10px] items-center relative rounded-[16px] shrink-0 size-[32px]">
                       <div className="content-stretch flex flex-[1_0_0] h-full items-center justify-center min-h-px min-w-px relative">
                         <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-[var(--text-base)] text-center text-white tracking-[0.5px] whitespace-nowrap">
                           <p className="leading-[24px]">{stepNumber}</p>
@@ -587,7 +588,7 @@ export default function ItemDetailsContent({
                       </div>
                     </div>
                     <div className="content-stretch flex items-center justify-center relative shrink-0">
-                      <p className="font-['Lexend',sans-serif] font-[var(--font-weight-medium)] leading-[32px] relative shrink-0 text-[24px] text-muted-foreground whitespace-nowrap">
+                      <p className="font-['Lexend',sans-serif] font-[var(--font-weight-normal)] leading-[32px] relative shrink-0 text-[24px] text-[#494455] whitespace-nowrap">
                         Item Details
                       </p>
                     </div>
@@ -609,50 +610,21 @@ export default function ItemDetailsContent({
                 <div className="relative shrink-0 size-[48px]">
                   <div className="-translate-x-1/2 -translate-y-1/2 absolute content-stretch flex flex-col items-center justify-center left-[calc(50%-0.5px)] overflow-clip rounded-[100px] top-1/2 w-[40px]">
                     <div className="content-stretch flex h-[40px] items-center justify-center relative shrink-0 w-full">
-                      {isExpanded ? (
-                        <div className="overflow-clip relative shrink-0 size-[24px]">
-                          <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
-                            <svg
-                              className="absolute block size-full transition-transform duration-300"
-                              fill="none"
-                              preserveAspectRatio="none"
-                              viewBox="0 0 19.9993 11.3458"
-                              style={{
-                                transform: "rotate(180deg)",
-                              }}
-                            >
-                              <path d={svgPaths.p28797e80} fill="var(--fill-0, var(--foreground))" />
-                            </svg>
-                          </div>
+                      <div className="overflow-clip relative shrink-0 size-[24px]">
+                        <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
+                          <svg
+                            className="absolute block size-full transition-transform duration-300"
+                            fill="none"
+                            preserveAspectRatio="none"
+                            viewBox="0 0 19.9993 11.3458"
+                            style={{
+                              transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                            }}
+                          >
+                            <path d={svgPaths.p28797e80} fill="var(--fill-0, var(--muted-foreground))" />
+                          </svg>
                         </div>
-                      ) : isCompleted ? (
-                        <div className="overflow-clip relative shrink-0 size-[24px]">
-                          <div className="-translate-x-1/2 -translate-y-1/2 absolute h-[18.183px] left-[calc(50%-0.5px)] top-[calc(50%+0.09px)] w-[19px]">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19 18.1834">
-                              <g>
-                                <path clipRule="evenodd" d={completedSvgPaths.p1e751200} fill="var(--fill-0, var(--muted-foreground))" fillRule="evenodd" />
-                                <path d={completedSvgPaths.p3a455080} fill="var(--fill-0, var(--muted-foreground))" />
-                              </g>
-                            </svg>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="overflow-clip relative shrink-0 size-[24px]">
-                          <div className="absolute inset-[26.36%_8.34%_26.36%_8.33%]">
-                            <svg
-                              className="absolute block size-full transition-transform duration-300"
-                              fill="none"
-                              preserveAspectRatio="none"
-                              viewBox="0 0 19.9993 11.3458"
-                              style={{
-                                transform: "rotate(0deg)",
-                              }}
-                            >
-                              <path d={svgPaths.p28797e80} fill="var(--fill-0, var(--foreground))" />
-                            </svg>
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
