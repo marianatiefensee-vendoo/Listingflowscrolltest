@@ -424,7 +424,12 @@ export default function CreateItemLayout({
           </div>
 
           <div id="listing-details" data-step="details">
-            <SectionWrapper section={progressSections[2]} index={2} activeContext={activeSectionId === "itemDetails" ? activeSectionContext : null}>
+            <SectionWrapper
+              section={progressSections[2]}
+              index={2}
+              activeContext={activeSectionId === "itemDetails" ? activeSectionContext : null}
+              variant="bare"
+            >
               {children.itemDetails}
             </SectionWrapper>
           </div>
