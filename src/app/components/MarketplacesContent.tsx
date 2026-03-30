@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import svgPaths from "../../imports/svg-towfc7zrfc";
-import imgEbay from "figma:asset/fc302d572214546f8204178ed8fb7d0af8c7506e.png";
-import imgMercari from "figma:asset/818d7c9ebebd26d98ee60737907006a9b258dce3.png";
-import imgDepop from "figma:asset/9fc19e9b972ada34a5069710f93ea92cd4258fea.png";
-import imgFacebook from "figma:asset/55ad25062cf42038188e8437b6d83a149a822f83.png";
 import type { MarketplaceCustomization } from "../App";
+import { MARKETPLACES, type MarketplaceDefinition } from "../data/marketplaces";
 
 interface MarketplacesContentProps {
   shouldExpand?: boolean;
@@ -19,71 +16,24 @@ interface MarketplacesContentProps {
   onManualExpand?: () => void;
 }
 
-interface MarketplaceOption {
-  id: string;
-  name: string;
-  image: string;
-  connected: boolean;
-}
-
-function LinkOffIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-[20px]"
-      fill="none"
-      viewBox="0 0 20 20"
-    >
-      <path
-        d="M12.72 6.22a3.333 3.333 0 0 1 4.714 4.715l-1.886 1.886a3.333 3.333 0 0 1-4.333.31"
-        stroke="var(--foreground-dim)"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M7.28 13.78a3.333 3.333 0 0 1-4.714-4.715l1.886-1.886a3.333 3.333 0 0 1 4.333-.31"
-        stroke="var(--foreground-dim)"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-      <path
-        d="m6.25 13.75 7.5-7.5"
-        stroke="var(--foreground-dim)"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
 function MarketplaceTile({
   marketplace,
   selected,
   onToggle,
 }: {
-  marketplace: MarketplaceOption;
+  marketplace: MarketplaceDefinition;
   selected: boolean;
   onToggle: () => void;
 }) {
-  const isDisconnected = !marketplace.connected;
-
   return (
     <button
       type="button"
-      onClick={isDisconnected ? undefined : onToggle}
-      aria-disabled={isDisconnected}
+      onClick={onToggle}
       className={`relative w-full rounded-[4px] border border-border text-left transition-colors ${
         selected ? "bg-primary/8" : "bg-card"
-      } ${isDisconnected ? "cursor-default" : "cursor-pointer"}`}
+      } cursor-pointer`}
     >
-      <div
-        className={`flex items-center gap-[12px] px-[16px] py-[10px] ${
-          isDisconnected ? "opacity-38" : ""
-        }`}
-      >
+      <div className="flex items-center gap-[12px] px-[16px] py-[10px]">
         <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-card">
           <div className="relative size-[56px] rounded-[4px] border border-foreground-dim">
             <img
@@ -98,19 +48,10 @@ function MarketplaceTile({
           <p className="font-['Lexend',sans-serif] text-[16px] font-[var(--font-weight-normal)] leading-[24px] tracking-[0.5px] text-foreground">
             {marketplace.name}
           </p>
-          {isDisconnected && (
-            <p className="font-['Lexend',sans-serif] text-[12px] font-[var(--font-weight-normal)] leading-[16px] tracking-[0.4px] text-foreground">
-              Go to marketplace to connect
-            </p>
-          )}
         </div>
 
         <div className="flex shrink-0 items-center justify-center p-[4px]">
-          {isDisconnected ? (
-            <div className="flex size-[24px] items-center justify-center">
-              <LinkOffIcon />
-            </div>
-          ) : selected ? (
+          {selected ? (
             <div className="relative size-[24px] rounded-[4px] bg-primary">
               <div className="absolute inset-0 flex items-center justify-center">
                 <svg
@@ -135,7 +76,6 @@ function MarketplaceTile({
 export default function MarketplacesContent({
   shouldExpand,
   onExpandChange,
-  onContinue,
   selectedMarketplaces,
   onMarketplacesChange,
   shouldCollapse,
@@ -158,23 +98,11 @@ export default function MarketplacesContent({
     }
   }, [shouldCollapse, onCollapseChange]);
 
-  const marketplaces: MarketplaceOption[] = [
-    { id: "ebay", name: "eBay", image: imgEbay, connected: true },
-    { id: "mercari", name: "Mercari", image: imgMercari, connected: true },
-    { id: "depop", name: "Depop", image: imgDepop, connected: true },
-    { id: "facebook", name: "Facebook", image: imgFacebook, connected: true },
-  ];
-
   const toggleMarketplace = (id: string) => {
     const newMarketplaces = selectedMarketplaces.includes(id)
       ? selectedMarketplaces.filter((marketplaceId) => marketplaceId !== id)
       : [...selectedMarketplaces, id];
     onMarketplacesChange(newMarketplaces);
-  };
-
-  const handleContinue = () => {
-    setIsExpanded(false);
-    onContinue?.();
   };
 
   const handleHeaderClick = () => {
@@ -183,6 +111,8 @@ export default function MarketplacesContent({
       onManualExpand?.();
     }
   };
+
+  const marketplaceColumns = [MARKETPLACES.slice(0, 5), MARKETPLACES.slice(5)];
 
   return (
     <div
@@ -248,41 +178,22 @@ export default function MarketplacesContent({
 
       {isExpanded && (
         <div className="px-[24px] py-[24px]">
-          <div className="grid gap-x-[12px] gap-y-[2px] md:grid-cols-2">
-            {marketplaces.map((marketplace) => (
-              <MarketplaceTile
-                key={marketplace.id}
-                marketplace={marketplace}
-                selected={selectedMarketplaces.includes(marketplace.id)}
-                onToggle={() => toggleMarketplace(marketplace.id)}
-              />
-            ))}
-          </div>
-
-          <div className="mt-[24px] flex justify-end">
-            <button
-              type="button"
-              onClick={handleContinue}
-              className="flex h-[48px] items-center justify-center rounded-[var(--radius)] bg-secondary"
-            >
-              <div className="flex items-center gap-[10px] px-[16px] py-[10px]">
-                <span className="px-[4px] font-['Lexend',sans-serif] text-[14px] font-[var(--font-weight-medium)] leading-[20px] tracking-[0.1px] text-primary-dim">
-                  Set pricing
-                </span>
-                <div className="relative size-[20px] overflow-hidden">
-                  <div className="absolute bottom-[8.34%] left-1/4 right-[27.73%] top-[8.33%]">
-                    <svg
-                      className="absolute block size-full"
-                      fill="none"
-                      preserveAspectRatio="none"
-                      viewBox="0 0 9.45486 16.666"
-                    >
-                      <path d={svgPaths.p23f63600} fill="var(--fill-0, var(--primary-dim))" />
-                    </svg>
-                  </div>
-                </div>
+          <div className="flex flex-col gap-[10px] md:flex-row md:items-start">
+            {marketplaceColumns.map((column, columnIndex) => (
+              <div
+                key={columnIndex}
+                className="flex min-w-0 flex-1 flex-col gap-[2px]"
+              >
+                {column.map((marketplace) => (
+                  <MarketplaceTile
+                    key={marketplace.id}
+                    marketplace={marketplace}
+                    selected={selectedMarketplaces.includes(marketplace.id)}
+                    onToggle={() => toggleMarketplace(marketplace.id)}
+                  />
+                ))}
               </div>
-            </button>
+            ))}
           </div>
         </div>
       )}

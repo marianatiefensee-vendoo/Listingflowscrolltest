@@ -1,10 +1,7 @@
 import { Marketplace, ItemDetails } from "../App";
 import svgPaths from "../../imports/svg-3ih8kwlw3p";
 import IconSuccess from "../../imports/IconSuccess";
-import imgEbay from "figma:asset/fc302d572214546f8204178ed8fb7d0af8c7506e.png";
-import imgMercari from "figma:asset/818d7c9ebebd26d98ee60737907006a9b258dce3.png";
-import imgDepop from "figma:asset/9fc19e9b972ada34a5069710f93ea92cd4258fea.png";
-import imgFacebook from "figma:asset/55ad25062cf42038188e8437b6d83a149a822f83.png";
+import { MARKETPLACES, MARKETPLACE_NAME_BY_ID } from "../data/marketplaces";
 
 interface ListingSuccessPageProps {
   photos: string[];
@@ -15,20 +12,7 @@ interface ListingSuccessPageProps {
   onGoToInventory: () => void;
 }
 
-const allMarketplaces: Marketplace[] = [
-  { id: "ebay", name: "eBay", image: imgEbay, connected: true },
-  { id: "mercari", name: "Mercari", image: imgMercari, connected: true },
-  { id: "depop", name: "Depop", image: imgDepop, connected: true },
-  { id: "facebook", name: "Facebook", image: imgFacebook, connected: true },
-];
-
-// Map marketplace IDs to display names for the status section
-const marketplaceDisplayNames: Record<string, string> = {
-  ebay: "eBay",
-  mercari: "Poshmark",
-  depop: "Mercari",
-  facebook: "Facebook",
-};
+const allMarketplaces: Marketplace[] = MARKETPLACES;
 
 export default function ListingSuccessPage({
   photos,
@@ -239,7 +223,7 @@ export default function ListingSuccessPage({
                                 </div>
                                 <div className="content-stretch flex flex-col items-start relative shrink-0">
                                   <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-medium)] justify-center leading-[0] relative shrink-0 text-foreground text-[var(--text-sm)] tracking-[0.1px] whitespace-nowrap">
-                                    <p className="leading-[20px]">{marketplaceDisplayNames[marketplace.id] || marketplace.name}</p>
+                                    <p className="leading-[20px]">{MARKETPLACE_NAME_BY_ID[marketplace.id] || marketplace.name}</p>
                                   </div>
                                   <div className="flex flex-col font-['Lexend',sans-serif] font-[var(--font-weight-normal)] justify-center leading-[0] relative shrink-0 text-foreground-dim text-[var(--text-xs)] tracking-[0.4px] whitespace-nowrap">
                                     <p className="leading-[16px]">Open marketplace listing</p>
