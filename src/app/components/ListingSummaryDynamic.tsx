@@ -11,10 +11,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "./ui/tooltip";
-import imgEbay from "figma:asset/fc302d572214546f8204178ed8fb7d0af8c7506e.png";
-import imgMercari from "figma:asset/818d7c9ebebd26d98ee60737907006a9b258dce3.png";
-import imgDepop from "figma:asset/9fc19e9b972ada34a5069710f93ea92cd4258fea.png";
-import imgFacebook from "figma:asset/55ad25062cf42038188e8437b6d83a149a822f83.png";
+import { MARKETPLACES } from "../data/marketplaces";
 
 interface ListingSummaryDynamicProps {
   selectedMarketplaceIds: string[];
@@ -41,27 +38,7 @@ interface ListingSummaryDynamicProps {
   autosaveState?: "idle" | "saving" | "saved";
 }
 
-const allMarketplaces: Marketplace[] = [
-  { id: "ebay", name: "eBay", image: imgEbay, connected: true },
-  {
-    id: "mercari",
-    name: "Mercari",
-    image: imgMercari,
-    connected: true,
-  },
-  {
-    id: "depop",
-    name: "Depop",
-    image: imgDepop,
-    connected: true,
-  },
-  {
-    id: "facebook",
-    name: "Facebook",
-    image: imgFacebook,
-    connected: true,
-  },
-];
+const allMarketplaces: Marketplace[] = MARKETPLACES;
 
 function getCustomizationSummary(
   customization: import("../App").MarketplaceCustomization | undefined,

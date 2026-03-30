@@ -445,10 +445,12 @@ export default function CreateItemLayout({
             </SectionWrapper>
           </div>
 
-          <div id="listing-marketplaces" data-step="marketplaces">
-            <SectionWrapper section={progressSections[2]} index={2} activeContext={activeSectionId === "marketplaces" ? activeSectionContext : null}>
-              {children.marketplaces}
-            </SectionWrapper>
+          <div
+            id="listing-marketplaces"
+            data-step="marketplaces"
+            className="scroll-mt-[230px]"
+          >
+            {children.marketplaces}
           </div>
 
           <div id="listing-price-shipping" data-step="price-shipping" className="flex flex-col gap-[28px]">

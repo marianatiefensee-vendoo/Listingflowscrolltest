@@ -4,6 +4,7 @@ import switchOffSvg from "../../imports/svg-37tvrvwjvg";
 import switchOnSvg from "../../imports/svg-52bxhaqkk3";
 
 import type { MarketplaceCustomization } from "../App";
+import { MARKETPLACE_NAME_BY_ID } from "../data/marketplaces";
 
 // ─── Dropdown chevron icon (same as Dropdown.tsx) ───
 const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
@@ -223,7 +224,7 @@ function SubFieldLabel({ children, disabled = false }: { children: React.ReactNo
 
 // Helper for marketplace display name
 function getMarketplaceName(mpId: string) {
-  return mpId === "ebay" ? "eBay" : mpId === "mercari" ? "Mercari" : mpId === "depop" ? "Depop" : mpId === "facebook" ? "Facebook" : mpId;
+  return MARKETPLACE_NAME_BY_ID[mpId] ?? mpId;
 }
 
 // ═══════════════════════════════════════════════════════
