@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vendoo Audit & Fix Design"
+  short_description: "Audit and fix UX/design issues in Figma"
+  default_prompt: "Use $vendoo-audit-and-fix-design to audit this Figma flow for UX, accessibility, and consistency issues, then fix them."
