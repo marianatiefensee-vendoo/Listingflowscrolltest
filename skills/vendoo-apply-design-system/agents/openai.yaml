@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vendoo Design System Apply"
+  short_description: "Standardize Figma UI to Vendoo design system"
+  default_prompt: "Use $vendoo-apply-design-system to clean this Figma file and enforce Vendoo tokens, components, and naming conventions."
