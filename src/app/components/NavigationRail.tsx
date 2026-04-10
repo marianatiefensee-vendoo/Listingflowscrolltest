@@ -16,7 +16,7 @@ type RailIconName =
   | "settings";
 
 const VENDOO_LOGO_ASSET =
-  "https://www.figma.com/api/mcp/asset/e8d23b77-68a4-44ca-a967-b90d944d5c17";
+  "https://drive.google.com/file/d/1zM8hI0ExyQDnQpj6fba_armqZnHgNISZ/view?usp=sharing";
 
 const NAV_ITEMS: Array<{ key: RailIconName; label: string; active?: boolean }> = [
   { key: "inventory", label: "Inventory", active: true },

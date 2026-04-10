@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vendoo Listing Flow"
+  short_description: "Build Vendoo listing flows in Figma"
+  default_prompt: "Use $vendoo-generate-listing-flow to create or update a Vendoo mobile listing flow in Figma."
