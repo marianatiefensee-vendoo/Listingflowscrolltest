@@ -16,7 +16,7 @@ type RailIconName =
   | "settings";
 
 const VENDOO_LOGO_ASSET =
-  "https://drive.google.com/file/d/1zM8hI0ExyQDnQpj6fba_armqZnHgNISZ/view?usp=sharing";
+  "https://blog.vendoo.co/hubfs/raw_assets/public/Vendoo_March2021/images/5f6d234c038cd059bdcfd890_Vendoo%20logo%20A%20Sellers%20Best%20Friend.svg";
 
 const NAV_ITEMS: Array<{ key: RailIconName; label: string; active?: boolean }> = [
   { key: "inventory", label: "Inventory", active: true },
